@@ -1,0 +1,3 @@
+runConfig:
+  minInstances: 0
+  maxInstances: 2  # Prevents Google Cloud from scaling up infinitely during an attack

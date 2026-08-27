@@ -1,0 +1,19 @@
+{
+  "apphosting": [
+    {
+      "backendId": "ng-firebase-tts",
+      "rootDir": "..",
+      "ignore": ["node_modules", ".git", "firebase-debug.log", "firebase-debug.*.log", "functions"]
+    }
+  ],
+  "emulators": {
+    "apphosting": {
+      "port": 5005,
+      "rootDirectory": "..",
+      "startCommand": "npm run start"
+    },
+    "ui": {
+      "enabled": true
+    }
+  }
+}

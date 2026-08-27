@@ -4,13 +4,18 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "prebuild": "node firebase/scripts/prebuild.js",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",
     "prepare": "husky",
+    "format": "prettier --write \"src/**/*.{ts,js,html}\" \"*.{mjs,json}\"",
     "preview": "npm run build && npx serve dist/ng-firebase-tts/browser -p 5005",
-    "format": "prettier --write \"src/**/*.{ts,js,html}\" \"*.{mjs,json}\""
+    "preview:emulator": "npm run build && npx serve dist/ng-firebase-tts/browser --listen $PORT",
+    "firebase:emulate": "cd firebase; firebase emulators:start --project default",
+    "config:fetch": "node firebase/scripts/get-firebase-remote-config.js",
+    "config:generate": "node firebase/scripts/generate-firebase-config.js"
   },
   "private": true,
   "packageManager": "npm@12.0.2",
@@ -21,6 +26,7 @@
     "@angular/forms": "^22.0.0",
     "@angular/platform-browser": "^22.0.0",
     "@angular/router": "^22.0.0",
+    "firebase": "12.18.0",
     "rxjs": "~7.8.2",
     "tslib": "^2.3.0"
   },
