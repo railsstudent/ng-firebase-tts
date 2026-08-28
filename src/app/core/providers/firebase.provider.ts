@@ -1,36 +1,9 @@
-import { AI_MODEL } from '@/core/constants/firebase.constant';
+import { AI_BACKEND, SAFETY_SETTINGS, VISION_AI_MODEL } from '@/core/constants/firebase.constant';
 import { ImageAnalysisSchema } from '@/core/schemas/image-analysis.schema';
 import { ConfigService } from '@/core/services/config.service';
 import { inject, makeEnvironmentProviders } from '@angular/core';
-import {
-  AgentPlatformBackend,
-  getAI,
-  getGenerativeModel,
-  HarmBlockThreshold,
-  HarmCategory,
-  ThinkingLevel,
-} from 'firebase/ai';
-import { FirebaseApp } from 'firebase/app';
+import { AgentPlatformBackend, getAI, getGenerativeModel, ThinkingLevel } from 'firebase/ai';
 import { getValue, RemoteConfig } from 'firebase/remote-config';
-
-const SAFETY_SETTINGS = [
-  {
-    category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-    threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-  },
-  {
-    category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-    threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-  },
-  {
-    category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-    threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-  },
-  {
-    category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-    threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-  },
-];
 
 const TOOLS = [
   {
@@ -38,15 +11,12 @@ const TOOLS = [
   },
 ];
 
-function getGenerativeAIModel(firebaseApp: FirebaseApp, remoteConfig: RemoteConfig) {
+function getGenerativeAIModel(remoteConfig: RemoteConfig) {
   const model = getValue(remoteConfig, 'geminiModelName').asString();
-  const vertexAILocation = getValue(remoteConfig, 'vertexAILocation').asString();
   const rawThinkingLevel = getValue(remoteConfig, 'thinkingLevel').asString();
   const thinkingLevel = ThinkingLevel[rawThinkingLevel as keyof typeof ThinkingLevel];
 
-  const ai = getAI(firebaseApp, { backend: new AgentPlatformBackend(vertexAILocation) });
-
-  return getGenerativeModel(ai, {
+  return getGenerativeModel(inject(AI_BACKEND), {
     model,
     generationConfig: {
       responseMimeType: 'application/json',
@@ -64,21 +34,33 @@ function getGenerativeAIModel(firebaseApp: FirebaseApp, remoteConfig: RemoteConf
 export function provideFirebase() {
   return makeEnvironmentProviders([
     {
-      provide: AI_MODEL,
+      provide: AI_BACKEND,
       useFactory: () => {
         const configService = inject(ConfigService);
+        const vertexAILocation = getValue(
+          configService.remoteConfig,
+          'vertexAILocation',
+        ).asString();
 
-        if (!configService.remoteConfig) {
-          console.error('Remote config does not exist.');
-          return undefined;
-        }
+        const useLimitedUseAppCheckTokens = getValue(
+          configService.remoteConfig,
+          'useLimitedUseAppCheckTokens',
+        ).asBoolean();
 
-        if (!configService.firebaseApp) {
-          console.error('Firebase App does not exist');
-          return undefined;
-        }
+        console.log('vertexAILocation', vertexAILocation);
+        console.log('useLimitedUseAppCheckTokens', useLimitedUseAppCheckTokens);
 
-        return getGenerativeAIModel(configService.firebaseApp, configService.remoteConfig);
+        return getAI(configService.firebaseApp, {
+          backend: new AgentPlatformBackend(vertexAILocation),
+          useLimitedUseAppCheckTokens,
+        });
+      },
+    },
+    {
+      provide: VISION_AI_MODEL,
+      useFactory: () => {
+        const configService = inject(ConfigService);
+        return getGenerativeAIModel(configService.remoteConfig);
       },
     },
   ]);

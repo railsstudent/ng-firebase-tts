@@ -1,9 +1,9 @@
-import { AI_MODEL } from '@/core/constants/firebase.constant';
+import { VISION_AI_MODEL } from '@/core/constants/firebase.constant';
 import { TestBed } from '@angular/core/testing';
-import { FirebaseService } from './firebase.service';
+import { VisionService } from './vision.service';
 
-describe('FirebaseService', () => {
-  let service: FirebaseService;
+describe('VisionService', () => {
+  let service: VisionService;
   let aiModelMock: { generateContent: (args: unknown) => Promise<unknown> };
 
   beforeEach(() => {
@@ -12,10 +12,10 @@ describe('FirebaseService', () => {
     };
 
     TestBed.configureTestingModule({
-      providers: [FirebaseService, { provide: AI_MODEL, useValue: aiModelMock }],
+      providers: [VisionService, { provide: VISION_AI_MODEL, useValue: aiModelMock }],
     });
 
-    service = TestBed.inject(FirebaseService);
+    service = TestBed.inject(VisionService);
   });
 
   it('should throw an error if image file is not provided', async () => {

@@ -1,7 +1,10 @@
+const MIN_SPLIT_PARTS = 2;
+const DATA_PART_INDEX = 1;
+
 function getDataPart(fileReaderResult: string) {
   const splittedResults = fileReaderResult.split(',');
-  if (splittedResults.length >= 2) {
-    return splittedResults[1];
+  if (splittedResults.length >= MIN_SPLIT_PARTS) {
+    return splittedResults[DATA_PART_INDEX];
   }
   throw new Error('FileReader result is not in expected format');
 }

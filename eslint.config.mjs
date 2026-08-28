@@ -76,13 +76,22 @@ export default defineConfig([
           },
         },
       ],
-      'max-params': ['error', 3],
+      'max-params': 'off',
+      '@typescript-eslint/max-params': ['error', { max: 3 }],
+      'max-lines': ['error', { max: 300, skipComments: true, skipBlankLines: true }],
+      'no-magic-numbers': 'off',
+      '@typescript-eslint/no-magic-numbers': [
+        'error',
+        { ignoreArrayIndexes: true, ignore: [0, 1, 2] },
+      ],
     },
   },
   {
     files: ['**/*.spec.ts'],
     rules: {
       'max-lines-per-function': 'off',
+      '@typescript-eslint/no-magic-numbers': 'off',
+      'max-lines': 'off',
     },
   },
   {

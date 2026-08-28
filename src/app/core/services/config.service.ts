@@ -7,6 +7,10 @@ import { FirebaseApp, FirebaseOptions, initializeApp } from 'firebase/app';
 import { AppCheck, initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 import { fetchAndActivate, getRemoteConfig, RemoteConfig } from 'firebase/remote-config';
 
+const SECONDS = 60;
+const MILLISECONDS = 1000;
+const ONE_HOUR_IN_MILLISECONDS = SECONDS * SECONDS * MILLISECONDS;
+
 @Service()
 export class ConfigService {
   #app: FirebaseApp | undefined = undefined;
@@ -43,7 +47,7 @@ export class ConfigService {
   protected setupRemoteConfig(app: FirebaseApp): RemoteConfig {
     const rc = getRemoteConfig(app);
     rc.defaultConfig = remoteConfigDefaults;
-    rc.settings.minimumFetchIntervalMillis = isDevMode() ? 0 : 3600000;
+    rc.settings.minimumFetchIntervalMillis = isDevMode() ? 0 : ONE_HOUR_IN_MILLISECONDS;
     return rc;
   }
 

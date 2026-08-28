@@ -1,12 +1,12 @@
-import { AI_MODEL } from '@/core/constants/firebase.constant';
+import { VISION_AI_MODEL } from '@/core/constants/firebase.constant';
 import { ImageAnalysis, ImageAnalysisResponse } from '@/core/types/image-analysis.type';
 import { fileToGenerativePart } from '@/core/utils/fileToPart.util';
 import { inject, Service } from '@angular/core';
-import { GroundingMetadata, UsageMetadata, WebGroundingChunk } from 'firebase/ai';
+import { GenerativeModel, GroundingMetadata, UsageMetadata, WebGroundingChunk } from 'firebase/ai';
 
 @Service()
-export class FirebaseService {
-  private aiModel = inject(AI_MODEL);
+export class VisionService {
+  private aiModel: GenerativeModel = inject(VISION_AI_MODEL);
 
   async generateAltText(image: File): Promise<ImageAnalysisResponse> {
     if (!image) {
