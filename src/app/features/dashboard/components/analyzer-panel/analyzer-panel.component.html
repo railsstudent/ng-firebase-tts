@@ -1,0 +1,12 @@
+<div class="panel-grid">
+  <!-- Left Side: Uploader and Image Preview -->
+  <app-photo-panel
+    [(analysis)]="analysis"
+    [(error)]="error"
+    [isLoading]="isLoading()"
+    (emitFile)="handleGenerateClick($event)"
+  />
+
+  <!-- Right Side: Results -->
+  <app-alt-text-panel [analysis]="analysis()" [error]="error()" [isLoading]="isLoading()" />
+</div>

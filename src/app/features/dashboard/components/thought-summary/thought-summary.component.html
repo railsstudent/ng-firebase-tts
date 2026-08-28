@@ -1,0 +1,33 @@
+@if (htmlThought() || tokenUsage()) {
+  @let usage = tokenUsage();
+  @let thought = htmlThought();
+  <div class="summary-container">
+    @if (usage) {
+      <div class="usage-section">
+        <h3 class="section-title">Token Usage</h3>
+        <div class="usage-grid">
+          <p class="usage-item">
+            <span>Input: </span><span>{{ usage?.input || 0 }}</span>
+          </p>
+          <p class="usage-item">
+            <span>Output: </span><span>{{ usage?.output || 0 }}</span>
+          </p>
+          <p class="usage-item">
+            <span>Thought: </span><span>{{ usage?.thought || 0 }}</span>
+          </p>
+          <p class="usage-item">
+            <span>Total: </span><span>{{ usage?.total }}</span>
+          </p>
+        </div>
+      </div>
+    }
+    @if (thought) {
+      <div class="thought-section">
+        <h3 class="section-title">Thought Summary</h3>
+        <div class="thought-content">
+          <p class="thought-text" [innerHTML]="thought"></p>
+        </div>
+      </div>
+    }
+  </div>
+}

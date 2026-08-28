@@ -1,0 +1,29 @@
+<div class="panel-container">
+  @let imageAnalysis = analysis();
+  @if (error()) {
+    <div class="error-card">
+      <h3 class="error-title">Error</h3>
+      <p>{{ error() }}</p>
+    </div>
+  }
+  @if (!isLoading() && !error() && !imageAnalysis) {
+    <div class="empty-state">
+      <p>Upload an image and click "Generate" to see the results.</p>
+    </div>
+  }
+  @if (isLoading()) {
+    <div class="loading-state">
+      <app-spinner-icon class="loading-spinner" />
+      <p class="loading-text">Firebase AI is thinking...</p>
+    </div>
+  }
+  @if (!isLoading() && imageAnalysis) {
+    <div class="results-wrapper">
+      <app-alt-text-display
+        [altText]="analysis()?.parsed?.alternativeText || 'Default alternative text'"
+      />
+      <app-recommendations-display [recommendations]="analysis()?.parsed?.recommendations || []" />
+    </div>
+  }
+  <app-grounding [metadata]="imageAnalysis?.metadata" />
+</div>

@@ -1,0 +1,45 @@
+@reference "../../../../../styles.css";
+
+.upload-wrapper {
+  @apply flex flex-col items-center justify-center;
+}
+
+.dropzone {
+  @apply w-full h-80 border-2 border-dashed border-slate-600 rounded-xl flex flex-col items-center justify-center text-slate-400 hover:bg-slate-700/50 hover:border-slate-500 transition-colors cursor-pointer;
+}
+
+.dropzone.drag-active {
+  @apply bg-slate-700/80 border-indigo-500 text-indigo-200 scale-102 shadow-indigo-500/20 shadow-md;
+}
+
+.photo-icon {
+  @apply w-16 h-16 text-slate-500;
+}
+
+.upload-title {
+  @apply mt-4 font-semibold;
+}
+
+.upload-subtitle {
+  @apply text-sm;
+}
+
+.preview-container {
+  @apply w-full relative;
+}
+
+.preview-image {
+  @apply w-full h-auto max-h-96 object-contain rounded-xl shadow-lg;
+}
+
+.action-overlay {
+  @apply flex flex-col absolute top-3 right-6;
+}
+
+.btn-generate {
+  @apply mt-6 w-full flex items-center justify-center;
+}
+
+.spinner {
+  @apply animate-spin h-5 w-5;
+}

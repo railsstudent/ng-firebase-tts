@@ -1,0 +1,14 @@
+<div>
+  @let imageAnalysis = analysis();
+  @let parsed = imageAnalysis?.parsed;
+  <app-photo-upload
+    [previewUrl]="previewUrl()"
+    [isLoading]="isLoading()"
+    [acceptedFileTypes]="acceptedTypes"
+    (fileChange)="handleFileChange($event)"
+    (generate)="handleGenerateClick()"
+    (removeFile)="handleFileChange(undefined)"
+  />
+  <app-tags-display [tags]="parsed?.tags || []" />
+  <!-- <app-obscure-fact [interestingFact]="parsed?.fact" /> -->
+</div>

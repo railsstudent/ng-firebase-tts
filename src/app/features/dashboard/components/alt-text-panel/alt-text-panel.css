@@ -1,0 +1,44 @@
+@reference "../../../../../styles.css";
+
+.panel-container {
+  @apply flex flex-col justify-center min-h-[20rem];
+}
+
+.error-card {
+  @apply bg-red-900/50 border border-red-700 text-red-200 p-4 rounded-lg;
+}
+
+.error-title {
+  @apply font-bold;
+}
+
+.empty-state {
+  @apply text-center text-slate-500;
+}
+
+.loading-state {
+  @apply flex flex-col items-center justify-center text-slate-400;
+}
+
+.loading-spinner {
+  @apply animate-spin h-10 w-10 text-indigo-500;
+}
+
+.loading-text {
+  @apply mt-4 text-lg;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.results-wrapper {
+  animation: fadeIn 0.3s ease-out forwards;
+}

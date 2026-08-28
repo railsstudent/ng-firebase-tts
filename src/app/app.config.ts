@@ -5,16 +5,20 @@ import {
   provideAppInitializer,
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import {
+  provideRouter,
+  withComponentInputBinding,
+  withExperimentalAutoCleanupInjectors,
+} from '@angular/router';
+import { provideServiceWorker } from '@angular/service-worker';
 import { routes } from './app.routes';
 import { provideFirebase } from './core/providers/firebase.provider';
 import { ConfigService } from './core/services/config.service';
-import { provideServiceWorker } from '@angular/service-worker';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideRouter(routes),
+    provideRouter(routes, withComponentInputBinding(), withExperimentalAutoCleanupInjectors()),
     provideAppInitializer(async () => await inject(ConfigService).initialize()),
     provideFirebase(),
     provideServiceWorker('ngsw-worker.js', {

@@ -1,0 +1,37 @@
+@reference "../../../../../styles.css";
+
+.recommendations-wrapper {
+  @apply w-full mt-6;
+}
+
+.recommendations-title {
+  @apply text-lg font-semibold text-slate-300 mb-3;
+}
+
+.recommendations-list {
+  @apply flex flex-col gap-3;
+}
+
+.recommendation-card {
+  @apply bg-indigo-900/10 border border-indigo-500/20 text-sm font-medium p-4 rounded-lg text-slate-200 w-full transition-all duration-300 hover:border-indigo-500/40;
+}
+
+.recommendation-id {
+  @apply text-indigo-400 font-bold;
+}
+
+.recommendation-text {
+  @apply text-slate-200;
+}
+
+.recommendation-reason-label {
+  @apply text-indigo-400/80 text-xs uppercase tracking-wider block mt-2;
+}
+
+.recommendation-reason-text {
+  @apply text-slate-400 text-xs italic block mt-0.5;
+}
+
+.no-recommendations {
+  @apply text-slate-500 italic;
+}

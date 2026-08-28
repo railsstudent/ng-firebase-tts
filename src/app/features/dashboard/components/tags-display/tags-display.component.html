@@ -1,0 +1,12 @@
+<div class="tags-wrapper">
+  <h3 class="tags-title">Suggested Tags</h3>
+  <div class="tags-list">
+    @for (tag of tags(); track tag) {
+      <span class="tag-pill">
+        {{ tag }}
+      </span>
+    } @empty {
+      <p class="no-tags-message">No tags were generated for this image.</p>
+    }
+  </div>
+</div>

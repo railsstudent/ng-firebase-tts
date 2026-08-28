@@ -1,0 +1,57 @@
+<div class="upload-wrapper">
+  <input
+    type="file"
+    #fileInput
+    (change)="onFileChange()"
+    [attr.accept]="accepted()"
+    class="hidden"
+  />
+  @if (!previewUrl()) {
+    <button
+      type="button"
+      (click)="triggerFileSelect()"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event)"
+      class="dropzone"
+      [class.drag-active]="isDragActive()"
+    >
+      <app-photo-icon class="photo-icon" />
+      <p class="upload-title">Click to upload an image</p>
+      <p class="upload-subtitle">PNG, JPG, JPEG or WEBP</p>
+    </button>
+  } @else {
+    <div class="preview-container group">
+      <img [src]="previewUrl()!" alt="Selected preview" class="preview-image" />
+      <div class="action-overlay">
+        <button
+          type="button"
+          (click)="triggerFileSelect()"
+          aria-label="Select a new image"
+          class="mb-2 btn-image-selector"
+        >
+          Change Image
+        </button>
+        <button
+          type="button"
+          (click)="clearSelectedFile()"
+          aria-label="Remove the image"
+          class="btn-image-selector"
+        >
+          Remove Image
+        </button>
+      </div>
+    </div>
+  }
+  <button
+    type="button"
+    (click)="generate.emit()"
+    [disabled]="!previewUrl() || isLoading()"
+    class="btn-generate btn-audio"
+  >
+    @if (isLoading()) {
+      <app-spinner-icon class="spinner" />
+    }
+    {{ isLoading() ? 'Analyzing...' : 'Generate Description' }}
+  </button>
+</div>

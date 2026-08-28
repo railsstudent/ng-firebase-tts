@@ -1,0 +1,9 @@
+<main class="dashboard-main">
+  <app-analyzer-panel [(analysis)]="analysis" />
+  @if (analysis()) {
+    @let imageAnalysis = analysis();
+    @let thought = imageAnalysis?.thought || '';
+    @let tokenUsage = imageAnalysis?.tokenUsage || { input: 0, output: 0, thought: 0, total: 0 };
+    <app-thought-summary [thought]="thought" [tokenUsage]="tokenUsage" />
+  }
+</main>

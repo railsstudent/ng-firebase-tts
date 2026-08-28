@@ -1,0 +1,5 @@
+@reference "../../../styles.css";
+
+.dashboard-main {
+  @apply bg-slate-800/50 border border-slate-700 rounded-2xl p-6 md:p-8 shadow-2xl shadow-slate-950/50 backdrop-blur-sm;
+}

@@ -1,0 +1,19 @@
+<div class="recommendations-wrapper">
+  <h3 class="recommendations-title">Recommendations</h3>
+  <div class="recommendations-list">
+    @for (item of recommendations(); track item.id) {
+      <div class="recommendation-card">
+        <p>
+          <span class="recommendation-id">{{ item.id }}: </span>
+          <span class="recommendation-text">{{ item.text }}</span>
+        </p>
+        <p>
+          <span class="recommendation-reason-label">Reason:</span>
+          <span class="recommendation-reason-text">{{ item.reason }}</span>
+        </p>
+      </div>
+    } @empty {
+      <p class="no-recommendations">No recommendation.</p>
+    }
+  </div>
+</div>

@@ -1,0 +1,17 @@
+@reference "../../../../../styles.css";
+
+.display-wrapper {
+  @apply w-full mt-6;
+}
+
+.display-title {
+  @apply text-lg font-semibold text-slate-300 mb-2;
+}
+
+.display-card {
+  @apply bg-slate-700/50 p-4 rounded-lg border border-slate-600;
+}
+
+.display-text {
+  @apply text-slate-200 italic;
+}
