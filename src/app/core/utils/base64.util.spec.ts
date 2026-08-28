@@ -1,4 +1,4 @@
-import { decodeBase64, decodeBase64AsBlobPart } from './base64.util';
+import { decodeBase64 } from './base64.util';
 
 describe('base64.util', () => {
   describe('decodeBase64', () => {
@@ -14,15 +14,6 @@ describe('base64.util', () => {
       expect(result[2]).toBe(108); // 'l'
       expect(result[3]).toBe(108); // 'l'
       expect(result[4]).toBe(111); // 'o'
-    });
-  });
-
-  describe('decodeBase64AsBlobPart', () => {
-    it('should decode base64 and return a compatible binary output', () => {
-      const base64 = 'SGVsbG8=';
-      const result = decodeBase64AsBlobPart(base64);
-
-      expect(result).toBeInstanceOf(Uint8Array);
     });
   });
 });

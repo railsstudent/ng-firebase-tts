@@ -7,19 +7,11 @@ export function decodeBase64(base64: string): Uint8Array {
   return bytes;
 }
 
-function isBlobPart(value: unknown): value is BlobPart {
+export function isBlobPart(value: unknown): value is BlobPart {
   return (
     typeof value === 'string' ||
     value instanceof Blob ||
     value instanceof ArrayBuffer ||
     ArrayBuffer.isView(value)
   );
-}
-
-export function decodeBase64AsBlobPart(base64: string): BlobPart {
-  const rawBytes = decodeBase64(base64);
-  if (isBlobPart(rawBytes)) {
-    return rawBytes;
-  }
-  throw new Error('Decoded bytes are not a valid BlobPart.');
 }

@@ -1,9 +1,11 @@
-import { DEFAULT_SAMPLE_RATE } from '@/core/constants/text-to-speech.constant';
+import {
+  AUDIO_NORMALIZATION_BASE,
+  DEFAULT_PLAYBACK_RATE,
+  DEFAULT_SAMPLE_RATE,
+  MAX_PLAYBACK_RATE,
+  MIN_PLAYBACK_RATE,
+} from '@/core/constants/text-to-speech.constant';
 import { OnDestroy, Service, signal } from '@angular/core';
-
-const AUDIO_NORMALIZATION_BASE = 32768.0;
-
-const DEFAULT_PLAYBACK_RATE = 1;
 
 @Service()
 export class AudioPlayerService implements OnDestroy {
@@ -18,6 +20,13 @@ export class AudioPlayerService implements OnDestroy {
     this.stopAll();
     this.#audioCtx = new AudioContext({ sampleRate });
     this.#nextStartTime = this.#audioCtx.currentTime;
+    this.#playbackRate.set(this.setRandomPlaybackRate());
+  }
+
+  private setRandomPlaybackRate(min = MIN_PLAYBACK_RATE, max = MAX_PLAYBACK_RATE) {
+    const percent = 100;
+    const rawRate = Math.random() * (max - min) + min;
+    return Math.round(rawRate * percent) / percent;
   }
 
   processChunk(rawBytes: Uint8Array): void {

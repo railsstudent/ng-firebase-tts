@@ -90,7 +90,17 @@ describe('TextToSpeechService', () => {
       // Mock generative response
       mockModel.generateContent.mockResolvedValue({
         response: {
-          candidates: [{ content: { parts: [{ inlineData: { data: 'SGVsbG8=' } }] } }],
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    inlineData: { data: 'SGVsbG8=', mimeType: 'audio/l16; rate=24000; channels=1' },
+                  },
+                ],
+              },
+            },
+          ],
         },
       });
 
@@ -115,6 +125,7 @@ describe('TextToSpeechService', () => {
                   {
                     inlineData: {
                       data: mockBase64,
+                      mimeType: 'audio/l16; rate=24000; channels=1',
                     },
                   },
                 ],
@@ -127,7 +138,7 @@ describe('TextToSpeechService', () => {
 
       expect(mockModel.generateContent).toHaveBeenCalledWith(['Hello Fact']);
       expect(blob).toBeInstanceOf(Blob);
-      expect(blob.type).toBe('audio/pcm');
+      expect(blob.type).toBe('audio/wav');
     });
 
     it('should throw an error if generateContent returns empty candidates or data', async () => {
@@ -153,6 +164,7 @@ describe('TextToSpeechService', () => {
                     {
                       inlineData: {
                         data: 'SGVsbG8=',
+                        mimeType: 'audio/l16; rate=24000; channels=1',
                       },
                     },
                   ],
@@ -186,7 +198,7 @@ describe('TextToSpeechService', () => {
 
       expect(mockModel.generateContentStream).toHaveBeenCalledWith(['Dynamic Stream']);
       expect(blob).toBeInstanceOf(Blob);
-      expect(blob.type).toBe('audio/pcm');
+      expect(blob.type).toBe('audio/wav');
     });
   });
 
@@ -202,6 +214,7 @@ describe('TextToSpeechService', () => {
                     {
                       inlineData: {
                         data: 'SGVsbG8=',
+                        mimeType: 'audio/l16; rate=16000; channels=1',
                       },
                     },
                   ],
@@ -218,7 +231,7 @@ describe('TextToSpeechService', () => {
 
       await service.speak('Hello interactive player', 'Puck');
 
-      expect(audioPlayerMock.initialize).toHaveBeenCalledWith(24000);
+      expect(audioPlayerMock.initialize).toHaveBeenCalledWith(16000);
       expect(mockModel.generateContentStream).toHaveBeenCalledWith(['Hello interactive player']);
       expect(audioPlayerMock.processChunk).toHaveBeenCalled();
 

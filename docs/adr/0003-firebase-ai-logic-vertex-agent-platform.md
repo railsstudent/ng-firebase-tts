@@ -25,10 +25,9 @@ We will utilize the **Agent Platform Gemini API (Vertex AI)** as our long-term G
 2. **Native Text-to-Speech Generation**: Bypass separate voice APIs and leverage Gemini's native audio capabilities by invoking the model with:
    - `responseModalities: ["audio"]`
    - `speechConfig` containing a prebuilt voice setting (e.g., `voiceName: "Kore"` or `"Puck"`).
-3. **Decoupled Architecture with Direct PCM Streaming (No WAV Porting)**: Instead of porting server-side WAV header logic, we will stream raw PCM chunks directly to the Web Audio API on the client side:
-   - **`VisionService`**: Handles image-to-text alternative texts and metadata extraction.
-   - **`TextToSpeechService`**: Instantiates models on-the-fly to support dynamic user voice selections. It streams base64 PCM audio data from Vertex AI and decodes it to a standard `Uint8Array`.
-   - **`AudioPlayerService`**: Receives raw, headerless PCM byte arrays, normalizes them into Float32 sound samples, and schedules them sequentially in-memory at a native `24000 Hz` frequency.
+3. **Hybrid PCM/WAV Audio Architecture**: We will support both high-performance direct raw PCM streaming and standard HTML5 file-based playback:
+   - **Raw Streaming Playback (`speak`)**: For zero-latency, real-time audio playback, we bypass container headers and feed raw, headerless PCM byte arrays directly to the Web Audio API (`AudioPlayerService`), converting them to Float32 samples dynamically.
+   - **Single-shot File Playback (`synthesize` / `synthesizeStream`)**: Standard HTML5 `<audio>` elements do not natively support headerless linear PCM. To enable standard play, pause, duration, and scrubbing controls, we dynamically wrap raw PCM bytes with a browser-safe 44-byte RIFF/WAVE header (ported from companion backend Node.js logic using browser-native `ArrayBuffer` and `DataView`) to return standard playable `'audio/wav'` Blobs.
 
 ---
 
@@ -151,48 +150,45 @@ export class TextToSpeechService {
   }
 
   /**
-   * USE CASE 2 (Pure Streaming to Callback):
-   * Streams raw bytes to a custom caller callback (e.g. for external visualizers).
+   * USE CASE 2 (Streaming WAV Assembly):
+   * Streams chunks, compiles them, and returns a playable WAV Blob.
    */
-  async synthesizeStream(
-    text: string,
-    voiceName: string,
-    onChunk: (rawBytes: Uint8Array) => void,
-  ): Promise<void> {
+  async synthesizeStream(text: string, voiceName: string): Promise<Blob> {
     const model = this.createModel(voiceName);
+    const chunks: Uint8Array[] = [];
 
     try {
       const responseStream = await model.generateContentStream([text]);
       for await (const chunk of responseStream.stream) {
-        const base64Data = chunk.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-        if (base64Data) {
-          const rawBytes = this.decodeBase64(base64Data);
-          onChunk(rawBytes);
+        const inlineData = extractInlineData(chunk);
+        if (inlineData?.data) {
+          chunks.push(decodeBase64(inlineData.data));
         }
       }
+      const rawBytes = concatenateChunks(chunks);
+      return convertToWav(rawBytes, 'audio/l16; rate=24000; channels=1');
     } catch (e) {
-      console.error('Pure streaming failed:', e);
+      console.error('Streaming WAV assembly failed:', e);
       throw e;
     }
   }
 
   /**
    * USE CASE 1 (Ad-hoc Single-shot):
-   * Fetches the entire audio content at once, constructs a Blob, and returns an Object URL.
+   * Fetches the entire audio content at once, converts raw PCM to WAV, and returns a playable Blob.
    */
-  async synthesize(text: string, voiceName: string): Promise<string> {
+  async synthesize(text: string, voiceName: string): Promise<Blob> {
     const model = this.createModel(voiceName);
 
     try {
       const response = await model.generateContent([text]);
-      const base64Data = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-      if (!base64Data) {
+      const inlineData = extractInlineData(response);
+      if (!inlineData?.data) {
         throw new Error('No audio data received in response.');
       }
 
-      const rawBytes = this.decodeBase64(base64Data);
-      const audioBlob = new Blob([rawBytes], { type: 'audio/pcm' });
-      return URL.createObjectURL(audioBlob);
+      const rawBytes = decodeBase64(inlineData.data);
+      return convertToWav(rawBytes, inlineData.mimeType);
     } catch (e) {
       console.error('Ad-hoc single-shot synthesis failed:', e);
       throw e;
@@ -231,7 +227,7 @@ export class TextToSpeechService {
 
 - **Zero Server-Side Maintenance**: TTS is handled completely client-side via the Firebase Web SDK, eliminating Cloud Functions, server billing, and custom backend infrastructure.
 - **Client-Side Decoding & Memory Playback**: Decoding the raw base64 audio string directly into an ArrayBuffer via Web Audio API means the app doesn't need to write temporary files to cloud storage, completely avoiding transient file accumulation, disk cleanups, and storage costs.
-- **WAV Header Bypassed**: By utilizing `AudioPlayerService` to play raw PCM streams, we completely avoid porting Node.js-based `Buffer` streams and complex WAV header calculations to the client.
+- **Standard Compatibility & Native Controls via Client-Side WAV Wrapping**: For single-shot file-based playbacks, we successfully ported the companion backend's 44-byte WAV header assembly to the client using browser-native typed arrays (`ArrayBuffer`/`DataView`). This turns raw linear PCM bytes into standard playable `'audio/wav'` Blobs, enabling standard HTML5 `<audio>` players to display seek, volume, and duration controls natively. We still retain direct headerless playback for zero-latency streaming synthesis via the Web Audio API.
 - **Full Regional Compliance**: Routable via safe regional clusters (e.g., `asia-east1`) guaranteeing zero-block access for users in Hong Kong.
 - **Robust Schema Matching**: Forcing Gemini to output structural JSON matching our schema prevents model hallucination or UI rendering failures.
 
