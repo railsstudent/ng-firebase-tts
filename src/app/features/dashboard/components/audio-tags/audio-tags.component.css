@@ -1,0 +1,41 @@
+@reference "../../../../../styles.css";
+
+.audio-customize-container {
+  @apply bg-slate-800/40 backdrop-blur-sm p-6 rounded-xl border border-slate-700/50 shadow-xl mb-6;
+}
+
+.audio-customize-title {
+  @apply text-indigo-300 font-bold mb-4 flex items-center gap-2;
+}
+
+.audio-customize-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+}
+
+.form-field-group {
+  @apply flex flex-col gap-1.5;
+}
+
+.form-field-group-full {
+  @apply flex flex-col gap-1.5 md:col-span-2;
+}
+
+.form-field-label {
+  @apply text-xs font-bold text-slate-400 uppercase tracking-wider ml-1;
+}
+
+.form-field-textarea {
+  @apply w-full bg-slate-900/60 border border-slate-700 rounded-lg px-4 py-2 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all;
+}
+
+.form-field-input {
+  @apply bg-slate-900/60 border border-slate-700 rounded-lg px-4 py-2 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all;
+}
+
+.form-field-select {
+  @apply bg-slate-900/60 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all appearance-none cursor-pointer;
+}
+
+.select-option-bg {
+  @apply bg-slate-800;
+}

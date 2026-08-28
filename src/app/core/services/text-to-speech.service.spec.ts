@@ -22,11 +22,15 @@ vi.mock('firebase/ai', async (importOriginal) => {
   });
 });
 
-// Mock firebase/remote-config to resolve the model name retrieval
-vi.mock('firebase/remote-config', () => ({
-  getValue: () => ({
+const { mockGetValue } = vi.hoisted(() => ({
+  mockGetValue: vi.fn().mockReturnValue({
     asString: () => 'gemini-2.0-flash-exp',
   }),
+}));
+
+// Mock firebase/remote-config to resolve the model name retrieval
+vi.mock('firebase/remote-config', () => ({
+  getValue: mockGetValue,
 }));
 
 interface MockAudioPlayer {
@@ -70,6 +74,35 @@ describe('TextToSpeechService', () => {
     vi.restoreAllMocks();
   });
 
+  describe('Model Caching', () => {
+    it('should read modelName from Remote Config exactly once during initialization', async () => {
+      // Clear call history first
+      mockGetValue.mockClear();
+
+      let testService!: TextToSpeechService;
+      TestBed.runInInjectionContext(() => {
+        testService = new TextToSpeechService();
+      });
+
+      // Verify it called getValue exactly once on instantiation
+      expect(mockGetValue).toHaveBeenCalledTimes(1);
+
+      // Mock generative response
+      mockModel.generateContent.mockResolvedValue({
+        response: {
+          candidates: [{ content: { parts: [{ inlineData: { data: 'SGVsbG8=' } }] } }],
+        },
+      });
+
+      // Call public methods multiple times
+      await testService.synthesize('Test 1', 'Kore');
+      await testService.synthesize('Test 2', 'Puck');
+
+      // The count of getValue calls should STILL be exactly 1!
+      expect(mockGetValue).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('synthesize (Use Case 1 - Ad-hoc Single-shot)', () => {
     it('should fetch complete content, decode base64, create a blob and return Object URL', async () => {
       const mockBase64 = 'SGVsbG8=';
@@ -90,15 +123,11 @@ describe('TextToSpeechService', () => {
           ],
         },
       });
-
-      const mockObjectURL = 'blob:http://localhost/mock-uuid';
-      vi.spyOn(URL, 'createObjectURL').mockReturnValue(mockObjectURL);
-
-      const url = await service.synthesize('Hello Fact', 'Kore');
+      const blob = await service.synthesize('Hello Fact', 'Kore');
 
       expect(mockModel.generateContent).toHaveBeenCalledWith(['Hello Fact']);
-      expect(URL.createObjectURL).toHaveBeenCalled();
-      expect(url).toBe(mockObjectURL);
+      expect(blob).toBeInstanceOf(Blob);
+      expect(blob.type).toBe('audio/pcm');
     });
 
     it('should throw an error if generateContent returns empty candidates or data', async () => {
@@ -153,16 +182,11 @@ describe('TextToSpeechService', () => {
         stream: mockStreamIterator,
       });
 
-      const onChunkSpy = vi.fn();
-
-      await service.synthesizeStream('Dynamic Stream', 'Kore', onChunkSpy);
+      const blob = await service.synthesizeStream('Dynamic Stream', 'Kore');
 
       expect(mockModel.generateContentStream).toHaveBeenCalledWith(['Dynamic Stream']);
-      expect(onChunkSpy).toHaveBeenCalledTimes(2);
-
-      const firstArg = onChunkSpy.mock.calls[0][0] as Uint8Array;
-      expect(firstArg).toBeInstanceOf(Uint8Array);
-      expect(Array.from(firstArg)).toEqual([72, 101, 108, 108, 111]);
+      expect(blob).toBeInstanceOf(Blob);
+      expect(blob.type).toBe('audio/pcm');
     });
   });
 

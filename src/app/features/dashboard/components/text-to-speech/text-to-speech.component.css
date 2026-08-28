@@ -1,0 +1,25 @@
+@reference "../../../../../styles.css";
+
+.btn-container {
+  @apply flex justify-evenly gap-4;
+}
+
+.btn-audio {
+  @apply mt-6 flex items-center justify-center px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-all shadow-md gap-2;
+}
+
+.spinner-icon {
+  @apply animate-spin h-5 w-5;
+}
+
+.playback-figure {
+  @apply mt-6 p-4 bg-slate-900/40 border border-slate-700/50 rounded-xl flex flex-col gap-2;
+}
+
+.playback-caption {
+  @apply text-sm font-medium text-slate-400;
+}
+
+.playback-audio {
+  @apply w-full outline-none;
+}

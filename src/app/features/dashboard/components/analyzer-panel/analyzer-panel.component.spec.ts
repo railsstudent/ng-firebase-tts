@@ -2,6 +2,9 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AnalyzerPanelComponent } from './analyzer-panel.component';
 import { VisionService } from '@/core/services/vision.service';
 import { ImageAnalysisResponse } from '@/core/interfaces/image-analysis.type';
+import { TextToSpeechService } from '@/core/services/text-to-speech.service';
+import { AudioPlayerService } from '@/core/services/audio-player.service';
+import { signal } from '@angular/core';
 import { By } from '@angular/platform-browser';
 
 describe('AnalyzerPanelComponent', () => {
@@ -16,7 +19,23 @@ describe('AnalyzerPanelComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [AnalyzerPanelComponent],
-      providers: [{ provide: VisionService, useValue: mockVisionService }],
+      providers: [
+        { provide: VisionService, useValue: mockVisionService },
+        {
+          provide: TextToSpeechService,
+          useValue: {
+            synthesize: vi.fn(),
+            synthesizeStream: vi.fn(),
+            speak: vi.fn(),
+          },
+        },
+        {
+          provide: AudioPlayerService,
+          useValue: {
+            playbackRate: signal(1).asReadonly(),
+          },
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AnalyzerPanelComponent);

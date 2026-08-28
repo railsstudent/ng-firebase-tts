@@ -1,0 +1,55 @@
+<div>
+  <div class="btn-container">
+    <button
+      (click)="generateSpeech.emit('sync')"
+      aria-label="Generate speech"
+      [disabled]="isLoading()"
+      class="btn-audio"
+    >
+      @let c = { isLoading: isLoadingSync(), buttonText: 'Play Speech (Sync)' };
+      <ng-container [ngTemplateOutlet]="buttonTemplate" [ngTemplateOutletContext]="c" />
+    </button>
+    <button
+      (click)="generateSpeech.emit('stream')"
+      aria-label="Stream speech"
+      [disabled]="isLoading()"
+      class="btn-audio"
+    >
+      @let c2 = { isLoading: isLoadingStream(), buttonText: 'Play Speech (Stream)' };
+      <ng-container [ngTemplateOutlet]="buttonTemplate" [ngTemplateOutletContext]="c2" />
+    </button>
+    <button
+      (click)="generateSpeech.emit('web_audio_api')"
+      aria-label="Stream speech"
+      [disabled]="isLoading()"
+      class="btn-audio"
+    >
+      @let c3 =
+        {
+          isLoading: isLoadingWebAudio(),
+          genText: `Speak (Playback rate: ${playbackRate()})`,
+          buttonText: `Web Audio API`,
+        };
+      <ng-container [ngTemplateOutlet]="buttonTemplate" [ngTemplateOutletContext]="c3" />
+    </button>
+  </div>
+</div>
+
+@if (audioUrl(); as url) {
+  <figure class="playback-figure">
+    <figcaption class="playback-caption">Listen to the Gemini-TTS:</figcaption>
+    <audio controls [src]="url" [playbackRate]="'1.25'" class="playback-audio"></audio>
+  </figure>
+}
+
+<ng-template
+  #buttonTemplate
+  let-isLoading="isLoading"
+  let-buttonText="buttonText"
+  let-genText="genText"
+>
+  @if (isLoading) {
+    <app-spinner-icon class="spinner-icon" />
+  }
+  {{ isLoading ? genText || 'Generating Speech...' : buttonText }}
+</ng-template>

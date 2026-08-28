@@ -1,0 +1,20 @@
+<div class="obscure-fact-container">
+  <app-audio-tags #audioTags />
+  <h3 class="obscure-fact-title">A surprising or obscure fact about the tags</h3>
+  @if (interestingFact()) {
+    <p class="obscure-fact-text">{{ interestingFact() }}</p>
+
+    <app-error-display [error]="ttsError()" />
+
+    <app-text-to-speech
+      [isLoadingSync]="isLoadingSync()"
+      [isLoadingStream]="isLoadingStream()"
+      [isLoadingWebAudio]="isLoadingWebAudio()"
+      [audioUrl]="audioUrl()"
+      (generateSpeech)="generateSpeech({ mode: $event, audioTags: audioTags.audioPromptModel() })"
+      [playbackRate]="playbackRate()"
+    />
+  } @else {
+    <p class="obscure-fact-empty">The tag(s) does not have any interesting or obscure fact.</p>
+  }
+</div>

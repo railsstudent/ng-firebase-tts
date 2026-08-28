@@ -1,7 +1,6 @@
-export interface AudioPrompt {
+export interface AudioPromptData {
   scene: string;
   emotion: string;
   pace: string;
-  transcript: string;
   voiceOption: string;
 }

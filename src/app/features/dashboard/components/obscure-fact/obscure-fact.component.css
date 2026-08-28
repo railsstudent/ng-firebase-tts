@@ -1,0 +1,17 @@
+@reference "../../../../../styles.css";
+
+.obscure-fact-container {
+  @apply w-full mt-6;
+}
+
+.obscure-fact-title {
+  @apply text-lg font-semibold text-slate-300 mb-3;
+}
+
+.obscure-fact-text {
+  @apply text-indigo-400 italic mb-2 text-lg;
+}
+
+.obscure-fact-empty {
+  @apply text-slate-500 italic mb-2;
+}

@@ -3,17 +3,13 @@ import { revokeBlobURL } from '@/core/utils/blob.util';
 import { PhotoUploadComponent } from '@/features/dashboard/components/photo-upload/photo-upload.component';
 import { TagsDisplayComponent } from '@/features/dashboard/components/tags-display/tags-display.component';
 import { Component, computed, input, model, OnDestroy, output, signal } from '@angular/core';
-// import { ObscureFactComponent } from './obscure-fact/obscure-fact.component';
+import { ObscureFactComponent } from '@/features/dashboard/components/obscure-fact/obscure-fact.component';
 
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
 
 @Component({
   selector: 'app-photo-panel',
-  imports: [
-    PhotoUploadComponent,
-    TagsDisplayComponent,
-    // ObscureFactComponent
-  ],
+  imports: [PhotoUploadComponent, TagsDisplayComponent, ObscureFactComponent],
   templateUrl: './photo-panel.html',
 })
 export class PhotoPanel implements OnDestroy {

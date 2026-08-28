@@ -12,6 +12,7 @@ export class AudioPlayerService implements OnDestroy {
   #activeSources: AudioBufferSourceNode[] = [];
 
   #playbackRate = signal(DEFAULT_PLAYBACK_RATE);
+  playbackRate = this.#playbackRate.asReadonly();
 
   initialize(sampleRate = DEFAULT_SAMPLE_RATE): void {
     this.stopAll();

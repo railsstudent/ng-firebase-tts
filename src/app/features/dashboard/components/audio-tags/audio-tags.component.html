@@ -1,0 +1,51 @@
+<div class="audio-customize-container">
+  <h3 class="audio-customize-title"><span>🎙️</span> Customize Audio Generation</h3>
+
+  <div class="audio-customize-grid">
+    <!-- Scene -->
+    <div class="form-field-group-full">
+      <label for="scene" class="form-field-label">Scene Description</label>
+      <textarea
+        id="scene"
+        [formField]="audioPromptForm.scene"
+        placeholder="Describe the environment..."
+        class="form-field-textarea"
+      ></textarea>
+    </div>
+
+    <!-- Emotion -->
+    <div class="form-field-group">
+      <label for="emotion" class="form-field-label">Vocal Emotion</label>
+      <input
+        type="text"
+        id="emotion"
+        [formField]="audioPromptForm.emotion"
+        placeholder="e.g., panicked, whispers"
+        class="form-field-input"
+      />
+    </div>
+
+    <!-- Pace -->
+    <div class="form-field-group">
+      <label for="pace" class="form-field-label">Speaking Pace</label>
+      <input
+        type="text"
+        id="pace"
+        [formField]="audioPromptForm.pace"
+        placeholder="e.g., very slow, rapid"
+        class="form-field-input"
+      />
+    </div>
+
+    <!-- Voice Option -->
+    <div class="form-field-group-full">
+      <label for="voiceOption" class="form-field-label">AI Voice Model</label>
+      <select id="voiceOption" [formField]="audioPromptForm.voiceOption" class="form-field-select">
+        <option value="" disabled selected>Select a voice...</option>
+        @for (option of sortedVoiceOptions(); track option.name) {
+          <option [value]="option.name" class="select-option-bg">{{ option.label }}</option>
+        }
+      </select>
+    </div>
+  </div>
+</div>

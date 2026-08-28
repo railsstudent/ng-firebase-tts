@@ -47,9 +47,6 @@ export function provideFirebase() {
           'useLimitedUseAppCheckTokens',
         ).asBoolean();
 
-        console.log('vertexAILocation', vertexAILocation);
-        console.log('useLimitedUseAppCheckTokens', useLimitedUseAppCheckTokens);
-
         return getAI(configService.firebaseApp, {
           backend: new AgentPlatformBackend(vertexAILocation),
           useLimitedUseAppCheckTokens,
