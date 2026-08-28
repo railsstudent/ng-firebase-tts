@@ -1,34 +1,29 @@
 import { ImageAnalysisResponse } from '@/core/interfaces/image-analysis.type';
-import { revokeBlobURL } from '@/core/utils/blob.util';
+import { ObscureFactComponent } from '@/features/dashboard/components/obscure-fact/obscure-fact.component';
 import { PhotoUploadComponent } from '@/features/dashboard/components/photo-upload/photo-upload.component';
 import { TagsDisplayComponent } from '@/features/dashboard/components/tags-display/tags-display.component';
-import { Component, computed, input, model, OnDestroy, output, signal } from '@angular/core';
-import { ObscureFactComponent } from '@/features/dashboard/components/obscure-fact/obscure-fact.component';
+import { Component, inject, input, model, output } from '@angular/core';
+import { AssetRegistry } from './services/asset-registry.service';
 
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
 
 @Component({
   selector: 'app-photo-panel',
   imports: [PhotoUploadComponent, TagsDisplayComponent, ObscureFactComponent],
+  providers: [AssetRegistry],
   templateUrl: './photo-panel.html',
 })
-export class PhotoPanel implements OnDestroy {
+export class PhotoPanel {
+  readonly #assetRegistry = inject(AssetRegistry);
+
   isLoading = input(false);
   analysis = model<ImageAnalysisResponse | undefined>(undefined);
   error = model<string | undefined>(undefined);
 
-  selectedFile = signal<File | undefined>(undefined);
+  selectedFile = this.#assetRegistry.file;
+  previewUrl = this.#assetRegistry.previewUrl;
 
   readonly acceptedTypes = ACCEPTED_IMAGE_TYPES;
-
-  previewUrl = computed(() => {
-    const file = this.selectedFile();
-    if (file) {
-      return URL.createObjectURL(file);
-    }
-
-    return undefined;
-  });
 
   emitFile = output<File | undefined>();
 
@@ -42,15 +37,8 @@ export class PhotoPanel implements OnDestroy {
       return;
     }
 
-    // Revoke the old URL to prevent memory leaks
-    revokeBlobURL(this.previewUrl());
-
-    this.selectedFile.set(file);
+    this.#assetRegistry.register(file);
     this.analysis.set(undefined);
     this.error.set(undefined);
-  }
-
-  ngOnDestroy() {
-    revokeBlobURL(this.previewUrl());
   }
 }
