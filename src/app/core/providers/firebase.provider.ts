@@ -13,6 +13,31 @@ import {
 import { FirebaseApp } from 'firebase/app';
 import { getValue, RemoteConfig } from 'firebase/remote-config';
 
+const SAFETY_SETTINGS = [
+  {
+    category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+    threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+    threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+    threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+    threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+  },
+];
+
+const TOOLS = [
+  {
+    googleSearch: {},
+  },
+];
+
 function getGenerativeAIModel(firebaseApp: FirebaseApp, remoteConfig: RemoteConfig) {
   const model = getValue(remoteConfig, 'geminiModelName').asString();
   const vertexAILocation = getValue(remoteConfig, 'vertexAILocation').asString();
@@ -31,29 +56,8 @@ function getGenerativeAIModel(firebaseApp: FirebaseApp, remoteConfig: RemoteConf
         includeThoughts: true,
       },
     },
-    safetySettings: [
-      {
-        category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-        threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-      },
-      {
-        category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-        threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-      },
-      {
-        category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-        threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-      },
-      {
-        category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-        threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-      },
-    ],
-    tools: [
-      {
-        googleSearch: {},
-      },
-    ],
+    safetySettings: SAFETY_SETTINGS,
+    tools: TOOLS,
   });
 }
 

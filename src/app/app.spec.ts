@@ -1,10 +1,37 @@
 import { TestBed } from '@angular/core/testing';
 import { App } from './app';
 
+import { SwUpdate } from '@angular/service-worker';
+import { IS_BROWSER, WINDOW } from '@/core/constants/navigator.const';
+import { EMPTY } from 'rxjs';
+
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
+      providers: [
+        {
+          provide: SwUpdate,
+          useValue: {
+            isEnabled: false,
+            versionUpdates: EMPTY,
+          },
+        },
+        {
+          provide: IS_BROWSER,
+          useValue: true,
+        },
+        {
+          provide: WINDOW,
+          useValue: {
+            location: {
+              reload: () => {
+                // No-op for testing
+              },
+            },
+          },
+        },
+      ],
     }).compileComponents();
   });
 

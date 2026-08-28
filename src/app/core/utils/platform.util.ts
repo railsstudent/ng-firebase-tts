@@ -28,8 +28,17 @@ export function injectIsLocalhost(): () => boolean {
  *
  * @param configToken A custom persistent debug token supplied from the firebase configuration.
  * @param isLocalhost Whether the application is currently running on a local development domain.
+ * @param isDevContext Whether the application is in development mode (defaults to isDevMode()).
  */
-export function configureAppCheckDebugToken(configToken?: string, isLocalhost?: boolean): void {
+export function configureAppCheckDebugToken(
+  configToken?: string,
+  isLocalhost?: boolean,
+  isDevContext = isDevMode(),
+): void {
+  const isLocalContext = isDevContext || !!isLocalhost;
+
+  // STRICT PROTECTION: If we are in production on a live server,
+  // we completely disable the App Check debug token, ignoring any accidental values in the config.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (globalThis as any).FIREBASE_APPCHECK_DEBUG_TOKEN = configToken || isDevMode() || !!isLocalhost;
+  (globalThis as any).FIREBASE_APPCHECK_DEBUG_TOKEN = isLocalContext ? configToken || true : false;
 }

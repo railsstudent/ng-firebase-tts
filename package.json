@@ -8,6 +8,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "test:once": "ng test --watch=false",
     "lint": "ng lint",
     "prepare": "husky",
     "format": "prettier --write \"src/**/*.{ts,js,html}\" \"*.{mjs,json}\"",
