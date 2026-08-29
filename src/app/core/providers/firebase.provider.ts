@@ -37,13 +37,11 @@ export function provideFirebase() {
       provide: AI_BACKEND,
       useFactory: () => {
         const configService = inject(ConfigService);
-        const vertexAILocation = getValue(
-          configService.remoteConfig,
-          'vertexAILocation',
-        ).asString();
+        const remoteConfig = configService.remoteConfig;
 
+        const vertexAILocation = getValue(remoteConfig, 'vertexAILocation').asString();
         const useLimitedUseAppCheckTokens = getValue(
-          configService.remoteConfig,
+          remoteConfig,
           'useLimitedUseAppCheckTokens',
         ).asBoolean();
 
