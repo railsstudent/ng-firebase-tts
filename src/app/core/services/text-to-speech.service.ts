@@ -3,8 +3,9 @@ import { DEFAULT_SAMPLE_RATE } from '@/core/constants/text-to-speech.constant';
 import { decodeBase64 } from '@/core/utils/base64.util';
 import { convertToWav, extractInlineData, parseMimeType } from '@/core/utils/mime-type.util';
 import { inject, Service } from '@angular/core';
-import { getGenerativeModel, ResponseModality } from 'firebase/ai';
+import { GenerateContentResponse, getGenerativeModel, ResponseModality } from 'firebase/ai';
 import { getValue } from 'firebase/remote-config';
+import { ProcessedStreamChunk, SpeechChunkData } from '@/core/interfaces/text-to-speech.type';
 import { AudioPlayerService } from './audio-player.service';
 import { ConfigService } from './config.service';
 
@@ -20,24 +21,16 @@ export class TextToSpeechService {
    * Streams voice content chunk-by-chunk and plays it immediately.
    */
   async speak(text: string, voiceName: string): Promise<void> {
-    let initialized = false;
+    let firstMimeType = '';
     const model = this.createModel(voiceName);
 
     try {
       const responseStream = await model.generateContentStream([text]);
       for await (const chunk of responseStream.stream) {
-        const { data, mimeType } = extractInlineData(chunk);
-        if (!data || !mimeType) {
-          continue;
-        }
-
-        if (!initialized) {
-          this.initializeAudioPlayer(mimeType);
-          initialized = true;
-        }
-
-        if (data) {
-          this.#audioPlayer.processChunk(decodeBase64(data));
+        const chunkData = this.extractValidChunkData(chunk);
+        if (chunkData) {
+          const result = this.processStreamChunk(chunkData, firstMimeType);
+          firstMimeType = result.firstMimeType;
         }
       }
     } catch (e) {
@@ -47,9 +40,27 @@ export class TextToSpeechService {
     }
   }
 
-  private initializeAudioPlayer(mimeType: string) {
-    const sampleRate = mimeType ? parseMimeType(mimeType).sampleRate : DEFAULT_SAMPLE_RATE;
-    this.#audioPlayer.initialize(sampleRate);
+  private extractValidChunkData(chunk: GenerateContentResponse): SpeechChunkData | null {
+    const { data, mimeType } = extractInlineData(chunk);
+    if (!data || !mimeType) {
+      return null;
+    }
+    return { data, mimeType };
+  }
+
+  private processStreamChunk(chunk: SpeechChunkData, firstMimeType: string): ProcessedStreamChunk {
+    const { data, mimeType } = chunk;
+    let updatedMimeType = firstMimeType;
+
+    if (!firstMimeType && mimeType) {
+      updatedMimeType = mimeType;
+      const sampleRate = mimeType ? parseMimeType(mimeType).sampleRate : DEFAULT_SAMPLE_RATE;
+      this.#audioPlayer.initialize(sampleRate);
+    }
+
+    const decodedData = decodeBase64(data);
+    this.#audioPlayer.processChunk(decodedData);
+    return { decodedData, firstMimeType: updatedMimeType };
   }
 
   /**
@@ -64,25 +75,27 @@ export class TextToSpeechService {
     try {
       const responseStream = await model.generateContentStream([text]);
       for await (const chunk of responseStream.stream) {
-        const { data, mimeType } = extractInlineData(chunk);
-        if (!data || !mimeType) {
-          continue;
-        }
+        const chunkData = this.extractValidChunkData(chunk);
+        if (chunkData) {
+          const { decodedData, firstMimeType: updatedMimeType } = this.processStreamChunk(
+            chunkData,
+            firstMimeType,
+          );
+          firstMimeType = updatedMimeType;
 
-        if (!firstMimeType && mimeType) {
-          firstMimeType = mimeType;
+          const mergedChunk = new Uint8Array(chunks.length + decodedData.length);
+          mergedChunk.set(chunks);
+          mergedChunk.set(decodedData, chunks.length);
+          chunks = mergedChunk;
         }
-
-        const decodedData = decodeBase64(data);
-        const mergedChunk = new Uint8Array(chunks.length + decodedData.length);
-        mergedChunk.set(chunks);
-        mergedChunk.set(decodedData, chunks.length);
-        chunks = mergedChunk;
       }
+
+      await this.#audioPlayer.awaitPlaybackComplete();
 
       return convertToWav(chunks, firstMimeType);
     } catch (e) {
       console.error('Streaming synthesis failed:', e);
+      this.#audioPlayer.stopAll();
       throw e;
     }
   }
@@ -96,13 +109,12 @@ export class TextToSpeechService {
 
     try {
       const result = await model.generateContent([text]);
-      const { data, mimeType } = extractInlineData(result.response);
-      if (!data || !mimeType) {
+      const chunk = this.extractValidChunkData(result.response);
+      if (!chunk) {
         throw new Error('No audio data received in response.');
       }
-
-      const rawBytes = decodeBase64(data);
-      return convertToWav(rawBytes, mimeType);
+      const { data, mimeType } = chunk;
+      return convertToWav(decodeBase64(data), mimeType);
     } catch (e) {
       console.error('Ad-hoc single-shot synthesis failed:', e);
       throw e;

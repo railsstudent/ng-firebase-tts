@@ -136,4 +136,83 @@ describe('AudioPlayerService', () => {
     service.stopAll();
     expect(mockSourceNode.stop).not.toHaveBeenCalled();
   });
+
+  describe('awaitPlaybackComplete', () => {
+    let testService: AudioPlayerService;
+
+    beforeEach(() => {
+      vi.useFakeTimers();
+      testService = new AudioPlayerService();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('should resolve instantly if not initialized', async () => {
+      await expect(testService.awaitPlaybackComplete()).resolves.toBeUndefined();
+    });
+
+    it('should resolve instantly if initialized but no audio is scheduled', async () => {
+      testService.initialize(24000);
+      const promise = testService.awaitPlaybackComplete();
+      await vi.advanceTimersByTimeAsync(100);
+      await expect(promise).resolves.toBeUndefined();
+    });
+
+    it('should block until all scheduled audio is finished playing', async () => {
+      testService.initialize(24000);
+
+      mockAudioContext.currentTime = 10;
+
+      // Process two chunks (each takes 1 second to play, total 2 seconds, nextStartTime = 12)
+      const int16Array = new Int16Array([0, 1000]);
+      const rawBytes = new Uint8Array(int16Array.buffer);
+      testService.processChunk(rawBytes);
+      testService.processChunk(rawBytes);
+
+      let resolved = false;
+      const promise = testService.awaitPlaybackComplete().then(() => {
+        resolved = true;
+      });
+
+      // Advance by 100ms - remainingTime is still 1.9s, so shouldn't resolve
+      await vi.advanceTimersByTimeAsync(100);
+      expect(resolved).toBe(false);
+
+      // Advance by 1800ms more - still 100ms left
+      await vi.advanceTimersByTimeAsync(1800);
+      expect(resolved).toBe(false);
+
+      // Update mock currentTime to be past the playback end time (12)
+      mockAudioContext.currentTime = 12.1;
+
+      // Advance by 100ms more - should resolve now
+      await vi.advanceTimersByTimeAsync(100);
+      await promise;
+      expect(resolved).toBe(true);
+    });
+
+    it('should resolve immediately if stopAll() is called mid-playback', async () => {
+      testService.initialize(24000);
+
+      mockAudioContext.currentTime = 10;
+      const int16Array = new Int16Array([0, 1000]);
+      const rawBytes = new Uint8Array(int16Array.buffer);
+      testService.processChunk(rawBytes); // schedules playing from 10 to 11
+
+      let resolved = false;
+      const promise = testService.awaitPlaybackComplete().then(() => {
+        resolved = true;
+      });
+
+      // Stop all mid-playback
+      testService.stopAll();
+
+      // Advance timers - should resolve instantly now
+      await vi.advanceTimersByTimeAsync(100);
+      await promise;
+      expect(resolved).toBe(true);
+    });
+  });
 });

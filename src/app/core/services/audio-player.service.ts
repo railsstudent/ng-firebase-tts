@@ -4,14 +4,21 @@ import {
   DEFAULT_SAMPLE_RATE,
   MAX_PLAYBACK_RATE,
   MIN_PLAYBACK_RATE,
+  PLAYBACK_POLL_INTERVAL,
 } from '@/core/constants/text-to-speech.constant';
 import { OnDestroy, Service, signal } from '@angular/core';
+import { EmptyError, interval, lastValueFrom, map, takeWhile } from 'rxjs';
 
 @Service()
 export class AudioPlayerService implements OnDestroy {
   #audioCtx: AudioContext | undefined = undefined;
   #nextStartTime = 0;
   #activeSources: AudioBufferSourceNode[] = [];
+
+  readonly #playbackCheck$ = interval(PLAYBACK_POLL_INTERVAL).pipe(
+    map(() => (this.#audioCtx ? this.#nextStartTime - this.#audioCtx.currentTime : 0)),
+    takeWhile((remainingTime) => remainingTime > 0),
+  );
 
   #playbackRate = signal(DEFAULT_PLAYBACK_RATE);
   playbackRate = this.#playbackRate.asReadonly();
@@ -78,6 +85,21 @@ export class AudioPlayerService implements OnDestroy {
         // Safe swallow
       }
       this.#audioCtx = undefined;
+    }
+  }
+
+  async awaitPlaybackComplete(): Promise<void> {
+    if (!this.#audioCtx) {
+      return;
+    }
+
+    try {
+      await lastValueFrom(this.#playbackCheck$);
+    } catch (e) {
+      if (e instanceof EmptyError) {
+        return;
+      }
+      throw e;
     }
   }
 

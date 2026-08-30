@@ -37,6 +37,7 @@ interface MockAudioPlayer {
   initialize: ReturnType<typeof vi.fn>;
   processChunk: ReturnType<typeof vi.fn>;
   stopAll: ReturnType<typeof vi.fn>;
+  awaitPlaybackComplete: ReturnType<typeof vi.fn>;
 }
 
 describe('TextToSpeechService', () => {
@@ -50,6 +51,7 @@ describe('TextToSpeechService', () => {
       initialize: vi.fn(),
       processChunk: vi.fn(),
       stopAll: vi.fn(),
+      awaitPlaybackComplete: vi.fn().mockResolvedValue(undefined),
     };
 
     mockAI = {};
@@ -152,8 +154,8 @@ describe('TextToSpeechService', () => {
     });
   });
 
-  describe('synthesizeStream (Use Case 2 - Pure Streaming)', () => {
-    it('should stream chunks and trigger the custom callback with decoded Uint8Arrays', async () => {
+  describe('synthesizeStream (Use Case 2 - Hybrid Stream-and-Play)', () => {
+    it('should stream chunks, feed decoded chunks to audio player, and return complete WAV blob', async () => {
       const mockStreamIterator = {
         async *[Symbol.asyncIterator]() {
           yield {
@@ -180,6 +182,7 @@ describe('TextToSpeechService', () => {
                     {
                       inlineData: {
                         data: 'V29ybGQ=',
+                        mimeType: 'audio/l16; rate=24000; channels=1',
                       },
                     },
                   ],
@@ -197,8 +200,19 @@ describe('TextToSpeechService', () => {
       const blob = await service.synthesizeStream('Dynamic Stream', 'Kore');
 
       expect(mockModel.generateContentStream).toHaveBeenCalledWith(['Dynamic Stream']);
+      expect(audioPlayerMock.initialize).toHaveBeenCalledWith(24000);
+      expect(audioPlayerMock.processChunk).toHaveBeenCalledTimes(2);
       expect(blob).toBeInstanceOf(Blob);
       expect(blob.type).toBe('audio/wav');
+    });
+
+    it('should stop player and rethrow on stream errors', async () => {
+      mockModel.generateContentStream.mockRejectedValue(new Error('Vertex AI stream error'));
+
+      await expect(service.synthesizeStream('Failing stream', 'Puck')).rejects.toThrow(
+        'Vertex AI stream error',
+      );
+      expect(audioPlayerMock.stopAll).toHaveBeenCalled();
     });
   });
 
