@@ -21,7 +21,7 @@ export class TextToSpeechService {
    */
   async speak(text: string, voiceName: string): Promise<void> {
     let initialized = false;
-    const model = this.createModel(voiceName, this.#modelName);
+    const model = this.createModel(voiceName);
 
     try {
       const responseStream = await model.generateContentStream([text]);
@@ -57,7 +57,7 @@ export class TextToSpeechService {
    * Streams chunks from Gemini, aggregates them, and returns a unified Blob.
    */
   async synthesizeStream(text: string, voiceName: string): Promise<Blob> {
-    const model = this.createModel(voiceName, this.#modelName);
+    const model = this.createModel(voiceName);
     let chunks: Uint8Array = new Uint8Array(0);
     let firstMimeType = '';
 
@@ -92,7 +92,7 @@ export class TextToSpeechService {
    * Fetches the entire audio content at once, constructs a Blob, and returns it.
    */
   async synthesize(text: string, voiceName: string): Promise<Blob> {
-    const model = this.createModel(voiceName, this.#modelName);
+    const model = this.createModel(voiceName);
 
     try {
       const result = await model.generateContent([text]);
@@ -109,9 +109,9 @@ export class TextToSpeechService {
     }
   }
 
-  private createModel(voiceName: string, modelName: string) {
+  private createModel(voiceName: string) {
     return getGenerativeModel(this.#aiBackend, {
-      model: modelName,
+      model: this.#modelName,
       generationConfig: {
         responseModalities: [ResponseModality.AUDIO],
         speechConfig: {
