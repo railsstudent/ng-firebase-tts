@@ -1,17 +1,15 @@
 import { AI_BACKEND } from '@/core/constants/firebase.constant';
 import { DEFAULT_SAMPLE_RATE } from '@/core/constants/text-to-speech.constant';
-import { ProcessedStreamChunk, SpeechChunkData } from '@/core/interfaces/text-to-speech.type';
+import { SpeechChunkData } from '@/core/interfaces/text-to-speech.type';
 import { decodeBase64 } from '@/core/utils/base64.util';
 import { convertToWav, extractInlineData, parseMimeType } from '@/core/utils/mime-type.util';
 import { inject, Service } from '@angular/core';
 import { GenerateContentResponse, getGenerativeModel, ResponseModality } from 'firebase/ai';
-import { AudioPlayerService } from './audio-player.service';
 import { ConfigService } from './config.service';
 
 @Service()
 export class TextToSpeechService {
   readonly #aiBackend = inject(AI_BACKEND);
-  readonly #audioPlayer = inject(AudioPlayerService);
   readonly #configService = inject(ConfigService);
   readonly #modelName = this.#configService.appConfig.geminiTTSModelName;
 
@@ -19,23 +17,26 @@ export class TextToSpeechService {
    * USE CASE 3 (Zero-Latency Playback):
    * Streams voice content chunk-by-chunk and plays it immediately.
    */
-  async speak(text: string, voiceName: string): Promise<void> {
+  async *speak(
+    text: string,
+    voiceName: string,
+  ): AsyncGenerator<{ decodedData: Uint8Array; sampleRate: number }> {
     let firstMimeType = '';
+    let sampleRate = DEFAULT_SAMPLE_RATE;
     const model = this.createModel(voiceName);
 
-    try {
-      const responseStream = await model.generateContentStream([text]);
-      for await (const chunk of responseStream.stream) {
-        const chunkData = this.extractValidChunkData(chunk);
-        if (chunkData) {
-          const result = this.processStreamChunk(chunkData, firstMimeType);
-          firstMimeType = result.firstMimeType;
+    const responseStream = await model.generateContentStream([text]);
+    for await (const chunk of responseStream.stream) {
+      const chunkData = this.extractValidChunkData(chunk);
+      if (chunkData) {
+        const { data, mimeType } = chunkData;
+        const decodedData = decodeBase64(data);
+        if (!firstMimeType && mimeType) {
+          firstMimeType = mimeType;
+          sampleRate = parseMimeType(firstMimeType).sampleRate;
         }
+        yield { decodedData, sampleRate };
       }
-    } catch (e) {
-      console.error('Streaming playback failed:', e);
-      this.#audioPlayer.stopAll();
-      throw e;
     }
   }
 
@@ -47,56 +48,36 @@ export class TextToSpeechService {
     return { data, mimeType };
   }
 
-  private processStreamChunk(chunk: SpeechChunkData, firstMimeType: string): ProcessedStreamChunk {
-    const { data, mimeType } = chunk;
-    let updatedMimeType = firstMimeType;
-
-    if (!firstMimeType && mimeType) {
-      updatedMimeType = mimeType;
-      const sampleRate = mimeType ? parseMimeType(mimeType).sampleRate : DEFAULT_SAMPLE_RATE;
-      this.#audioPlayer.initialize(sampleRate);
-    }
-
-    const decodedData = decodeBase64(data);
-    this.#audioPlayer.processChunk(decodedData);
-    return { decodedData, firstMimeType: updatedMimeType };
-  }
-
-  /**
-   * USE CASE 2 (Stream-and-Stitch):
-   * Streams chunks from Gemini, aggregates them, and returns a unified Blob.
-   */
-  async synthesizeStream(text: string, voiceName: string): Promise<Blob> {
+  async *synthesizeStream(
+    text: string,
+    voiceName: string,
+  ): AsyncGenerator<{ decodedData: Uint8Array; sampleRate: number } | Blob> {
     const model = this.createModel(voiceName);
     let chunks: Uint8Array = new Uint8Array(0);
     let firstMimeType = '';
+    let sampleRate = DEFAULT_SAMPLE_RATE;
 
-    try {
-      const responseStream = await model.generateContentStream([text]);
-      for await (const chunk of responseStream.stream) {
-        const chunkData = this.extractValidChunkData(chunk);
-        if (chunkData) {
-          const { decodedData, firstMimeType: updatedMimeType } = this.processStreamChunk(
-            chunkData,
-            firstMimeType,
-          );
-          firstMimeType = updatedMimeType;
-
-          const mergedChunk = new Uint8Array(chunks.length + decodedData.length);
-          mergedChunk.set(chunks);
-          mergedChunk.set(decodedData, chunks.length);
-          chunks = mergedChunk;
+    const responseStream = await model.generateContentStream([text]);
+    for await (const chunk of responseStream.stream) {
+      const chunkData = this.extractValidChunkData(chunk);
+      if (chunkData) {
+        const { data, mimeType } = chunkData;
+        const decodedData = decodeBase64(data);
+        if (!firstMimeType && mimeType) {
+          firstMimeType = mimeType;
+          sampleRate = parseMimeType(firstMimeType).sampleRate;
         }
+
+        const mergedChunk = new Uint8Array(chunks.length + decodedData.length);
+        mergedChunk.set(chunks);
+        mergedChunk.set(decodedData, chunks.length);
+        chunks = mergedChunk;
+
+        yield { decodedData, sampleRate };
       }
-
-      await this.#audioPlayer.awaitPlaybackComplete();
-
-      return convertToWav(chunks, firstMimeType);
-    } catch (e) {
-      console.error('Streaming synthesis failed:', e);
-      this.#audioPlayer.stopAll();
-      throw e;
     }
+
+    yield convertToWav(chunks, firstMimeType);
   }
 
   /**

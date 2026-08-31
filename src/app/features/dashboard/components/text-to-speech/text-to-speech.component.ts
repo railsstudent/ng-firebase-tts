@@ -41,8 +41,10 @@ export class TextToSpeechComponent implements OnDestroy {
 
     try {
       this.loadingMode.set(mode);
-      if (mode === 'sync' || mode === 'stream') {
-        await this.handleSyncOrStream(mode, this.audioPrompt(), this.voice());
+      if (mode === 'sync') {
+        await this.handleSync(this.audioPrompt(), this.voice());
+      } else if (mode === 'stream') {
+        await this.handleStream(this.audioPrompt(), this.voice());
       } else if (mode === 'web_audio_api') {
         await this.handleWebAudio(this.audioPrompt(), this.voice());
       }
@@ -60,20 +62,44 @@ export class TextToSpeechComponent implements OnDestroy {
     }
   }
 
-  private async handleSyncOrStream(
-    mode: Omit<GenerateSpeechMode, 'web_audio_api'>,
-    prompt: string,
-    voice: string,
-  ) {
+  private async handleSync(prompt: string, voice: string) {
     let createdUrl: string | undefined = undefined;
     try {
-      const blob =
-        mode === 'stream'
-          ? await this.speechService.synthesizeStream(prompt, voice)
-          : await this.speechService.synthesize(prompt, voice);
+      const blob = await this.speechService.synthesize(prompt, voice);
       createdUrl = URL.createObjectURL(blob);
       this.audioUrl.set(createdUrl);
     } catch (e) {
+      this.audioPlayerService.stopAll();
+      if (createdUrl) {
+        revokeBlobURL(createdUrl);
+      }
+      throw e;
+    }
+  }
+
+  private async handleStream(prompt: string, voice: string) {
+    let createdUrl: string | undefined = undefined;
+    let finalBlob: Blob | undefined = undefined;
+    let isInitialized = false;
+    try {
+      for await (const chunk of this.speechService.synthesizeStream(prompt, voice)) {
+        if (chunk instanceof Blob) {
+          finalBlob = chunk;
+        } else {
+          if (!isInitialized) {
+            this.audioPlayerService.initialize(chunk.sampleRate);
+            isInitialized = true;
+          }
+          this.audioPlayerService.processChunk(chunk.decodedData);
+        }
+      }
+      await this.audioPlayerService.awaitPlaybackComplete();
+      if (finalBlob) {
+        createdUrl = URL.createObjectURL(finalBlob);
+        this.audioUrl.set(createdUrl);
+      }
+    } catch (e) {
+      this.audioPlayerService.stopAll();
       if (createdUrl) {
         revokeBlobURL(createdUrl);
       }
@@ -82,7 +108,20 @@ export class TextToSpeechComponent implements OnDestroy {
   }
 
   private async handleWebAudio(prompt: string, voice: string) {
-    await this.speechService.speak(prompt, voice);
+    let isInitialized = false;
+    try {
+      for await (const chunk of this.speechService.speak(prompt, voice)) {
+        if (!isInitialized) {
+          this.audioPlayerService.initialize(chunk.sampleRate);
+          isInitialized = true;
+        }
+        this.audioPlayerService.processChunk(chunk.decodedData);
+      }
+    } catch (e) {
+      console.error('Streaming playback failed:', e);
+      this.audioPlayerService.stopAll();
+      throw e;
+    }
   }
 
   ngOnDestroy(): void {
