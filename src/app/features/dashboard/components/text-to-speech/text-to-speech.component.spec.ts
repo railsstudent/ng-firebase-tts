@@ -14,6 +14,10 @@ describe('TextToSpeechComponent', () => {
   };
   let mockAudioPlayerService: {
     playbackRate: ReturnType<typeof vi.fn>;
+    initialize: ReturnType<typeof vi.fn>;
+    processChunk: ReturnType<typeof vi.fn>;
+    stopAll: ReturnType<typeof vi.fn>;
+    awaitPlaybackComplete: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(async () => {
@@ -24,6 +28,10 @@ describe('TextToSpeechComponent', () => {
     };
     mockAudioPlayerService = {
       playbackRate: vi.fn(),
+      initialize: vi.fn(),
+      processChunk: vi.fn(),
+      stopAll: vi.fn(),
+      awaitPlaybackComplete: vi.fn().mockResolvedValue(undefined),
     };
 
     const pbRateSignal = signal(1);
@@ -99,7 +107,16 @@ describe('TextToSpeechComponent', () => {
 
   it('should generate speech in stream mode and set the audio URL', async () => {
     const mockBlob = new Blob(['dummy streamed pcm data'], { type: 'audio/pcm' });
-    mockSpeechService.synthesizeStream.mockResolvedValue(mockBlob);
+
+    // synthesizeStream is an AsyncGenerator that yields chunks and then yields the Blob!
+    const mockGenerator = {
+      async *[Symbol.asyncIterator]() {
+        yield { decodedData: new Uint8Array([1, 2]), sampleRate: 24000 };
+        yield mockBlob;
+      },
+    };
+
+    mockSpeechService.synthesizeStream.mockReturnValue(mockGenerator);
     vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:streamed-dummy-url');
 
     await component.generateSpeech('stream');
@@ -108,17 +125,27 @@ describe('TextToSpeechComponent', () => {
       'Listen to honey fact.',
       'Kore',
     );
+    expect(mockAudioPlayerService.initialize).toHaveBeenCalledWith(24000);
+    expect(mockAudioPlayerService.processChunk).toHaveBeenCalledWith(new Uint8Array([1, 2]));
+    expect(mockAudioPlayerService.awaitPlaybackComplete).toHaveBeenCalled();
     expect(component.audioUrl()).toBe('blob:streamed-dummy-url');
     expect(component.ttsError()).toBe('');
     expect(component.loadingMode()).toBe('idle');
   });
 
   it('should run zero-latency speaking via speak method in web_audio_api mode', async () => {
-    mockSpeechService.speak.mockResolvedValue(undefined);
+    const mockGenerator = {
+      async *[Symbol.asyncIterator]() {
+        yield { decodedData: new Uint8Array([1, 2]), sampleRate: 16000 };
+      },
+    };
+    mockSpeechService.speak.mockReturnValue(mockGenerator);
 
     await component.generateSpeech('web_audio_api');
 
     expect(mockSpeechService.speak).toHaveBeenCalledWith('Listen to honey fact.', 'Kore');
+    expect(mockAudioPlayerService.initialize).toHaveBeenCalledWith(16000);
+    expect(mockAudioPlayerService.processChunk).toHaveBeenCalledWith(new Uint8Array([1, 2]));
     expect(component.audioUrl()).toBeUndefined();
     expect(component.loadingMode()).toBe('idle');
   });

@@ -1,6 +1,5 @@
 import { AI_BACKEND } from '@/core/constants/firebase.constant';
 import { TestBed } from '@angular/core/testing';
-import { AudioPlayerService } from './audio-player.service';
 import { ConfigService } from './config.service';
 import { TextToSpeechService } from './text-to-speech.service';
 
@@ -22,16 +21,8 @@ vi.mock('firebase/ai', async (importOriginal) => {
   });
 });
 
-interface MockAudioPlayer {
-  initialize: ReturnType<typeof vi.fn>;
-  processChunk: ReturnType<typeof vi.fn>;
-  stopAll: ReturnType<typeof vi.fn>;
-  awaitPlaybackComplete: ReturnType<typeof vi.fn>;
-}
-
 describe('TextToSpeechService', () => {
   let service: TextToSpeechService;
-  let audioPlayerMock: MockAudioPlayer;
   let mockAI: Record<string, unknown>;
   let mockConfigService: {
     readonly appConfig: Record<string, unknown>;
@@ -40,13 +31,6 @@ describe('TextToSpeechService', () => {
   let appConfigSpy: ReturnType<typeof vi.fn> & (() => Record<string, unknown>);
 
   beforeEach(() => {
-    audioPlayerMock = {
-      initialize: vi.fn(),
-      processChunk: vi.fn(),
-      stopAll: vi.fn(),
-      awaitPlaybackComplete: vi.fn().mockResolvedValue(undefined),
-    };
-
     mockAI = {};
 
     // Standard mock configuration data matching the expected AppRemoteConfig type
@@ -71,7 +55,6 @@ describe('TextToSpeechService', () => {
       providers: [
         TextToSpeechService,
         { provide: AI_BACKEND, useValue: mockAI },
-        { provide: AudioPlayerService, useValue: audioPlayerMock },
         { provide: ConfigService, useValue: mockConfigService },
       ],
     });
@@ -162,7 +145,7 @@ describe('TextToSpeechService', () => {
   });
 
   describe('synthesizeStream (Use Case 2 - Hybrid Stream-and-Play)', () => {
-    it('should stream chunks, feed decoded chunks to audio player, and return complete WAV blob', async () => {
+    it('should stream chunks, yield them, and yield complete WAV blob as the last emission', async () => {
       const mockStreamIterator = {
         async *[Symbol.asyncIterator]() {
           yield {
@@ -204,27 +187,33 @@ describe('TextToSpeechService', () => {
         stream: mockStreamIterator,
       });
 
-      const blob = await service.synthesizeStream('Dynamic Stream', 'Kore');
+      const generator = service.synthesizeStream('Dynamic Stream', 'Kore');
+      const emissions = [];
+      for await (const chunk of generator) {
+        emissions.push(chunk);
+      }
 
       expect(mockModel.generateContentStream).toHaveBeenCalledWith(['Dynamic Stream']);
-      expect(audioPlayerMock.initialize).toHaveBeenCalledWith(24000);
-      expect(audioPlayerMock.processChunk).toHaveBeenCalledTimes(2);
-      expect(blob).toBeInstanceOf(Blob);
-      expect(blob.type).toBe('audio/wav');
+      expect(emissions.length).toBe(3); // 2 chunks, 1 final Blob
+      expect(emissions[0]).toEqual({
+        decodedData: expect.any(Uint8Array),
+        sampleRate: 24000,
+      });
+      expect(emissions[2]).toBeInstanceOf(Blob);
+      const finalBlob = emissions[2] as Blob;
+      expect(finalBlob.type).toBe('audio/wav');
     });
 
-    it('should stop player and rethrow on stream errors', async () => {
+    it('should rethrow on stream errors', async () => {
       mockModel.generateContentStream.mockRejectedValue(new Error('Vertex AI stream error'));
 
-      await expect(service.synthesizeStream('Failing stream', 'Puck')).rejects.toThrow(
-        'Vertex AI stream error',
-      );
-      expect(audioPlayerMock.stopAll).toHaveBeenCalled();
+      const generator = service.synthesizeStream('Failing stream', 'Puck');
+      await expect(generator.next()).rejects.toThrow('Vertex AI stream error');
     });
   });
 
   describe('speak (Use Case 3 - Zero-Latency Playback)', () => {
-    it('should initialize player, fetch stream, decode base64, and feed decoded chunks directly to player', async () => {
+    it('should yield chunks and parse sampleRate correctly', async () => {
       const mockStreamIterator = {
         async *[Symbol.asyncIterator]() {
           yield {
@@ -250,23 +239,23 @@ describe('TextToSpeechService', () => {
         stream: mockStreamIterator,
       });
 
-      await service.speak('Hello interactive player', 'Puck');
+      const generator = service.speak('Hello interactive player', 'Puck');
+      const chunks = [];
+      for await (const chunk of generator) {
+        chunks.push(chunk);
+      }
 
-      expect(audioPlayerMock.initialize).toHaveBeenCalledWith(16000);
       expect(mockModel.generateContentStream).toHaveBeenCalledWith(['Hello interactive player']);
-      expect(audioPlayerMock.processChunk).toHaveBeenCalled();
-
-      const decodedBytes = audioPlayerMock.processChunk.mock.calls[0][0] as Uint8Array;
-      expect(Array.from(decodedBytes)).toEqual([72, 101, 108, 108, 111]);
+      expect(chunks.length).toBe(1);
+      expect(chunks[0].sampleRate).toBe(16000);
+      expect(Array.from(chunks[0].decodedData)).toEqual([72, 101, 108, 108, 111]);
     });
 
-    it('should stop player and rethrow on stream errors', async () => {
+    it('should rethrow on stream errors', async () => {
       mockModel.generateContentStream.mockRejectedValue(new Error('Vertex AI stream error'));
 
-      await expect(service.speak('Failing stream', 'Puck')).rejects.toThrow(
-        'Vertex AI stream error',
-      );
-      expect(audioPlayerMock.stopAll).toHaveBeenCalled();
+      const generator = service.speak('Failing stream', 'Puck');
+      await expect(generator.next()).rejects.toThrow('Vertex AI stream error');
     });
   });
 });
