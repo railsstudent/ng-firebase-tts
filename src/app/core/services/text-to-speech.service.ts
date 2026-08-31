@@ -13,7 +13,7 @@ export class TextToSpeechService {
   readonly #aiBackend = inject(AI_BACKEND);
   readonly #audioPlayer = inject(AudioPlayerService);
   readonly #configService = inject(ConfigService);
-  readonly #modelName = this.#configService.appConfig().geminiTTSModelName;
+  readonly #modelName = this.#configService.appConfig.geminiTTSModelName;
 
   /**
    * USE CASE 3 (Zero-Latency Playback):

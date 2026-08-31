@@ -34,10 +34,10 @@ describe('TextToSpeechService', () => {
   let audioPlayerMock: MockAudioPlayer;
   let mockAI: Record<string, unknown>;
   let mockConfigService: {
-    appConfig: ReturnType<typeof vi.fn>;
+    readonly appConfig: Record<string, unknown>;
     remoteConfig: Record<string, unknown>;
   };
-  let appConfigSpy: ReturnType<typeof vi.fn>;
+  let appConfigSpy: ReturnType<typeof vi.fn> & (() => Record<string, unknown>);
 
   beforeEach(() => {
     audioPlayerMock = {
@@ -61,7 +61,9 @@ describe('TextToSpeechService', () => {
     appConfigSpy = vi.fn().mockReturnValue(configData);
 
     mockConfigService = {
-      appConfig: appConfigSpy,
+      get appConfig() {
+        return appConfigSpy();
+      },
       remoteConfig: {},
     };
 

@@ -3,7 +3,7 @@ import { injectOnlineStatus } from '@/core/utils/connection.util';
 import { configureAppCheckDebugToken, injectIsLocalhost } from '@/core/utils/platform.util';
 import firebaseConfig from '@/public/firebase.config.json';
 import remoteConfigDefaults from '@/public/remote-config-defaults.json';
-import { isDevMode, Service, signal } from '@angular/core';
+import { isDevMode, Service } from '@angular/core';
 import { AgentPlatformBackend, AI, getAI, ThinkingLevel } from 'firebase/ai';
 import { FirebaseApp, FirebaseOptions, initializeApp } from 'firebase/app';
 import { AppCheck, initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
@@ -12,6 +12,8 @@ import { fetchAndActivate, getRemoteConfig, getValue, RemoteConfig } from 'fireb
 const SECONDS = 60;
 const MILLISECONDS = 1000;
 const ONE_HOUR_IN_MILLISECONDS = SECONDS * SECONDS * MILLISECONDS;
+const DEV_TIMEOUT = 1000;
+const PROD_TIMEOUT = 2000;
 
 @Service()
 export class ConfigService {
@@ -20,23 +22,24 @@ export class ConfigService {
   #isOnline = injectOnlineStatus();
   #isLocalhost = injectIsLocalhost();
 
-  #appConfig = signal<AppRemoteConfig>({
-    useLimitedUseAppCheckTokens: false,
-    vertexAILocation: 'global',
-    geminiModelName: '',
-    geminiTTSModelName: '',
-    thinkingLevel: ThinkingLevel.LOW,
-  });
-  appConfig = this.#appConfig.asReadonly();
+  #appConfig: AppRemoteConfig = {
+    useLimitedUseAppCheckTokens: remoteConfigDefaults.useLimitedUseAppCheckTokens === 'true',
+    vertexAILocation: remoteConfigDefaults.vertexAILocation,
+    geminiModelName: remoteConfigDefaults.geminiModelName,
+    geminiTTSModelName: remoteConfigDefaults.geminiTTSModelName,
+    thinkingLevel: ThinkingLevel[remoteConfigDefaults.thinkingLevel as keyof typeof ThinkingLevel],
+  };
 
-  #aiBackend = signal<AI | undefined>(undefined);
-  aiBackend = this.#aiBackend.asReadonly();
+  get appConfig(): AppRemoteConfig {
+    return this.#appConfig;
+  }
 
-  get firebaseApp(): FirebaseApp {
-    if (!this.#app) {
-      throw new Error('Firebase app has not been initialized yet.');
+  #aiBackend: AI | undefined = undefined;
+  get aiBackend(): AI {
+    if (!this.#aiBackend) {
+      throw new Error('AI backend has not been initialized yet.');
     }
-    return this.#app;
+    return this.#aiBackend;
   }
 
   // Testable helper methods to allow mocking of read-only ESM imports
@@ -55,6 +58,7 @@ export class ConfigService {
     const rc = getRemoteConfig(app);
     rc.defaultConfig = remoteConfigDefaults;
     rc.settings.minimumFetchIntervalMillis = isDevMode() ? 0 : ONE_HOUR_IN_MILLISECONDS;
+    rc.settings.fetchTimeoutMillis = isDevMode() ? DEV_TIMEOUT : PROD_TIMEOUT;
     return rc;
   }
 
@@ -80,33 +84,27 @@ export class ConfigService {
         const activated = await this.fetchRemoteConfig(this.#remoteConfig);
         console.log('Remote Config initialized. Activated new values:', activated);
 
-        const vertexAILocation = getValue(this.#remoteConfig, 'vertexAILocation').asString();
-        const useLimitedUseAppCheckTokens = getValue(
-          this.#remoteConfig,
-          'useLimitedUseAppCheckTokens',
-        ).asBoolean();
-
-        const model = getValue(this.#remoteConfig, 'geminiModelName').asString();
         const rawThinkingLevel = getValue(this.#remoteConfig, 'thinkingLevel').asString();
         const thinkingLevel = ThinkingLevel[rawThinkingLevel as keyof typeof ThinkingLevel];
-        const ttsModelName = getValue(this.#remoteConfig, 'geminiTTSModelName').asString();
 
-        this.#appConfig.set({
-          vertexAILocation,
-          useLimitedUseAppCheckTokens,
-          geminiModelName: model,
+        this.#appConfig = {
+          vertexAILocation: getValue(this.#remoteConfig, 'vertexAILocation').asString(),
+          useLimitedUseAppCheckTokens: getValue(
+            this.#remoteConfig,
+            'useLimitedUseAppCheckTokens',
+          ).asBoolean(),
+          geminiModelName: getValue(this.#remoteConfig, 'geminiModelName').asString(),
           thinkingLevel,
-          geminiTTSModelName: ttsModelName,
-        });
-
-        const firebaseAI = getAI(this.#app, {
-          backend: new AgentPlatformBackend(this.#appConfig().vertexAILocation),
-          useLimitedUseAppCheckTokens: this.#appConfig().useLimitedUseAppCheckTokens,
-        });
-        this.#aiBackend.set(firebaseAI);
+          geminiTTSModelName: getValue(this.#remoteConfig, 'geminiTTSModelName').asString(),
+        };
       } catch (error) {
         console.warn('Remote Config fetch timed out or failed. Using defaults:', error);
       }
     }
+
+    this.#aiBackend = getAI(this.#app, {
+      backend: new AgentPlatformBackend(this.#appConfig.vertexAILocation),
+      useLimitedUseAppCheckTokens: this.#appConfig.useLimitedUseAppCheckTokens,
+    });
   }
 }

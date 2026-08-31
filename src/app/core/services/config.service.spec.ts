@@ -32,6 +32,14 @@ vi.mock('firebase/remote-config', async (importOriginal) => {
   });
 });
 
+// Mock firebase/ai to prevent real initialization inside ConfigService tests
+vi.mock('firebase/ai', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('firebase/ai')>();
+  return Object.assign({}, actual, {
+    getAI: () => ({}) as unknown as import('firebase/ai').AI,
+  });
+});
+
 // Create a test subclass of ConfigService to easily intercept read-only ESM static methods
 @Service({ autoProvided: false })
 class TestConfigService extends ConfigService {
@@ -102,11 +110,6 @@ describe('ConfigService', () => {
     return TestBed.inject(TestConfigService);
   }
 
-  it('should throw an error when accessing firebaseApp before initialization', () => {
-    const service = configureTestBed();
-    expect(() => service.firebaseApp).toThrow('Firebase app has not been initialized yet.');
-  });
-
   it('should initialize app, setup remote-config, and fetch when online', async () => {
     const service = configureTestBed();
     navigatorMock.onLine = true;
@@ -122,10 +125,8 @@ describe('ConfigService', () => {
     const globalObj = globalThis as Record<string, unknown>;
     expect(globalObj['FIREBASE_APPCHECK_DEBUG_TOKEN']).toBeDefined();
 
-    expect(service.firebaseApp).toBe(service.mockApp);
-
     // Verify that values fetched online are correctly stored in the appConfig signal
-    expect(service.appConfig()).toEqual({
+    expect(service.appConfig).toEqual({
       vertexAILocation: 'us-central1',
       useLimitedUseAppCheckTokens: true,
       geminiModelName: 'gemini-1.5-flash',
@@ -149,13 +150,11 @@ describe('ConfigService', () => {
     const globalObj = globalThis as Record<string, unknown>;
     expect(globalObj['FIREBASE_APPCHECK_DEBUG_TOKEN']).toBeUndefined();
 
-    expect(service.firebaseApp).toBe(service.mockApp);
-
     // When offline, it should use the default initialized value
-    expect(service.appConfig()).toEqual({
+    expect(service.appConfig).toEqual({
       useLimitedUseAppCheckTokens: false,
       vertexAILocation: 'global',
-      geminiModelName: '',
+      geminiModelName: 'gemini-3.7-flash',
       geminiTTSModelName: '',
       thinkingLevel: 'LOW',
     });
@@ -199,10 +198,10 @@ describe('ConfigService', () => {
     expect(service.fetchRemoteConfigCalled).toBe(true);
 
     // When fetch fails, signal remains on default values
-    expect(service.appConfig()).toEqual({
+    expect(service.appConfig).toEqual({
       useLimitedUseAppCheckTokens: false,
       vertexAILocation: 'global',
-      geminiModelName: '',
+      geminiModelName: 'gemini-3.7-flash',
       geminiTTSModelName: '',
       thinkingLevel: 'LOW',
     });

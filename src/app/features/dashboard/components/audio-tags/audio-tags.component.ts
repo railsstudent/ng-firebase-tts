@@ -19,7 +19,7 @@ export class AudioTagsComponent {
   audioPromptForm = form(this.#audioPromptModel);
 
   sortedVoiceOptions = computed(() => {
-    const sortedList = VOICE_OPTIONS.sort((a, b) => a.name.localeCompare(b.name));
+    const sortedList = [...VOICE_OPTIONS].sort((a, b) => a.name.localeCompare(b.name));
 
     return sortedList.map((option) => ({
       name: option.name,

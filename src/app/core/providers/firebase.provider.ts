@@ -31,23 +31,11 @@ export function provideFirebase() {
   return makeEnvironmentProviders([
     {
       provide: AI_BACKEND,
-      useFactory: () => {
-        const configService = inject(ConfigService);
-        const aiBackend = configService.aiBackend();
-
-        if (aiBackend) {
-          return aiBackend;
-        }
-
-        throw new Error('aiBackend is undefined');
-      },
+      useFactory: () => inject(ConfigService).aiBackend,
     },
     {
       provide: VISION_AI_MODEL,
-      useFactory: () => {
-        const configService = inject(ConfigService);
-        return getGenerativeAIModel(configService.appConfig());
-      },
+      useFactory: () => getGenerativeAIModel(inject(ConfigService).appConfig),
     },
   ]);
 }
