@@ -1,9 +1,9 @@
 import { AI_BACKEND, SAFETY_SETTINGS, VISION_AI_MODEL } from '@/core/constants/firebase.constant';
+import { AppRemoteConfig } from '@/core/interfaces/app-remote-config.type';
 import { ImageAnalysisSchema } from '@/core/schemas/image-analysis.schema';
 import { ConfigService } from '@/core/services/config.service';
 import { inject, makeEnvironmentProviders } from '@angular/core';
-import { AgentPlatformBackend, getAI, getGenerativeModel, ThinkingLevel } from 'firebase/ai';
-import { getValue, RemoteConfig } from 'firebase/remote-config';
+import { getGenerativeModel } from 'firebase/ai';
 
 const TOOLS = [
   {
@@ -11,18 +11,14 @@ const TOOLS = [
   },
 ];
 
-function getGenerativeAIModel(remoteConfig: RemoteConfig) {
-  const model = getValue(remoteConfig, 'geminiModelName').asString();
-  const rawThinkingLevel = getValue(remoteConfig, 'thinkingLevel').asString();
-  const thinkingLevel = ThinkingLevel[rawThinkingLevel as keyof typeof ThinkingLevel];
-
+function getGenerativeAIModel(appConfig: AppRemoteConfig) {
   return getGenerativeModel(inject(AI_BACKEND), {
-    model,
+    model: appConfig.geminiModelName,
     generationConfig: {
       responseMimeType: 'application/json',
       responseSchema: ImageAnalysisSchema,
       thinkingConfig: {
-        thinkingLevel,
+        thinkingLevel: appConfig.thinkingLevel,
         includeThoughts: true,
       },
     },
@@ -37,25 +33,20 @@ export function provideFirebase() {
       provide: AI_BACKEND,
       useFactory: () => {
         const configService = inject(ConfigService);
-        const remoteConfig = configService.remoteConfig;
+        const aiBackend = configService.aiBackend();
 
-        const vertexAILocation = getValue(remoteConfig, 'vertexAILocation').asString();
-        const useLimitedUseAppCheckTokens = getValue(
-          remoteConfig,
-          'useLimitedUseAppCheckTokens',
-        ).asBoolean();
+        if (aiBackend) {
+          return aiBackend;
+        }
 
-        return getAI(configService.firebaseApp, {
-          backend: new AgentPlatformBackend(vertexAILocation),
-          useLimitedUseAppCheckTokens,
-        });
+        throw new Error('aiBackend is undefined');
       },
     },
     {
       provide: VISION_AI_MODEL,
       useFactory: () => {
         const configService = inject(ConfigService);
-        return getGenerativeAIModel(configService.remoteConfig);
+        return getGenerativeAIModel(configService.appConfig());
       },
     },
   ]);

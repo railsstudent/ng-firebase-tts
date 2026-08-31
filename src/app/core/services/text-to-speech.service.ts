@@ -1,11 +1,10 @@
 import { AI_BACKEND } from '@/core/constants/firebase.constant';
 import { DEFAULT_SAMPLE_RATE } from '@/core/constants/text-to-speech.constant';
+import { ProcessedStreamChunk, SpeechChunkData } from '@/core/interfaces/text-to-speech.type';
 import { decodeBase64 } from '@/core/utils/base64.util';
 import { convertToWav, extractInlineData, parseMimeType } from '@/core/utils/mime-type.util';
 import { inject, Service } from '@angular/core';
 import { GenerateContentResponse, getGenerativeModel, ResponseModality } from 'firebase/ai';
-import { getValue } from 'firebase/remote-config';
-import { ProcessedStreamChunk, SpeechChunkData } from '@/core/interfaces/text-to-speech.type';
 import { AudioPlayerService } from './audio-player.service';
 import { ConfigService } from './config.service';
 
@@ -14,7 +13,7 @@ export class TextToSpeechService {
   readonly #aiBackend = inject(AI_BACKEND);
   readonly #audioPlayer = inject(AudioPlayerService);
   readonly #configService = inject(ConfigService);
-  readonly #modelName = getValue(this.#configService.remoteConfig, 'geminiTTSModelName').asString();
+  readonly #modelName = this.#configService.appConfig().geminiTTSModelName;
 
   /**
    * USE CASE 3 (Zero-Latency Playback):

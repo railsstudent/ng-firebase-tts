@@ -1,11 +1,36 @@
-import '@angular/compiler';
 import { NAVIGATOR, WINDOW } from '@/core/constants/navigator.const';
+import '@angular/compiler';
 import { Service } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { FirebaseApp } from 'firebase/app';
 import { AppCheck } from 'firebase/app-check';
 import { RemoteConfig } from 'firebase/remote-config';
 import { ConfigService } from './config.service';
+
+// Mock firebase/remote-config
+vi.mock('firebase/remote-config', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('firebase/remote-config')>();
+  return Object.assign({}, actual, {
+    getValue: (rc: unknown, key: string) => ({
+      asString: () => {
+        switch (key) {
+          case 'vertexAILocation':
+            return 'us-central1';
+          case 'geminiModelName':
+            return 'gemini-1.5-flash';
+          case 'geminiTTSModelName':
+            return 'gemini-1.5-flash-tts';
+          case 'thinkingLevel':
+            return 'LOW';
+          default:
+            return '';
+        }
+      },
+      asBoolean: () => key === 'useLimitedUseAppCheckTokens',
+      asNumber: () => 0,
+    }),
+  });
+});
 
 // Create a test subclass of ConfigService to easily intercept read-only ESM static methods
 @Service({ autoProvided: false })
@@ -82,13 +107,6 @@ describe('ConfigService', () => {
     expect(() => service.firebaseApp).toThrow('Firebase app has not been initialized yet.');
   });
 
-  it('should throw an error when accessing remoteConfig before initialization', () => {
-    const service = configureTestBed();
-    expect(() => service.remoteConfig).toThrow(
-      'Firebase remote config has not been initialized yet.',
-    );
-  });
-
   it('should initialize app, setup remote-config, and fetch when online', async () => {
     const service = configureTestBed();
     navigatorMock.onLine = true;
@@ -105,7 +123,15 @@ describe('ConfigService', () => {
     expect(globalObj['FIREBASE_APPCHECK_DEBUG_TOKEN']).toBeDefined();
 
     expect(service.firebaseApp).toBe(service.mockApp);
-    expect(service.remoteConfig).toBe(service.mockRemoteConfig);
+
+    // Verify that values fetched online are correctly stored in the appConfig signal
+    expect(service.appConfig()).toEqual({
+      vertexAILocation: 'us-central1',
+      useLimitedUseAppCheckTokens: true,
+      geminiModelName: 'gemini-1.5-flash',
+      thinkingLevel: 'LOW',
+      geminiTTSModelName: 'gemini-1.5-flash-tts',
+    });
   });
 
   it('should skip App Check and dynamic remote-config fetching when offline', async () => {
@@ -124,7 +150,15 @@ describe('ConfigService', () => {
     expect(globalObj['FIREBASE_APPCHECK_DEBUG_TOKEN']).toBeUndefined();
 
     expect(service.firebaseApp).toBe(service.mockApp);
-    expect(service.remoteConfig).toBe(service.mockRemoteConfig);
+
+    // When offline, it should use the default initialized value
+    expect(service.appConfig()).toEqual({
+      useLimitedUseAppCheckTokens: false,
+      vertexAILocation: 'global',
+      geminiModelName: '',
+      geminiTTSModelName: '',
+      thinkingLevel: 'LOW',
+    });
   });
 
   it('should skip App Check when online but recaptchaEnterpriseKey is missing from config', async () => {
@@ -163,5 +197,14 @@ describe('ConfigService', () => {
     expect(service.initializeFirebaseAppCalled).toBe(true);
     expect(service.setupRemoteConfigCalled).toBe(true);
     expect(service.fetchRemoteConfigCalled).toBe(true);
+
+    // When fetch fails, signal remains on default values
+    expect(service.appConfig()).toEqual({
+      useLimitedUseAppCheckTokens: false,
+      vertexAILocation: 'global',
+      geminiModelName: '',
+      geminiTTSModelName: '',
+      thinkingLevel: 'LOW',
+    });
   });
 });

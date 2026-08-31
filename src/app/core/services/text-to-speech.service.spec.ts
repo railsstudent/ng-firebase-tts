@@ -22,17 +22,6 @@ vi.mock('firebase/ai', async (importOriginal) => {
   });
 });
 
-const { mockGetValue } = vi.hoisted(() => ({
-  mockGetValue: vi.fn().mockReturnValue({
-    asString: () => 'gemini-2.0-flash-exp',
-  }),
-}));
-
-// Mock firebase/remote-config to resolve the model name retrieval
-vi.mock('firebase/remote-config', () => ({
-  getValue: mockGetValue,
-}));
-
 interface MockAudioPlayer {
   initialize: ReturnType<typeof vi.fn>;
   processChunk: ReturnType<typeof vi.fn>;
@@ -44,7 +33,11 @@ describe('TextToSpeechService', () => {
   let service: TextToSpeechService;
   let audioPlayerMock: MockAudioPlayer;
   let mockAI: Record<string, unknown>;
-  let mockConfigService: { remoteConfig: Record<string, unknown> };
+  let mockConfigService: {
+    appConfig: ReturnType<typeof vi.fn>;
+    remoteConfig: Record<string, unknown>;
+  };
+  let appConfigSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     audioPlayerMock = {
@@ -55,7 +48,20 @@ describe('TextToSpeechService', () => {
     };
 
     mockAI = {};
+
+    // Standard mock configuration data matching the expected AppRemoteConfig type
+    const configData = {
+      geminiTTSModelName: 'gemini-2.0-flash-exp',
+      vertexAILocation: 'us-central1',
+      geminiModelName: 'gemini-1.5-flash',
+      thinkingLevel: 'LOW',
+      useLimitedUseAppCheckTokens: true,
+    };
+
+    appConfigSpy = vi.fn().mockReturnValue(configData);
+
     mockConfigService = {
+      appConfig: appConfigSpy,
       remoteConfig: {},
     };
 
@@ -77,17 +83,16 @@ describe('TextToSpeechService', () => {
   });
 
   describe('Model Caching', () => {
-    it('should read modelName from Remote Config exactly once during initialization', async () => {
-      // Clear call history first
-      mockGetValue.mockClear();
+    it('should read modelName from ConfigService appConfig exactly once during initialization', async () => {
+      appConfigSpy.mockClear();
 
       let testService!: TextToSpeechService;
       TestBed.runInInjectionContext(() => {
         testService = new TextToSpeechService();
       });
 
-      // Verify it called getValue exactly once on instantiation
-      expect(mockGetValue).toHaveBeenCalledTimes(1);
+      // Verify it accessed the appConfig signal exactly once on instantiation
+      expect(appConfigSpy).toHaveBeenCalledTimes(1);
 
       // Mock generative response
       mockModel.generateContent.mockResolvedValue({
@@ -110,8 +115,8 @@ describe('TextToSpeechService', () => {
       await testService.synthesize('Test 1', 'Kore');
       await testService.synthesize('Test 2', 'Puck');
 
-      // The count of getValue calls should STILL be exactly 1!
-      expect(mockGetValue).toHaveBeenCalledTimes(1);
+      // The count of appConfig signal reads should STILL be exactly 1!
+      expect(appConfigSpy).toHaveBeenCalledTimes(1);
     });
   });
 
