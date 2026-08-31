@@ -1,9 +1,8 @@
 import { AudioPlayerService } from '@/core/services/audio-player.service';
 import { TextToSpeechService } from '@/core/services/text-to-speech.service';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ObscureFactComponent } from './obscure-fact.component';
-import { ModeWithAudioTags } from '@/features/dashboard/interfaces/mode-audio-tags.interface';
 
 describe('ObscureFactComponent', () => {
   let component: ObscureFactComponent;
@@ -27,7 +26,6 @@ describe('ObscureFactComponent', () => {
       playbackRate: vi.fn(),
     };
 
-    // Define playbackRate as a signal mock
     const pbRateSignal = signal(1);
     Object.defineProperty(mockAudioPlayerService, 'playbackRate', {
       value: pbRateSignal.asReadonly(),
@@ -47,105 +45,47 @@ describe('ObscureFactComponent', () => {
   });
 
   it('should create the component', () => {
+    fixture.detectChanges();
     expect(component).toBeTruthy();
   });
 
-  it('should generate speech in sync mode and set the audio URL', async () => {
-    const mockBlob = new Blob(['dummy pcm data'], { type: 'audio/pcm' });
-    mockSpeechService.synthesize.mockResolvedValue(mockBlob);
-
+  it('should compute audioTagsModel, audioPrompt, and voice correctly', () => {
     fixture.componentRef.setInput('interestingFact', 'Did you know that honey never spoils?');
     fixture.detectChanges();
 
-    const mockPayload: ModeWithAudioTags = {
-      mode: 'sync',
-      audioTags: {
-        scene: 'A quiet room',
-        emotion: 'happy',
-        pace: 'normal',
-        voiceOption: 'Kore',
-      },
-    };
+    expect(component.audioTagsModel()).toEqual({
+      scene: 'A news anchor reading the news in a busy newsroom',
+      emotion: 'professional, slightly serious',
+      pace: 'moderate, clear enunciation',
+      voiceOption: 'Kore',
+    });
 
-    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:dummy-url');
-
-    await component.generateSpeech(mockPayload);
-
-    expect(mockSpeechService.synthesize).toHaveBeenCalled();
-    expect(component.audioUrl()).toBe('blob:dummy-url');
-    expect(component.ttsError()).toBe('');
+    expect(component.voice()).toBe('Kore');
+    expect(component.audioPrompt()).toContain('Did you know that honey never spoils?');
   });
 
-  it('should generate speech in stream mode and set the audio URL', async () => {
-    const mockBlob = new Blob(['dummy streamed pcm data'], { type: 'audio/pcm' });
-    mockSpeechService.synthesizeStream.mockResolvedValue(mockBlob);
-
-    fixture.componentRef.setInput('interestingFact', 'Another fun fact about stars.');
+  it('should render the app-text-to-speech component when interestingFact is present', () => {
+    fixture.componentRef.setInput('interestingFact', 'Stars are beautiful.');
     fixture.detectChanges();
 
-    const mockPayload: ModeWithAudioTags = {
-      mode: 'stream',
-      audioTags: {
-        scene: 'Space',
-        emotion: 'calm',
-        pace: 'slow',
-        voiceOption: 'Zephyr',
-      },
-    };
+    const textToSpeechEl = fixture.nativeElement.querySelector('app-text-to-speech');
+    expect(textToSpeechEl).toBeTruthy();
 
-    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:streamed-dummy-url');
-
-    await component.generateSpeech(mockPayload);
-
-    expect(mockSpeechService.synthesizeStream).toHaveBeenCalled();
-    expect(component.audioUrl()).toBe('blob:streamed-dummy-url');
+    const emptyMsgEl = fixture.nativeElement.querySelector('.obscure-fact-empty');
+    expect(emptyMsgEl).toBeFalsy();
   });
 
-  it('should run zero-latency speaking via speak method in web_audio_api mode', async () => {
-    mockSpeechService.speak.mockResolvedValue(undefined);
+  it('should show the empty placeholder message and omit app-text-to-speech when interestingFact is not present', () => {
+    fixture.componentRef.setInput('interestingFact', undefined);
+    fixture.detectChanges();
 
-    fixture.componentRef.setInput(
-      'interestingFact',
-      'Sound travels underwater faster than in air.',
+    const textToSpeechEl = fixture.nativeElement.querySelector('app-text-to-speech');
+    expect(textToSpeechEl).toBeFalsy();
+
+    const emptyMsgEl = fixture.nativeElement.querySelector('.obscure-fact-empty');
+    expect(emptyMsgEl).toBeTruthy();
+    expect(emptyMsgEl.textContent).toContain(
+      'The tag(s) does not have any interesting or obscure fact.',
     );
-    fixture.detectChanges();
-
-    const mockPayload: ModeWithAudioTags = {
-      mode: 'web_audio_api',
-      audioTags: {
-        scene: 'Underwater lab',
-        emotion: 'serious',
-        pace: 'moderate',
-        voiceOption: 'Puck',
-      },
-    };
-
-    await component.generateSpeech(mockPayload);
-
-    expect(mockSpeechService.speak).toHaveBeenCalled();
-    expect(component.audioUrl()).toBeUndefined();
-    expect(component.isLoadingWebAudio()).toBe(false);
-  });
-
-  it('should catch exceptions and display appropriate error message', async () => {
-    mockSpeechService.synthesize.mockRejectedValue(new Error('Error fetching content'));
-
-    fixture.componentRef.setInput('interestingFact', 'Error case fact.');
-    fixture.detectChanges();
-
-    const mockPayload: ModeWithAudioTags = {
-      mode: 'sync',
-      audioTags: {
-        scene: 'A library',
-        emotion: 'sad',
-        pace: 'slow',
-        voiceOption: 'Kore',
-      },
-    };
-
-    await component.generateSpeech(mockPayload);
-
-    expect(component.ttsError()).toBe('Error generating speech (Sync).');
-    expect(component.audioUrl()).toBeUndefined();
   });
 });

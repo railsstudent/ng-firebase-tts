@@ -142,11 +142,13 @@ describe('AudioPlayerService', () => {
 
     beforeEach(() => {
       vi.useFakeTimers();
+      vi.spyOn(Math, 'random').mockReturnValue(1 / 3);
       testService = new AudioPlayerService();
     });
 
     afterEach(() => {
       vi.useRealTimers();
+      vi.restoreAllMocks();
     });
 
     it('should resolve instantly if not initialized', async () => {

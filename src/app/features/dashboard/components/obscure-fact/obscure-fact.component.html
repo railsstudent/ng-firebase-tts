@@ -6,13 +6,12 @@
 
     <app-error-display [error]="ttsError()" />
 
+    @let voice = audioTags.audioPromptModel().voiceOption;
     <app-text-to-speech
-      [isLoadingSync]="isLoadingSync()"
-      [isLoadingStream]="isLoadingStream()"
-      [isLoadingWebAudio]="isLoadingWebAudio()"
-      [audioUrl]="audioUrl()"
-      (generateSpeech)="generateSpeech({ mode: $event, audioTags: audioTags.audioPromptModel() })"
-      [playbackRate]="playbackRate()"
+      [voice]="voice"
+      [interestingFact]="interestingFact()"
+      [audioPrompt]="audioPrompt()"
+      [(ttsError)]="ttsError"
     />
   } @else {
     <p class="obscure-fact-empty">The tag(s) does not have any interesting or obscure fact.</p>

@@ -1,32 +1,32 @@
 <div>
   <div class="btn-container">
     <button
-      (click)="generateSpeech.emit('sync')"
+      (click)="generateSpeech('sync')"
       aria-label="Generate speech"
       [disabled]="isLoading()"
       class="btn-audio"
     >
-      @let c = { isLoading: isLoadingSync(), buttonText: 'Play Speech (Sync)' };
+      @let c = { isLoading: loadingMode() === 'sync', buttonText: 'Play Speech (Sync)' };
       <ng-container [ngTemplateOutlet]="buttonTemplate" [ngTemplateOutletContext]="c" />
     </button>
     <button
-      (click)="generateSpeech.emit('stream')"
+      (click)="generateSpeech('stream')"
       aria-label="Stream speech"
       [disabled]="isLoading()"
       class="btn-audio"
     >
-      @let c2 = { isLoading: isLoadingStream(), buttonText: 'Play Speech (Stream)' };
+      @let c2 = { isLoading: loadingMode() === 'stream', buttonText: 'Play Speech (Stream)' };
       <ng-container [ngTemplateOutlet]="buttonTemplate" [ngTemplateOutletContext]="c2" />
     </button>
     <button
-      (click)="generateSpeech.emit('web_audio_api')"
+      (click)="generateSpeech('web_audio_api')"
       aria-label="Stream speech"
       [disabled]="isLoading()"
       class="btn-audio"
     >
       @let c3 =
         {
-          isLoading: isLoadingWebAudio(),
+          isLoading: loadingMode() === 'web_audio_api',
           genText: `Speak (Playback rate: ${playbackRate()})`,
           buttonText: `Web Audio API`,
         };
