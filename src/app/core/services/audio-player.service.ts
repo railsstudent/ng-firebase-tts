@@ -1,11 +1,11 @@
 import {
-  AUDIO_NORMALIZATION_BASE,
   DEFAULT_PLAYBACK_RATE,
   DEFAULT_SAMPLE_RATE,
   MAX_PLAYBACK_RATE,
   MIN_PLAYBACK_RATE,
   PLAYBACK_POLL_INTERVAL,
 } from '@/core/constants/text-to-speech.constant';
+import { normalizePcmSamples } from '@/core/utils/pcm.util';
 import { OnDestroy, Service, signal } from '@angular/core';
 import { EmptyError, interval, lastValueFrom, map, takeWhile } from 'rxjs';
 
@@ -41,7 +41,7 @@ export class AudioPlayerService implements OnDestroy {
       return;
     }
 
-    const float32Samples = this.normalizeSamples(rawBytes);
+    const float32Samples = normalizePcmSamples(rawBytes);
     if (float32Samples.length === 0) {
       return;
     }
@@ -105,17 +105,5 @@ export class AudioPlayerService implements OnDestroy {
 
   ngOnDestroy(): void {
     this.stopAll();
-  }
-
-  private normalizeSamples(rawBytes: Uint8Array): Float32Array<ArrayBuffer> {
-    // Ensure even byte count for 16-bit PCM conversion
-    const byteLength =
-      rawBytes.byteLength % 2 === 0 ? rawBytes.byteLength : rawBytes.byteLength - 1;
-    const int16Data = new Int16Array(rawBytes.buffer, rawBytes.byteOffset, byteLength / 2);
-    const float32Data = new Float32Array(int16Data.length) as Float32Array<ArrayBuffer>;
-    for (let i = 0; i < int16Data.length; i = i + 1) {
-      float32Data[i] = int16Data[i] / AUDIO_NORMALIZATION_BASE;
-    }
-    return float32Data;
   }
 }
