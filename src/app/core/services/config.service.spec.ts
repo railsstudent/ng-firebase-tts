@@ -1,14 +1,39 @@
 import { NAVIGATOR, WINDOW } from '@/core/constants/navigator.const';
+import firebaseConfig from '@/public/firebase.config.json';
 import '@angular/compiler';
-import { Service } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { initializeApp } from 'firebase/app';
+import { initializeAppCheck } from 'firebase/app-check';
+import { fetchAndActivate, getRemoteConfig } from 'firebase/remote-config';
 import { ConfigService } from './config.service';
+
+// Mock firebase/app
+vi.mock('firebase/app', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('firebase/app')>();
+  return Object.assign({}, actual, {
+    initializeApp: vi.fn().mockReturnValue({ name: '[DEFAULT]' }),
+  });
+});
+
+// Mock firebase/app-check
+vi.mock('firebase/app-check', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('firebase/app-check')>();
+  return Object.assign({}, actual, {
+    initializeAppCheck: vi.fn(),
+    ReCaptchaEnterpriseProvider: vi.fn(),
+  });
+});
 
 // Mock firebase/remote-config
 vi.mock('firebase/remote-config', async (importOriginal) => {
   const actual = await importOriginal<typeof import('firebase/remote-config')>();
   return Object.assign({}, actual, {
-    getValue: (rc: unknown, key: string) => ({
+    getRemoteConfig: vi.fn().mockReturnValue({
+      defaultConfig: {},
+      settings: {},
+    }),
+    fetchAndActivate: vi.fn().mockResolvedValue(true),
+    getValue: (_rc: unknown, key: string) => ({
       asString: () => {
         switch (key) {
           case 'vertexAILocation':
@@ -37,55 +62,14 @@ vi.mock('firebase/ai', async (importOriginal) => {
   });
 });
 
-// Create a test subclass of ConfigService to easily intercept read-only ESM static methods
-@Service({ autoProvided: false })
-class TestConfigService extends ConfigService {
-  public mockApp = {};
-  public mockAppCheck = {};
-  public mockRemoteConfig = {
-    settings: {},
-  };
-
-  public initializeFirebaseAppCalled = false;
-  public initializeAppCheckInstanceCalled = false;
-  public setupRemoteConfigCalled = false;
-  public fetchRemoteConfigCalled = false;
-  public fetchRemoteConfigSucceeds = true;
-
-  protected override initializeFirebaseApp(): unknown {
-    this.initializeFirebaseAppCalled = true;
-    return this.mockApp;
-  }
-
-  protected override initializeAppCheckInstance(): unknown {
-    this.initializeAppCheckInstanceCalled = true;
-    return this.mockAppCheck;
-  }
-
-  protected override setupRemoteConfig(
-    app: Parameters<ConfigService['setupRemoteConfig']>[0],
-  ): ReturnType<ConfigService['setupRemoteConfig']> {
-    this.setupRemoteConfigCalled = !!app;
-    return this.mockRemoteConfig as unknown as ReturnType<ConfigService['setupRemoteConfig']>;
-  }
-
-  protected override fetchRemoteConfig(): ReturnType<ConfigService['fetchRemoteConfig']> {
-    this.fetchRemoteConfigCalled = true;
-    if (this.fetchRemoteConfigSucceeds) {
-      return Promise.resolve(true) as unknown as ReturnType<ConfigService['fetchRemoteConfig']>;
-    } else {
-      return Promise.reject(new Error('Fetch timed out'));
-    }
-  }
-}
-
-import firebaseConfig from '@/public/firebase.config.json';
-
 describe('ConfigService', () => {
   let navigatorMock: { onLine: boolean };
   let windowMock: { location: { hostname: string } };
 
   beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(fetchAndActivate).mockResolvedValue(true);
+
     navigatorMock = { onLine: true };
     windowMock = {
       location: {
@@ -97,16 +81,16 @@ describe('ConfigService', () => {
     globalObj['FIREBASE_APPCHECK_DEBUG_TOKEN'] = undefined;
   });
 
-  function configureTestBed(): TestConfigService {
+  function configureTestBed(): ConfigService {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
-        TestConfigService,
+        ConfigService,
         { provide: NAVIGATOR, useValue: navigatorMock },
         { provide: WINDOW, useValue: windowMock },
       ],
     });
-    return TestBed.inject(TestConfigService);
+    return TestBed.inject(ConfigService);
   }
 
   it('should initialize app, setup remote-config, and fetch when online', async () => {
@@ -115,10 +99,10 @@ describe('ConfigService', () => {
 
     await service.initialize();
 
-    expect(service.initializeFirebaseAppCalled).toBe(true);
-    expect(service.initializeAppCheckInstanceCalled).toBe(true);
-    expect(service.setupRemoteConfigCalled).toBe(true);
-    expect(service.fetchRemoteConfigCalled).toBe(true);
+    expect(initializeApp).toHaveBeenCalledWith(firebaseConfig.app);
+    expect(initializeAppCheck).toHaveBeenCalled();
+    expect(getRemoteConfig).toHaveBeenCalled();
+    expect(fetchAndActivate).toHaveBeenCalled();
 
     // Verify global debug token gets configured (called 1 time)
     const globalObj = globalThis as Record<string, unknown>;
@@ -140,10 +124,10 @@ describe('ConfigService', () => {
 
     await service.initialize();
 
-    expect(service.initializeFirebaseAppCalled).toBe(true);
-    expect(service.initializeAppCheckInstanceCalled).toBe(false);
-    expect(service.setupRemoteConfigCalled).toBe(true);
-    expect(service.fetchRemoteConfigCalled).toBe(false);
+    expect(initializeApp).toHaveBeenCalledWith(firebaseConfig.app);
+    expect(initializeAppCheck).not.toHaveBeenCalled();
+    expect(getRemoteConfig).toHaveBeenCalled();
+    expect(fetchAndActivate).not.toHaveBeenCalled();
 
     // Verify global debug token remains unconfigured (called 0 times)
     const globalObj = globalThis as Record<string, unknown>;
@@ -176,9 +160,9 @@ describe('ConfigService', () => {
 
       await service.initialize();
 
-      expect(service.initializeAppCheckInstanceCalled).toBe(false);
-      expect(service.setupRemoteConfigCalled).toBe(true);
-      expect(service.fetchRemoteConfigCalled).toBe(true);
+      expect(initializeAppCheck).not.toHaveBeenCalled();
+      expect(getRemoteConfig).toHaveBeenCalled();
+      expect(fetchAndActivate).toHaveBeenCalled();
     } finally {
       config.recaptchaEnterpriseKey = originalKey;
     }
@@ -187,14 +171,14 @@ describe('ConfigService', () => {
   it('should catch remote config fetch errors and use defaults gracefully', async () => {
     const service = configureTestBed();
     navigatorMock.onLine = true;
-    service.fetchRemoteConfigSucceeds = false;
+    vi.mocked(fetchAndActivate).mockRejectedValueOnce(new Error('Fetch timed out'));
 
     // This should resolve cleanly and print a warning rather than crashing
     await expect(service.initialize()).resolves.toBeUndefined();
 
-    expect(service.initializeFirebaseAppCalled).toBe(true);
-    expect(service.setupRemoteConfigCalled).toBe(true);
-    expect(service.fetchRemoteConfigCalled).toBe(true);
+    expect(initializeApp).toHaveBeenCalledWith(firebaseConfig.app);
+    expect(getRemoteConfig).toHaveBeenCalled();
+    expect(fetchAndActivate).toHaveBeenCalled();
 
     // When fetch fails, signal remains on default values
     expect(service.appConfig).toEqual({

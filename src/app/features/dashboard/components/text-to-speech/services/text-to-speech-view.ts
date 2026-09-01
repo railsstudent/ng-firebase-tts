@@ -1,3 +1,5 @@
+import { MAX_PLAYBACK_RATE, MIN_PLAYBACK_RATE } from '@/core/constants/text-to-speech.constant';
+import { RawAudioBinary } from '@/core/interfaces/text-to-speech.type';
 import { AudioPlayerService } from '@/core/services/audio-player.service';
 import { TextToSpeechService } from '@/core/services/text-to-speech.service';
 import { revokeBlobURL } from '@/core/utils/blob.util';
@@ -31,12 +33,9 @@ export class TextToSpeechViewService {
     revokeBlobURL(createdUrl);
   }
 
-  private processStreamChunk(
-    isInitialized: boolean,
-    chunk: { decodedData: Uint8Array; sampleRate: number },
-  ) {
+  private processStreamChunk(isInitialized: boolean, playbackRate: number, chunk: RawAudioBinary) {
     if (!isInitialized) {
-      this.audioPlayerService.initialize(chunk.sampleRate);
+      this.audioPlayerService.initialize(chunk.sampleRate, playbackRate);
       isInitialized = true;
     }
     this.audioPlayerService.processChunk(chunk.decodedData);
@@ -47,53 +46,51 @@ export class TextToSpeechViewService {
     let createdUrl: string | undefined = undefined;
     try {
       const blob = await this.speechService.synthesize(promptArgs.prompt, promptArgs.voice);
-      createdUrl = this.setAudioUrl(blob, createdUrl);
+      createdUrl = this.setAudioUrl(blob);
     } catch (e) {
       this.handlePlaybackError(e, createdUrl);
       throw e;
     }
   }
+
+  private setRandomPlaybackRate(min = MIN_PLAYBACK_RATE, max = MAX_PLAYBACK_RATE) {
+    const percent = 100;
+    const rawRate = Math.random() * (max - min) + min;
+    return Math.round(rawRate * percent) / percent;
+  }
+
   private async handleStream(promptArgs: FactConfig) {
     let createdUrl: string | undefined = undefined;
     let finalBlob: Blob | undefined = undefined;
     let isInitialized = false;
     try {
-      for await (const chunk of this.speechService.synthesizeStream(
-        promptArgs.prompt,
-        promptArgs.voice,
-      )) {
+      const { prompt, voice, shouldWait = false } = promptArgs;
+      const playbackRate = shouldWait ? 1 : this.setRandomPlaybackRate();
+
+      for await (const chunk of this.speechService.synthesizeStream(prompt, voice, shouldWait)) {
         if (chunk instanceof Blob) {
           finalBlob = chunk;
-        } else {
-          isInitialized = this.processStreamChunk(isInitialized, chunk);
+        } else if (chunk) {
+          isInitialized = this.processStreamChunk(isInitialized, playbackRate, chunk);
         }
       }
-      await this.audioPlayerService.awaitPlaybackComplete();
-      createdUrl = this.setAudioUrl(finalBlob, createdUrl);
+      if (shouldWait) {
+        await this.audioPlayerService.awaitPlaybackComplete();
+        createdUrl = this.setAudioUrl(finalBlob);
+      }
     } catch (e) {
       this.handlePlaybackError(e, createdUrl);
       throw e;
     }
   }
 
-  private setAudioUrl(finalBlob: Blob | undefined, createdUrl: string | undefined) {
+  private setAudioUrl(finalBlob: Blob | undefined) {
     if (finalBlob) {
-      createdUrl = URL.createObjectURL(finalBlob);
+      const createdUrl = URL.createObjectURL(finalBlob);
       this.#audioUrl.set(createdUrl);
+      return createdUrl;
     }
-    return createdUrl;
-  }
-
-  private async handleWebAudio(promptArgs: FactConfig) {
-    let isInitialized = false;
-    try {
-      for await (const chunk of this.speechService.speak(promptArgs.prompt, promptArgs.voice)) {
-        isInitialized = this.processStreamChunk(isInitialized, chunk);
-      }
-    } catch (e) {
-      this.handlePlaybackError(e, '');
-      throw e;
-    }
+    return undefined;
   }
 
   async generateSpeech(mode: GenerateSpeechMode, promptArgs: FactConfig) {
@@ -112,10 +109,10 @@ export class TextToSpeechViewService {
           await this.handleSync(promptArgs);
           break;
         case 'stream':
-          await this.handleStream(promptArgs);
+          await this.handleStream({ ...promptArgs, shouldWait: true });
           break;
         case 'web_audio_api':
-          await this.handleWebAudio(promptArgs);
+          await this.handleStream(promptArgs);
           break;
         default:
           throw new Error(`Unsupported mode: ${mode}`);

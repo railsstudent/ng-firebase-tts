@@ -1,8 +1,6 @@
 import {
   DEFAULT_PLAYBACK_RATE,
   DEFAULT_SAMPLE_RATE,
-  MAX_PLAYBACK_RATE,
-  MIN_PLAYBACK_RATE,
   PLAYBACK_POLL_INTERVAL,
 } from '@/core/constants/text-to-speech.constant';
 import { normalizePcmSamples } from '@/core/utils/pcm.util';
@@ -23,17 +21,11 @@ export class AudioPlayerService implements OnDestroy {
   #playbackRate = signal(DEFAULT_PLAYBACK_RATE);
   playbackRate = this.#playbackRate.asReadonly();
 
-  initialize(sampleRate = DEFAULT_SAMPLE_RATE): void {
+  initialize(sampleRate = DEFAULT_SAMPLE_RATE, playbackRate = DEFAULT_PLAYBACK_RATE): void {
     this.stopAll();
     this.#audioCtx = new AudioContext({ sampleRate });
     this.#nextStartTime = this.#audioCtx.currentTime;
-    this.#playbackRate.set(this.setRandomPlaybackRate());
-  }
-
-  private setRandomPlaybackRate(min = MIN_PLAYBACK_RATE, max = MAX_PLAYBACK_RATE) {
-    const percent = 100;
-    const rawRate = Math.random() * (max - min) + min;
-    return Math.round(rawRate * percent) / percent;
+    this.#playbackRate.set(playbackRate);
   }
 
   processChunk(rawBytes: Uint8Array): void {

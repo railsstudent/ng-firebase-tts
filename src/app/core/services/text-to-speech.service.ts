@@ -1,6 +1,6 @@
 import { AI_BACKEND } from '@/core/constants/firebase.constant';
 import { DEFAULT_SAMPLE_RATE } from '@/core/constants/text-to-speech.constant';
-import { SpeechChunkData } from '@/core/interfaces/text-to-speech.type';
+import { RawAudioBinary, SpeechChunkData } from '@/core/interfaces/text-to-speech.type';
 import { decodeBase64 } from '@/core/utils/base64.util';
 import { convertToWav, extractInlineData, parseMimeType } from '@/core/utils/mime-type.util';
 import { inject, Service } from '@angular/core';
@@ -13,33 +13,6 @@ export class TextToSpeechService {
   readonly #configService = inject(ConfigService);
   readonly #modelName = this.#configService.appConfig.geminiTTSModelName;
 
-  /**
-   * USE CASE 3 (Zero-Latency Playback):
-   * Streams voice content chunk-by-chunk and plays it immediately.
-   */
-  async *speak(
-    text: string,
-    voiceName: string,
-  ): AsyncGenerator<{ decodedData: Uint8Array; sampleRate: number }> {
-    let firstMimeType = '';
-    let sampleRate = DEFAULT_SAMPLE_RATE;
-    const model = this.createModel(voiceName);
-
-    const responseStream = await model.generateContentStream([text]);
-    for await (const chunk of responseStream.stream) {
-      const chunkData = this.extractValidChunkData(chunk);
-      if (chunkData) {
-        const { data, mimeType } = chunkData;
-        const decodedData = decodeBase64(data);
-        if (!firstMimeType && mimeType) {
-          firstMimeType = mimeType;
-          sampleRate = parseMimeType(firstMimeType).sampleRate;
-        }
-        yield { decodedData, sampleRate };
-      }
-    }
-  }
-
   private extractValidChunkData(chunk: GenerateContentResponse): SpeechChunkData | null {
     const { data, mimeType } = extractInlineData(chunk);
     if (!data || !mimeType) {
@@ -51,7 +24,8 @@ export class TextToSpeechService {
   async *synthesizeStream(
     text: string,
     voiceName: string,
-  ): AsyncGenerator<{ decodedData: Uint8Array; sampleRate: number } | Blob> {
+    shouldWait = true,
+  ): AsyncGenerator<RawAudioBinary | Blob | undefined> {
     const model = this.createModel(voiceName);
     let chunks: Uint8Array = new Uint8Array(0);
     let firstMimeType = '';
@@ -68,16 +42,19 @@ export class TextToSpeechService {
           sampleRate = parseMimeType(firstMimeType).sampleRate;
         }
 
-        const mergedChunk = new Uint8Array(chunks.length + decodedData.length);
-        mergedChunk.set(chunks);
-        mergedChunk.set(decodedData, chunks.length);
-        chunks = mergedChunk;
+        if (shouldWait) {
+          const mergedChunk = new Uint8Array(chunks.length + decodedData.length);
+          mergedChunk.set(chunks);
+          mergedChunk.set(decodedData, chunks.length);
+          chunks = mergedChunk;
+        }
 
         yield { decodedData, sampleRate };
       }
     }
 
-    yield convertToWav(chunks, firstMimeType);
+    const finalBlob = shouldWait ? convertToWav(chunks, firstMimeType) : undefined;
+    yield finalBlob;
   }
 
   /**

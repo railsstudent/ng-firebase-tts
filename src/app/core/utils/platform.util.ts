@@ -39,6 +39,8 @@ export function configureAppCheckDebugToken(
 
   // STRICT PROTECTION: If we are in production on a live server,
   // we completely disable the App Check debug token, ignoring any accidental values in the config.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (globalThis as any).FIREBASE_APPCHECK_DEBUG_TOKEN = isLocalContext ? configToken || true : false;
+
+  (globalThis as Record<string, unknown>)['FIREBASE_APPCHECK_DEBUG_TOKEN'] = isLocalContext
+    ? configToken || true
+    : false;
 }

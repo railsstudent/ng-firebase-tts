@@ -144,8 +144,8 @@ describe('TextToSpeechService', () => {
     });
   });
 
-  describe('synthesizeStream (Use Case 2 - Hybrid Stream-and-Play)', () => {
-    it('should stream chunks, yield them, and yield complete WAV blob as the last emission', async () => {
+  describe('synthesizeStream (Use Case 2 - Hybrid Stream-and-Play & Zero-Latency Stream)', () => {
+    it('should stream chunks, yield them, and yield complete WAV blob when shouldWait is true', async () => {
       const mockStreamIterator = {
         async *[Symbol.asyncIterator]() {
           yield {
@@ -187,7 +187,7 @@ describe('TextToSpeechService', () => {
         stream: mockStreamIterator,
       });
 
-      const generator = service.synthesizeStream('Dynamic Stream', 'Kore');
+      const generator = service.synthesizeStream('Dynamic Stream', 'Kore', true);
       const emissions = [];
       for await (const chunk of generator) {
         emissions.push(chunk);
@@ -204,16 +204,7 @@ describe('TextToSpeechService', () => {
       expect(finalBlob.type).toBe('audio/wav');
     });
 
-    it('should rethrow on stream errors', async () => {
-      mockModel.generateContentStream.mockRejectedValue(new Error('Vertex AI stream error'));
-
-      const generator = service.synthesizeStream('Failing stream', 'Puck');
-      await expect(generator.next()).rejects.toThrow('Vertex AI stream error');
-    });
-  });
-
-  describe('speak (Use Case 3 - Zero-Latency Playback)', () => {
-    it('should yield chunks and parse sampleRate correctly', async () => {
+    it('should yield chunks and yield undefined as final emission when shouldWait is false', async () => {
       const mockStreamIterator = {
         async *[Symbol.asyncIterator]() {
           yield {
@@ -239,22 +230,24 @@ describe('TextToSpeechService', () => {
         stream: mockStreamIterator,
       });
 
-      const generator = service.speak('Hello interactive player', 'Puck');
-      const chunks = [];
+      const generator = service.synthesizeStream('Hello interactive player', 'Puck', false);
+      const emissions = [];
       for await (const chunk of generator) {
-        chunks.push(chunk);
+        emissions.push(chunk);
       }
 
       expect(mockModel.generateContentStream).toHaveBeenCalledWith(['Hello interactive player']);
-      expect(chunks.length).toBe(1);
-      expect(chunks[0].sampleRate).toBe(16000);
-      expect(Array.from(chunks[0].decodedData)).toEqual([72, 101, 108, 108, 111]);
+      expect(emissions.length).toBe(2); // 1 chunk, 1 undefined final emission
+      const firstChunk = emissions[0] as { decodedData: Uint8Array; sampleRate: number };
+      expect(firstChunk.sampleRate).toBe(16000);
+      expect(Array.from(firstChunk.decodedData)).toEqual([72, 101, 108, 108, 111]);
+      expect(emissions[1]).toBeUndefined();
     });
 
     it('should rethrow on stream errors', async () => {
       mockModel.generateContentStream.mockRejectedValue(new Error('Vertex AI stream error'));
 
-      const generator = service.speak('Failing stream', 'Puck');
+      const generator = service.synthesizeStream('Failing stream', 'Puck');
       await expect(generator.next()).rejects.toThrow('Vertex AI stream error');
     });
   });

@@ -5,7 +5,7 @@ import firebaseConfig from '@/public/firebase.config.json';
 import remoteConfigDefaults from '@/public/remote-config-defaults.json';
 import { isDevMode, Service } from '@angular/core';
 import { AgentPlatformBackend, AI, getAI, ThinkingLevel } from 'firebase/ai';
-import { FirebaseApp, FirebaseOptions, initializeApp } from 'firebase/app';
+import { FirebaseApp, initializeApp } from 'firebase/app';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 import { fetchAndActivate, getRemoteConfig, getValue, RemoteConfig } from 'firebase/remote-config';
 
@@ -42,46 +42,30 @@ export class ConfigService {
     return this.#aiBackend;
   }
 
-  // Testable helper methods to allow mocking of read-only ESM imports
-  protected initializeFirebaseApp(config: FirebaseOptions): unknown {
-    return initializeApp(config);
-  }
-
-  protected initializeAppCheckInstance(app: FirebaseApp, key: string): unknown {
-    return initializeAppCheck(app, {
-      provider: new ReCaptchaEnterpriseProvider(key),
-      isTokenAutoRefreshEnabled: true,
-    });
-  }
-
-  protected setupRemoteConfig(app: FirebaseApp): RemoteConfig {
-    const rc = getRemoteConfig(app);
-    rc.defaultConfig = remoteConfigDefaults;
-    rc.settings.minimumFetchIntervalMillis = isDevMode() ? 0 : ONE_HOUR_IN_MILLISECONDS;
-    rc.settings.fetchTimeoutMillis = isDevMode() ? DEV_TIMEOUT : PROD_TIMEOUT;
-    return rc;
-  }
-
-  protected fetchRemoteConfig(rc: RemoteConfig): Promise<boolean> {
-    return fetchAndActivate(rc);
-  }
-
   async initialize(): Promise<void> {
-    this.#app = this.initializeFirebaseApp(firebaseConfig.app) as FirebaseApp;
+    this.#app = initializeApp(firebaseConfig.app);
 
     const isOnline = this.#isOnline();
     const isLocalhost = this.#isLocalhost();
 
     if (isOnline && firebaseConfig.recaptchaEnterpriseKey) {
       configureAppCheckDebugToken(firebaseConfig.appCheckDebugToken, isLocalhost);
-      this.initializeAppCheckInstance(this.#app, firebaseConfig.recaptchaEnterpriseKey);
+      initializeAppCheck(this.#app, {
+        provider: new ReCaptchaEnterpriseProvider(firebaseConfig.recaptchaEnterpriseKey),
+        isTokenAutoRefreshEnabled: true,
+      });
     }
 
-    this.#remoteConfig = this.setupRemoteConfig(this.#app);
+    this.#remoteConfig = getRemoteConfig(this.#app);
+    this.#remoteConfig.defaultConfig = remoteConfigDefaults;
+    this.#remoteConfig.settings.minimumFetchIntervalMillis = isDevMode()
+      ? 0
+      : ONE_HOUR_IN_MILLISECONDS;
+    this.#remoteConfig.settings.fetchTimeoutMillis = isDevMode() ? DEV_TIMEOUT : PROD_TIMEOUT;
 
     if (isOnline) {
       try {
-        const activated = await this.fetchRemoteConfig(this.#remoteConfig);
+        const activated = await fetchAndActivate(this.#remoteConfig);
         console.log('Remote Config initialized. Activated new values:', activated);
 
         const rawThinkingLevel = getValue(this.#remoteConfig, 'thinkingLevel').asString();

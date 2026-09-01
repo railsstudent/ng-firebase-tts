@@ -33,6 +33,7 @@ export class TextToSpeechComponent {
         return;
       }
 
+      this.ttsError.set('');
       await this.speechService.generateSpeech(mode, {
         prompt: this.audioPrompt(),
         voice: this.voice(),

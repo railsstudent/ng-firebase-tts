@@ -101,8 +101,12 @@ describe('TextToSpeechViewService', () => {
       const config = { prompt: 'Stream prompt', voice: 'Kore', fact: 'Interesting fact' };
       await service.generateSpeech('stream', config);
 
-      expect(mockSpeechService.synthesizeStream).toHaveBeenCalledWith('Stream prompt', 'Kore');
-      expect(mockAudioPlayerService.initialize).toHaveBeenCalledWith(24000);
+      expect(mockSpeechService.synthesizeStream).toHaveBeenCalledWith(
+        'Stream prompt',
+        'Kore',
+        true,
+      );
+      expect(mockAudioPlayerService.initialize).toHaveBeenCalledWith(24000, 1);
       expect(mockAudioPlayerService.processChunk).toHaveBeenCalledWith(new Uint8Array([1, 2]));
       expect(mockAudioPlayerService.awaitPlaybackComplete).toHaveBeenCalled();
       expect(service.audioUrl()).toBe('blob:stream-url');
@@ -128,25 +132,31 @@ describe('TextToSpeechViewService', () => {
   });
 
   describe('generateSpeech - Web Audio API Mode', () => {
-    it('should stream zero-latency speaker chunks', async () => {
+    it('should stream zero-latency speaker chunks with shouldWait: false', async () => {
       const mockGenerator = {
         async *[Symbol.asyncIterator]() {
           yield { decodedData: new Uint8Array([3, 4]), sampleRate: 16000 };
+          yield undefined;
         },
       };
-      mockSpeechService.speak.mockReturnValue(mockGenerator);
+      mockSpeechService.synthesizeStream.mockReturnValue(mockGenerator);
 
       const config = { prompt: 'WebAudio prompt', voice: 'Puck', fact: 'Interesting fact' };
       await service.generateSpeech('web_audio_api', config);
 
-      expect(mockSpeechService.speak).toHaveBeenCalledWith('WebAudio prompt', 'Puck');
-      expect(mockAudioPlayerService.initialize).toHaveBeenCalledWith(16000);
+      expect(mockSpeechService.synthesizeStream).toHaveBeenCalledWith(
+        'WebAudio prompt',
+        'Puck',
+        false,
+      );
+      expect(mockAudioPlayerService.initialize).toHaveBeenCalledWith(16000, expect.any(Number));
       expect(mockAudioPlayerService.processChunk).toHaveBeenCalledWith(new Uint8Array([3, 4]));
+      expect(mockAudioPlayerService.awaitPlaybackComplete).not.toHaveBeenCalled();
       expect(service.audioUrl()).toBeUndefined();
     });
 
     it('should handle speak exceptions, clean up, and throw error', async () => {
-      mockSpeechService.speak.mockImplementation(() => {
+      mockSpeechService.synthesizeStream.mockImplementation(() => {
         throw new Error('Speak failed');
       });
 
