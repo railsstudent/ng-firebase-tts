@@ -6,7 +6,7 @@ import remoteConfigDefaults from '@/public/remote-config-defaults.json';
 import { isDevMode, Service } from '@angular/core';
 import { AgentPlatformBackend, AI, getAI, ThinkingLevel } from 'firebase/ai';
 import { FirebaseApp, FirebaseOptions, initializeApp } from 'firebase/app';
-import { AppCheck, initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 import { fetchAndActivate, getRemoteConfig, getValue, RemoteConfig } from 'firebase/remote-config';
 
 const SECONDS = 60;
@@ -35,7 +35,7 @@ export class ConfigService {
   }
 
   #aiBackend: AI | undefined = undefined;
-  get aiBackend(): AI {
+  get aiBackend(): unknown {
     if (!this.#aiBackend) {
       throw new Error('AI backend has not been initialized yet.');
     }
@@ -43,11 +43,11 @@ export class ConfigService {
   }
 
   // Testable helper methods to allow mocking of read-only ESM imports
-  protected initializeFirebaseApp(config: FirebaseOptions): FirebaseApp {
+  protected initializeFirebaseApp(config: FirebaseOptions): unknown {
     return initializeApp(config);
   }
 
-  protected initializeAppCheckInstance(app: FirebaseApp, key: string): AppCheck {
+  protected initializeAppCheckInstance(app: FirebaseApp, key: string): unknown {
     return initializeAppCheck(app, {
       provider: new ReCaptchaEnterpriseProvider(key),
       isTokenAutoRefreshEnabled: true,
@@ -67,7 +67,7 @@ export class ConfigService {
   }
 
   async initialize(): Promise<void> {
-    this.#app = this.initializeFirebaseApp(firebaseConfig.app);
+    this.#app = this.initializeFirebaseApp(firebaseConfig.app) as FirebaseApp;
 
     const isOnline = this.#isOnline();
     const isLocalhost = this.#isLocalhost();

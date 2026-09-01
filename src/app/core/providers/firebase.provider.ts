@@ -3,7 +3,7 @@ import { AppRemoteConfig } from '@/core/interfaces/app-remote-config.type';
 import { ImageAnalysisSchema } from '@/core/schemas/image-analysis.schema';
 import { ConfigService } from '@/core/services/config.service';
 import { inject, makeEnvironmentProviders } from '@angular/core';
-import { getGenerativeModel } from 'firebase/ai';
+import { AI, getGenerativeModel } from 'firebase/ai';
 
 const TOOLS = [
   {
@@ -31,7 +31,7 @@ export function provideFirebase() {
   return makeEnvironmentProviders([
     {
       provide: AI_BACKEND,
-      useFactory: () => inject(ConfigService).aiBackend,
+      useFactory: () => inject(ConfigService).aiBackend as AI,
     },
     {
       provide: VISION_AI_MODEL,

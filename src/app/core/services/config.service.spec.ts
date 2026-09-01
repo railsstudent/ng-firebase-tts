@@ -2,9 +2,6 @@ import { NAVIGATOR, WINDOW } from '@/core/constants/navigator.const';
 import '@angular/compiler';
 import { Service } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { FirebaseApp } from 'firebase/app';
-import { AppCheck } from 'firebase/app-check';
-import { RemoteConfig } from 'firebase/remote-config';
 import { ConfigService } from './config.service';
 
 // Mock firebase/remote-config
@@ -43,11 +40,11 @@ vi.mock('firebase/ai', async (importOriginal) => {
 // Create a test subclass of ConfigService to easily intercept read-only ESM static methods
 @Service({ autoProvided: false })
 class TestConfigService extends ConfigService {
-  public mockApp = {} as FirebaseApp;
-  public mockAppCheck = {} as AppCheck;
+  public mockApp = {};
+  public mockAppCheck = {};
   public mockRemoteConfig = {
     settings: {},
-  } as unknown as RemoteConfig;
+  };
 
   public initializeFirebaseAppCalled = false;
   public initializeAppCheckInstanceCalled = false;
@@ -55,25 +52,27 @@ class TestConfigService extends ConfigService {
   public fetchRemoteConfigCalled = false;
   public fetchRemoteConfigSucceeds = true;
 
-  protected override initializeFirebaseApp(): FirebaseApp {
+  protected override initializeFirebaseApp(): unknown {
     this.initializeFirebaseAppCalled = true;
     return this.mockApp;
   }
 
-  protected override initializeAppCheckInstance(): AppCheck {
+  protected override initializeAppCheckInstance(): unknown {
     this.initializeAppCheckInstanceCalled = true;
     return this.mockAppCheck;
   }
 
-  protected override setupRemoteConfig(app: FirebaseApp): RemoteConfig {
+  protected override setupRemoteConfig(
+    app: Parameters<ConfigService['setupRemoteConfig']>[0],
+  ): ReturnType<ConfigService['setupRemoteConfig']> {
     this.setupRemoteConfigCalled = !!app;
-    return this.mockRemoteConfig;
+    return this.mockRemoteConfig as unknown as ReturnType<ConfigService['setupRemoteConfig']>;
   }
 
-  protected override fetchRemoteConfig(): Promise<boolean> {
+  protected override fetchRemoteConfig(): ReturnType<ConfigService['fetchRemoteConfig']> {
     this.fetchRemoteConfigCalled = true;
     if (this.fetchRemoteConfigSucceeds) {
-      return Promise.resolve(true);
+      return Promise.resolve(true) as unknown as ReturnType<ConfigService['fetchRemoteConfig']>;
     } else {
       return Promise.reject(new Error('Fetch timed out'));
     }
