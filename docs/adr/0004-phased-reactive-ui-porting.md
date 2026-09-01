@@ -1,22 +1,24 @@
-# ADR 0004: Phased Reactive UI Porting & Client-Direct Service Integration
+# ADR 0004: Phased Reactive UI Porting & Component-Scoped View Service Integration
 
 ## Status
 
-Proposed
+Accepted
 
 ## Context
 
 To build a highly reactive, OnPush/Zoneless-compliant Angular user interface for image analysis and text-to-speech features, we are porting existing visual components from our companion repository, `firebase-ai-hybrid-demo`.
 
-While the sibling repository's components already implement reactive Signal Forms and localized component-level states, they rely on a remote network boundary: calling a Firebase Cloud Function via `httpsCallable`. In this repository, we bypass the Cloud Function entirely, utilizing the client-side **Firebase AI Logic SDK** and direct Web Audio PCM decoding.
+While the sibling repository's components already implement reactive Signal Forms and localized component-level states, they rely on a remote network boundary calling a Firebase Cloud Function. In this repository, we bypass the Cloud Function entirely, utilizing the client-side **Firebase AI Logic SDK** and direct Web Audio PCM decoding.
 
-This represents a breaking structural change for the ported components. We need to document how this boundary is redesigned and how the components integrate with our local services.
+To support multi-modal speech playback—such as single-shot sync, hybrid stream-and-stitch, and zero-latency Web Audio API speaker streaming—managing asynchronous generators, buffer-feeding, error boundaries, and Object URL cleanups directly in the UI component caused it to balloon in size (130+ lines) and violate the Single Responsibility Principle.
+
+We need a clean presentational pattern to decouple the UI layout from the complex asynchronous stateful orchestrations.
 
 ---
 
 ## Decision
 
-We will execute the UI porting using a **Phased Porting Strategy** and a **Client-Direct Service Integration** pattern. This eliminates remote network payload parsing from the components and makes the interface incredibly thin, declarative, and easy to manually test.
+We will execute the UI porting using a **Phased Porting Strategy** and a **Component-Scoped View Service Integration** pattern. This keeps core services stateless, cleans up component layouts, and encapsulates streaming logic behind extremely deep interfaces.
 
 ```mermaid
 graph TD
@@ -26,110 +28,209 @@ graph TD
         S_CF_Stream -->|Decode & Assemble| S_Comp
     end
 
-    subgraph This Repo Direct Architecture
-        T_Comp[UI Component] -->|Reactive Signal Bindings| T_Service[TextToSpeechService]
-        T_Service -->|Direct Vertex AI Stream| T_Client[Firebase AI Logic SDK]
-        T_Service -->|Raw PCM Bytes| T_Player[AudioPlayerService]
+    subgraph This Repo Consolidated Architecture
+        T_Comp[TextToSpeechComponent] -->|Exposes Signal Delegates| T_VS[TextToSpeechViewService]
+        T_VS -->|Local Injector Scope| T_VS_Clean[Auto Revoke URL via DestroyRef]
+        T_VS -->|Direct Vertex AI Stream| T_TTS[TextToSpeechService]
+        T_VS -->|Raw PCM Bytes| T_Player[AudioPlayerService]
     end
 ```
 
 ### 1. Phased Iteration Definition
 
 - **Phase 1: Visual Shell & Mock Presentation**:
-  - Port component HTML templates and TypeScript files from the sibling repository.
-  - Extract any inline Tailwind CSS utility classes into component-scoped `.css` files using Tailwind v4 `@apply` and `@reference` to enforce strict layout modularity.
-  - Bind localized presentation signals and Signal Forms (such as voice selection lists and text inputs).
-  - Validate responsive layouts and mock states before connecting live backend services.
-- **Phase 2: Client-Direct Service Piping**:
-  - Inject `VisionService`, `TextToSpeechService`, and `AudioPlayerService` into the components.
-  - Bind the image analyzer file drops to `VisionService` and the voice controls to `TextToSpeechService`.
+  - Port component HTML templates and Tailwind CSS v4 stylesheets.
+  - Extract inline utility classes into scoped component `.css` stylesheets using `@apply` and `@reference` pointing to the global stylesheet.
+- **Phase 2: View Service Orchestration**:
+  - Encapsulate all stateful signals, streaming loops, error boundaries, and player coordination inside a dedicated, component-scoped `TextToSpeechViewService` provided locally.
+  - The UI component becomes a thin presenter shell, delegating calls directly to this local service.
 
 ---
 
-### 2. Client-Direct Service Integration Blueprint (TTS)
+### 2. Component-Scoped View Service Blueprint (`text-to-speech-view.ts`)
 
-Instead of managing asynchronous network streams, base64 decoding, or audio scheduling inside the UI components, all pipeline operations are encapsulated inside `TextToSpeechService`. The components interact with our services via simple, declarative method calls.
-
-#### UI Component Integration Blueprint (`text-to-speech.component.ts`)
+Registered inside the component's `providers: [TextToSpeechViewService]` array. It handles state, generator loops, and self-cleans its Object URLs using the native `DestroyRef` constructor token:
 
 ```typescript
-import { Component, inject, signal } from '@angular/core';
+import { inject, Injectable, DestroyRef, signal, computed } from '@angular/core';
 import { TextToSpeechService } from '@/core/services/text-to-speech.service';
+import { AudioPlayerService } from '@/core/services/audio-player.service';
+import { revokeBlobURL } from '@/core/utils/blob.util';
+import { GenerateSpeechMode } from '@/features/dashboard/types/generate-speech-mode.type';
+import { FactConfig } from '@/features/dashboard/interfaces/fact-config.interface';
 
-@Component({
-  selector: 'app-text-to-speech',
-  templateUrl: './text-to-speech.component.html',
-  styleUrls: ['./text-to-speech.component.css'],
-})
-export class TextToSpeechComponent {
-  readonly #ttsService = inject(TextToSpeechService);
+@Injectable()
+export class TextToSpeechViewService {
+  private readonly speechService = inject(TextToSpeechService);
+  private readonly audioPlayerService = inject(AudioPlayerService);
+  private readonly destroyRef$ = inject(DestroyRef);
 
-  // Localized form and control signals
-  readonly textInput = signal<string>('The blue sunsets of Mars are beautiful.');
-  readonly selectedVoice = signal<string>('Kore');
+  readonly #audioUrl = signal<string | undefined>(undefined);
+  readonly #loadingMode = signal<GenerateSpeechMode | 'idle'>('idle');
 
-  // Localized UI presentation states
-  readonly isSpeaking = signal<boolean>(false);
-  readonly errorMessage = signal<string | null>(null);
+  readonly audioUrl = this.#audioUrl.asReadonly();
+  readonly loadingRate = this.#loadingMode.asReadonly();
+  readonly playbackRate = this.audioPlayerService.playbackRate;
 
-  /**
-   * USE CASE 3: Zero-Latency Interactive Playback
-   */
-  async speak(): Promise<void> {
-    const text = this.textInput().trim();
-    if (!text) {
-      return;
-    }
+  constructor() {
+    // Self-cleaning hook runs automatically when the component injector is destroyed!
+    this.destroyRef$.onDestroy(() => {
+      revokeBlobURL(this.#audioUrl());
+    });
+  }
 
-    this.isSpeaking.set(true);
-    this.errorMessage.set(null);
+  async generateSpeech(mode: GenerateSpeechMode, promptArgs: FactConfig): Promise<void> {
+    if (!promptArgs.fact) return;
+
+    // Flush previous resource
+    revokeBlobURL(this.#audioUrl());
+    this.#audioUrl.set(undefined);
 
     try {
-      // The component simply invokes the service.
-      // AudioPlayerService scheduling and direct model streaming are completely hidden.
-      await this.#ttsService.speak(text, this.selectedVoice());
-    } catch (error: any) {
-      this.errorMessage.set(error?.message || 'Failed to synthesize speech.');
+      this.#loadingMode.set(mode);
+      switch (mode) {
+        case 'sync':
+          await this.handleSync(promptArgs);
+          break;
+        case 'stream':
+          await this.handleStream(promptArgs);
+          break;
+        case 'web_audio_api':
+          await this.handleWebAudio(promptArgs);
+          break;
+      }
+    } catch (e) {
+      console.error('TTS Generation failed:', e);
+      throw new Error(
+        mode === 'web_audio_api'
+          ? 'Error streaming speech using the Web Audio API.'
+          : `Error generating speech (${mode === 'stream' ? 'Stream' : 'Sync'}).`,
+        { cause: e },
+      );
     } finally {
-      this.isSpeaking.set(false);
+      this.#loadingMode.set('idle');
     }
   }
 
-  /**
-   * USE CASE 1: Ad-hoc Single-shot Download (Optional)
-   * Fetches the entire audio and returns a playable Object URL for standard audio controls.
-   */
-  readonly audioUrl = signal<string | null>(null);
-
-  async downloadAudio(): Promise<void> {
-    this.errorMessage.set(null);
+  private async handleSync(promptArgs: FactConfig) {
+    let createdUrl: string | undefined = undefined;
     try {
-      const url = await this.#ttsService.synthesize(this.textInput(), this.selectedVoice());
-      this.audioUrl.set(url);
-    } catch (error: any) {
-      this.errorMessage.set(error?.message || 'Failed to download audio.');
+      const blob = await this.speechService.synthesize(promptArgs.prompt, promptArgs.voice);
+      if (blob) {
+        createdUrl = URL.createObjectURL(blob);
+        this.#audioUrl.set(createdUrl);
+      }
+    } catch (e) {
+      this.handlePlaybackError(e, createdUrl);
+      throw e;
     }
+  }
+
+  private async handleStream(promptArgs: FactConfig) {
+    let createdUrl: string | undefined = undefined;
+    let finalBlob: Blob | undefined = undefined;
+    let isInitialized = false;
+    try {
+      for await (const chunk of this.speechService.synthesizeStream(
+        promptArgs.prompt,
+        promptArgs.voice,
+      )) {
+        if (chunk instanceof Blob) {
+          finalBlob = chunk;
+        } else {
+          isInitialized = this.processStreamChunk(isInitialized, chunk);
+        }
+      }
+      await this.audioPlayerService.awaitPlaybackComplete();
+      if (finalBlob) {
+        createdUrl = URL.createObjectURL(finalBlob);
+        this.#audioUrl.set(createdUrl);
+      }
+    } catch (e) {
+      this.handlePlaybackError(e, createdUrl);
+      throw e;
+    }
+  }
+
+  private async handleWebAudio(promptArgs: FactConfig) {
+    let isInitialized = false;
+    try {
+      for await (const chunk of this.speechService.speak(promptArgs.prompt, promptArgs.voice)) {
+        isInitialized = this.processStreamChunk(isInitialized, chunk);
+      }
+    } catch (e) {
+      this.handlePlaybackError(e, '');
+      throw e;
+    }
+  }
+
+  private processStreamChunk(
+    isInitialized: boolean,
+    chunk: { decodedData: Uint8Array; sampleRate: number },
+  ) {
+    if (!isInitialized) {
+      this.audioPlayerService.initialize(chunk.sampleRate);
+      isInitialized = true;
+    }
+    this.audioPlayerService.processChunk(chunk.decodedData);
+    return isInitialized;
+  }
+
+  private handlePlaybackError(e: unknown, createdUrl: string | undefined) {
+    console.error('Playback exception:', e);
+    this.audioPlayerService.stopAll();
+    revokeBlobURL(createdUrl);
   }
 }
 ```
 
 ---
 
-### 3. Scoped Tailwind CSS v4 Layouts
+### 3. Simplified Presenter Blueprint (`text-to-speech.component.ts`)
 
-Any inline styling found in the sibling templates will be moved into local component CSS stylesheets. This keeps the HTML templates highly readable.
+The component is highly-leveraged and declarative, acting as a clean wrapper around the view service signals so the template bindings remain completely unchanged:
 
-**Example Component Scoped Stylesheet (`text-to-speech.component.css`)**:
+```typescript
+import { Component, inject, input, model, computed } from '@angular/core';
+import { GenerateSpeechMode } from '@/features/dashboard/types/generate-speech-mode.type';
+import { TextToSpeechViewService } from './services/text-to-speech-view';
 
-```css
-@reference "../../../../styles.css";
+@Component({
+  selector: 'app-text-to-speech',
+  templateUrl: './text-to-speech.component.html',
+  styleUrl: './text-to-speech.component.css',
+  providers: [TextToSpeechViewService], // Scoped local provider
+})
+export class TextToSpeechComponent {
+  private readonly viewService = inject(TextToSpeechViewService);
 
-.tts-container {
-  @apply flex flex-col gap-4 rounded-xl border border-border bg-card p-6 shadow-sm;
-}
+  interestingFact = input<string | undefined>(undefined);
+  audioPrompt = input.required<string>();
+  voice = input.required<string>();
 
-.tts-button {
-  @apply flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50;
+  ttsError = model<string>('');
+
+  // Expose signals as simple delegates so the HTML template remains untouched!
+  audioUrl = this.viewService.audioUrl;
+  playbackRate = this.viewService.playbackRate;
+  loadingMode = this.viewService.loadingRate;
+  isLoading = computed(() => this.loadingMode() !== 'idle');
+
+  async generateSpeech(mode: GenerateSpeechMode) {
+    try {
+      const fact = this.interestingFact();
+      if (!fact) return;
+
+      await this.viewService.generateSpeech(mode, {
+        prompt: this.audioPrompt(),
+        voice: this.voice(),
+        fact,
+      });
+    } catch (e) {
+      const errorMessage = e instanceof Error ? e.message : 'Error generating speech.';
+      this.ttsError.set(errorMessage);
+    }
+  }
 }
 ```
 
@@ -138,8 +239,8 @@ Any inline styling found in the sibling templates will be moved into local compo
 ## Consequences
 
 - **Pros**:
-  - **Drastic Code Reduction**: Eliminates complex binary parsing, base64 array-buffer stitching, and HTTP state-handling code from the UI components.
-  - **Isolated Testing**: Phase 1 allows developers to test the responsive user experience, dropdowns, and button loading animations without waiting for Vertex AI API responses or local speaker outputs.
-  - **Modularity**: Changes to the generative AI models, speech configurations, or safety thresholds in `TextToSpeechService` will have zero impact on the UI layout or code.
+  - **Drastic Component Complexity Reduction**: Eliminates generator loops, manual player orchestrations, and lifecycle logic from the visual template controller.
+  - **Bulletproof Memory Safety**: Utilizing `DestroyRef` inside the localized service constructor guarantees all transient memory (Object URLs) is automatically disposed of on destruction.
+  - **Isolated Testing (Strict Seams)**: The component can be tested using mock view service overrides. The orchestration logic can be tested in isolation inside the service's own spec file.
 - **Cons**:
-  - We must refactor any HTTP-related code from the sibling repository templates during porting, which represents a minor translation step.
+  - Increases total file counts slightly by introducing the view-specific service helper class.
