@@ -44,42 +44,39 @@ export class ConfigService {
 
   async initialize(): Promise<void> {
     this.#app = initializeApp(firebaseConfig.app);
-
     const isOnline = this.#isOnline();
     const isLocalhost = this.#isLocalhost();
+    const key = firebaseConfig.recaptchaEnterpriseKey;
 
-    if (isOnline && firebaseConfig.recaptchaEnterpriseKey) {
+    if (isOnline && key) {
       configureAppCheckDebugToken(firebaseConfig.appCheckDebugToken, isLocalhost);
       initializeAppCheck(this.#app, {
-        provider: new ReCaptchaEnterpriseProvider(firebaseConfig.recaptchaEnterpriseKey),
+        provider: new ReCaptchaEnterpriseProvider(key),
         isTokenAutoRefreshEnabled: true,
       });
     }
 
     this.#remoteConfig = getRemoteConfig(this.#app);
     this.#remoteConfig.defaultConfig = remoteConfigDefaults;
-    this.#remoteConfig.settings.minimumFetchIntervalMillis = isDevMode()
-      ? 0
-      : ONE_HOUR_IN_MILLISECONDS;
-    this.#remoteConfig.settings.fetchTimeoutMillis = isDevMode() ? DEV_TIMEOUT : PROD_TIMEOUT;
+    const dev = isDevMode();
+    this.#remoteConfig.settings.minimumFetchIntervalMillis = dev ? 0 : ONE_HOUR_IN_MILLISECONDS;
+    this.#remoteConfig.settings.fetchTimeoutMillis = dev ? DEV_TIMEOUT : PROD_TIMEOUT;
 
     if (isOnline) {
       try {
         const activated = await fetchAndActivate(this.#remoteConfig);
         console.log('Remote Config initialized. Activated new values:', activated);
 
-        const rawThinkingLevel = getValue(this.#remoteConfig, 'thinkingLevel').asString();
+        const rc = this.#remoteConfig;
+        const rawThinkingLevel = getValue(rc, 'thinkingLevel').asString();
         const thinkingLevel = ThinkingLevel[rawThinkingLevel as keyof typeof ThinkingLevel];
 
         this.#appConfig = {
-          vertexAILocation: getValue(this.#remoteConfig, 'vertexAILocation').asString(),
-          useLimitedUseAppCheckTokens: getValue(
-            this.#remoteConfig,
-            'useLimitedUseAppCheckTokens',
-          ).asBoolean(),
-          geminiModelName: getValue(this.#remoteConfig, 'geminiModelName').asString(),
+          vertexAILocation: getValue(rc, 'vertexAILocation').asString(),
+          useLimitedUseAppCheckTokens: getValue(rc, 'useLimitedUseAppCheckTokens').asBoolean(),
+          geminiModelName: getValue(rc, 'geminiModelName').asString(),
           thinkingLevel,
-          geminiTTSModelName: getValue(this.#remoteConfig, 'geminiTTSModelName').asString(),
+          geminiTTSModelName: getValue(rc, 'geminiTTSModelName').asString(),
         };
       } catch (error) {
         console.warn('Remote Config fetch timed out or failed. Using defaults:', error);

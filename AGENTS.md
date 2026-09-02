@@ -43,3 +43,10 @@ Issues and specs live as local markdown files under `.scratch/`. See `docs/agent
 ### Domain docs
 
 Domain documentation layout is single-context. See `docs/agents/domain.md`.
+
+## Command Verification & Validation Loop
+
+When editing or creating files in this repository, you MUST follow these constraints regarding command execution:
+
+1. **Defer Verification to End-of-Task**: Do NOT run verification commands (`npm run lint`, `npm run format`, `npm test`, `npm run test:once`) recursively or after every individual contiguous block edit. This slows down the interactive developer loop. Gather all contiguous and related edits, apply them first, and run validation commands EXACTLY ONCE at the end of the complete task milestone.
+2. **ESLint Compliance in Spec Files**: When generating or updating unit tests (`*.spec.ts`), ensure they adhere to the project's ESLint config. Avoid common violations like relative imports (always use absolute path aliases starting with `@/`) and missing curly braces. Do not use legacy reactive forms or custom test classes that expand member visibility just for testing.
