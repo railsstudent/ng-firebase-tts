@@ -11,12 +11,15 @@
     "test:once": "ng test --watch=false",
     "lint": "ng lint",
     "prepare": "husky",
-    "format": "prettier --write \"src/**/*.{ts,js,html}\" \"*.{mjs,json}\"",
+    "format": "prettier --write \"src/**/*.{ts,js,html,mjs}\" \"*.{mjs,json,js}\" \"scripts/*.{mjs,json,js}\"",
     "preview": "npx serve dist/ng-firebase-tts/browser -p 5005 -s",
     "preview:emulator": "npm run build && npx serve dist/ng-firebase-tts/browser --listen $PORT",
     "firebase:emulate": "cd firebase; firebase emulators:start --project default",
     "config:fetch": "node firebase/scripts/get-firebase-remote-config.js",
-    "config:generate": "node firebase/scripts/generate-firebase-config.js"
+    "config:generate": "node firebase/scripts/generate-firebase-config.js",
+    "chrome:debug": "node scripts/chrome-debug.mjs start",
+    "chrome:debug:stop": "node scripts/chrome-debug.mjs stop",
+    "chrome:debug:status": "node scripts/chrome-debug.mjs status"
   },
   "private": true,
   "packageManager": "npm@12.0.2",
