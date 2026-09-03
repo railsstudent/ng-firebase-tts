@@ -54,6 +54,16 @@ ng e2e
 
 Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
 
+## Firebase Tooling & Remote Config
+
+This repository includes automation scripts to manage Firebase configurations and Remote Config templates:
+
+- **`npm run prebuild`**: Automatically runs parallel tasks before builds to generate `public/firebase.config.json` and fallback defaults in `public/remote-config-defaults.json`.
+- **`npm run config:pull`**: Fetches the active Remote Config template from Firebase Cloud and updates the local declarative template at `firebase/remote-config-template.json`.
+- **`npm run config:push`**: Syncs live version metadata into `firebase/remote-config-template.json` to avoid concurrency conflicts and deploys it directly to Firebase Cloud.
+- **`npm run config:fetch`**: Fetches Remote Config fallback defaults and writes to `public/remote-config-defaults.json`.
+- **`npm run config:generate`**: Generates `public/firebase.config.json` from your local `.env`.
+
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.

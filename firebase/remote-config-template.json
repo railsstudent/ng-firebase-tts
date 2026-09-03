@@ -1,0 +1,99 @@
+{
+  "conditions": [
+    {
+      "name": "ng-firebase-tts",
+      "expression": "app.id == '1:422150237590:web:550873ee294cb04822c1b7'",
+      "tagColor": "BLUE"
+    },
+    {
+      "name": "allow-replay-protection",
+      "expression": "app.id == '1:422150237590:web:550873ee294cb04822c1b7'",
+      "tagColor": "PURPLE"
+    },
+    {
+      "name": "hybrid-chrome-built-in",
+      "expression": "app.id == '1:422150237590:web:377ba8687586084f22c1b7'",
+      "tagColor": "PINK"
+    }
+  ],
+  "parameters": {
+    "useLimitedUseAppCheckTokens": {
+      "defaultValue": {
+        "value": "false"
+      },
+      "conditionalValues": {
+        "allow-replay-protection": {
+          "value": "true"
+        },
+        "hybrid-chrome-built-in": {
+          "value": "true"
+        }
+      },
+      "description": "Whether or not to enable replay protection",
+      "valueType": "BOOLEAN"
+    },
+    "functionEmulatorHost": {
+      "defaultValue": {
+        "value": "localhost"
+      },
+      "description": "Function emulator host name",
+      "valueType": "STRING"
+    },
+    "functionEmulatorPort": {
+      "defaultValue": {
+        "value": "5001"
+      },
+      "description": "Function emulator port number",
+      "valueType": "NUMBER"
+    },
+    "vertexAILocation": {
+      "defaultValue": {
+        "value": "global"
+      },
+      "description": "Location of Firebase AI Logic VertexAI Backend ",
+      "valueType": "STRING"
+    },
+    "geminiTTSModelName": {
+      "defaultValue": {
+        "value": ""
+      },
+      "conditionalValues": {
+        "ng-firebase-tts": {
+          "value": "gemini-3.1-flash-tts-preview"
+        }
+      },
+      "description": "Gemini TTS Model Name",
+      "valueType": "STRING"
+    },
+    "thinkingLevel": {
+      "defaultValue": {
+        "value": "LOW"
+      },
+      "description": "Thinking level of the Gemini Model",
+      "valueType": "STRING"
+    },
+    "functionRegion": {
+      "defaultValue": {
+        "value": "asia-east2"
+      },
+      "description": "Location where the functions are deployed",
+      "valueType": "STRING"
+    },
+    "geminiModelName": {
+      "defaultValue": {
+        "value": "gemini-3.7-flash"
+      },
+      "description": "Germini Model Name",
+      "valueType": "STRING"
+    }
+  },
+  "version": {
+    "versionNumber": "16",
+    "updateTime": "2026-08-29T05:43:49.088103Z",
+    "updateUser": {
+      "email": "cleung334@gmail.com"
+    },
+    "updateOrigin": "CONSOLE",
+    "updateType": "INCREMENTAL_UPDATE"
+  }
+}

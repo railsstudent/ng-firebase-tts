@@ -6,6 +6,9 @@
       "ignore": ["node_modules", ".git", "firebase-debug.log", "firebase-debug.*.log", "functions"]
     }
   ],
+  "remoteconfig": {
+    "template": "remote-config-template.json"
+  },
   "emulators": {
     "apphosting": {
       "port": 5005,
