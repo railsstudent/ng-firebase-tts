@@ -12,7 +12,7 @@
     "lint": "ng lint",
     "prepare": "husky",
     "format": "prettier --write \"src/**/*.{ts,js,html}\" \"*.{mjs,json}\"",
-    "preview": "npx serve dist/ng-firebase-tts/browser -p 5005",
+    "preview": "npx serve dist/ng-firebase-tts/browser -p 5005 -s",
     "preview:emulator": "npm run build && npx serve dist/ng-firebase-tts/browser --listen $PORT",
     "firebase:emulate": "cd firebase; firebase emulators:start --project default",
     "config:fetch": "node firebase/scripts/get-firebase-remote-config.js",
