@@ -9,9 +9,7 @@ import { Component } from '@angular/core';
       >
         Firebase AI Logic Obscure Fact Speech Generator
       </h1>
-      <p class="mt-2 text-lg text-slate-400">
-        Upload an image to generate alt text and tags with Gemini
-      </p>
+      <p class="mt-2 text-lg text-slate-400">Upload an image to generate alt text and tags with Gemini</p>
     </header>
   `,
 })

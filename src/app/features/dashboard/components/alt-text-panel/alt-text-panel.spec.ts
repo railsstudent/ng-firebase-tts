@@ -30,9 +30,7 @@ describe('AltTextPanel', () => {
 
     const emptyState = fixture.debugElement.query(By.css('.empty-state'));
     expect(emptyState).toBeTruthy();
-    expect(emptyState.nativeElement.textContent).toContain(
-      'Upload an image and click "Generate" to see the results.',
-    );
+    expect(emptyState.nativeElement.textContent).toContain('Upload an image and click "Generate" to see the results.');
   });
 
   // TEST CASE 2: Loading State
@@ -71,9 +69,7 @@ describe('AltTextPanel', () => {
     fixture.componentRef.setInput('analysis', {
       parsed: {
         alternativeText: 'A high contrast graphic of Mars.',
-        recommendations: [
-          { id: 'REC-01', text: 'Contrast adjustment', reason: 'Background is too dark' },
-        ],
+        recommendations: [{ id: 'REC-01', text: 'Contrast adjustment', reason: 'Background is too dark' }],
       },
       metadata: {
         citations: [],

@@ -29,9 +29,7 @@ describe('TagsDisplayComponent', () => {
     const tagPills = fixture.debugElement.queryAll(By.css('.tag-pill'));
 
     expect(fallbackEl).toBeTruthy();
-    expect(fallbackEl.nativeElement.textContent).toContain(
-      'No tags were generated for this image.',
-    );
+    expect(fallbackEl.nativeElement.textContent).toContain('No tags were generated for this image.');
     expect(tagPills.length).toBe(0);
   });
 

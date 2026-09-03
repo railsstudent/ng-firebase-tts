@@ -29,10 +29,7 @@
   "dataGroups": [
     {
       "name": "firebase-ai-api",
-      "urls": [
-        "https://firebasestorage.googleapis.com/**",
-        "https://us-central1-**.cloudfunctions.net/**"
-      ],
+      "urls": ["https://firebasestorage.googleapis.com/**", "https://us-central1-**.cloudfunctions.net/**"],
       "cacheConfig": {
         "maxSize": 0,
         "maxAge": "0u",

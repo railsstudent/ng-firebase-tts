@@ -1,20 +1,10 @@
 <div>
   <div class="btn-container">
-    <button
-      (click)="generateSpeech('sync')"
-      aria-label="Generate speech"
-      [disabled]="isLoading()"
-      class="btn-audio"
-    >
+    <button (click)="generateSpeech('sync')" aria-label="Generate speech" [disabled]="isLoading()" class="btn-audio">
       @let c = { isLoading: loadingMode() === 'sync', buttonText: 'Play Speech (Sync)' };
       <ng-container [ngTemplateOutlet]="buttonTemplate" [ngTemplateOutletContext]="c" />
     </button>
-    <button
-      (click)="generateSpeech('stream')"
-      aria-label="Stream speech"
-      [disabled]="isLoading()"
-      class="btn-audio"
-    >
+    <button (click)="generateSpeech('stream')" aria-label="Stream speech" [disabled]="isLoading()" class="btn-audio">
       @let c2 = { isLoading: loadingMode() === 'stream', buttonText: 'Play Speech (Stream)' };
       <ng-container [ngTemplateOutlet]="buttonTemplate" [ngTemplateOutletContext]="c2" />
     </button>
@@ -42,12 +32,7 @@
   </figure>
 }
 
-<ng-template
-  #buttonTemplate
-  let-isLoading="isLoading"
-  let-buttonText="buttonText"
-  let-genText="genText"
->
+<ng-template #buttonTemplate let-isLoading="isLoading" let-buttonText="buttonText" let-genText="genText">
   @if (isLoading) {
     <app-spinner-icon class="spinner-icon" />
   }

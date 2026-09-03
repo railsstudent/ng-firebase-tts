@@ -52,15 +52,11 @@ describe('TextToSpeechComponent', () => {
   it('should compute isLoading correctly based on loadingRate signal', () => {
     expect(component.isLoading()).toBe(false);
 
-    (mockViewService.loadingRate as unknown as WritableSignal<GenerateSpeechMode | 'idle'>).set(
-      'sync',
-    );
+    (mockViewService.loadingRate as unknown as WritableSignal<GenerateSpeechMode | 'idle'>).set('sync');
     fixture.detectChanges();
     expect(component.isLoading()).toBe(true);
 
-    (mockViewService.loadingRate as unknown as WritableSignal<GenerateSpeechMode | 'idle'>).set(
-      'idle',
-    );
+    (mockViewService.loadingRate as unknown as WritableSignal<GenerateSpeechMode | 'idle'>).set('idle');
     fixture.detectChanges();
     expect(component.isLoading()).toBe(false);
   });

@@ -84,8 +84,6 @@ describe('ObscureFactComponent', () => {
 
     const emptyMsgEl = fixture.nativeElement.querySelector('.obscure-fact-empty');
     expect(emptyMsgEl).toBeTruthy();
-    expect(emptyMsgEl.textContent).toContain(
-      'The tag(s) does not have any interesting or obscure fact.',
-    );
+    expect(emptyMsgEl.textContent).toContain('The tag(s) does not have any interesting or obscure fact.');
   });
 });

@@ -7,10 +7,7 @@ const DEFAULT_GAIN = 1.0;
  * Normalizes raw 16-bit linear PCM byte buffers (Uint8Array) into Float32Array samples
  * scaled between -1.0 and 1.0, ensuring safe even-byte boundaries.
  */
-export function normalizePcmSamples(
-  rawBytes: Uint8Array,
-  gain = DEFAULT_GAIN,
-): Float32Array<ArrayBuffer> {
+export function normalizePcmSamples(rawBytes: Uint8Array, gain = DEFAULT_GAIN): Float32Array<ArrayBuffer> {
   // Ensure even byte count for 16-bit PCM conversion
   const byteLength = rawBytes.byteLength % 2 === 0 ? rawBytes.byteLength : rawBytes.byteLength - 1;
   const int16Data = new Int16Array(rawBytes.buffer, rawBytes.byteOffset, byteLength / 2);

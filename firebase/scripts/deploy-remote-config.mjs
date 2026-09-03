@@ -43,12 +43,9 @@ async function pushRemoteConfigTemplate() {
 
   // 1. Fetch current live config to get up-to-date version metadata
   console.log('🔍 Fetching latest version metadata to avoid 409 conflicts...');
-  const { stdout: liveJson } = await execAsync(
-    'npx firebase remoteconfig:get --json --project default',
-    {
-      cwd: firebaseDir,
-    },
-  );
+  const { stdout: liveJson } = await execAsync('npx firebase remoteconfig:get --json --project default', {
+    cwd: firebaseDir,
+  });
   const response = JSON.parse(liveJson);
   const liveTemplate = response.result || response;
 
@@ -63,12 +60,9 @@ async function pushRemoteConfigTemplate() {
 
   // 3. Deploy the template directly
   console.log('🚀 Deploying template via Firebase CLI...');
-  const { stdout: deployOutput } = await execAsync(
-    'npx firebase deploy --only remoteconfig --project default',
-    {
-      cwd: firebaseDir,
-    },
-  );
+  const { stdout: deployOutput } = await execAsync('npx firebase deploy --only remoteconfig --project default', {
+    cwd: firebaseDir,
+  });
   console.log(deployOutput);
   console.log('🎉 Remote Config deployment successfully completed!');
 }

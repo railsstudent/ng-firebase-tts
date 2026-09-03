@@ -7,12 +7,7 @@ import { Component, input } from '@angular/core';
 
 @Component({
   selector: 'app-alt-text-panel',
-  imports: [
-    AltTextDisplayComponent,
-    SpinnerIconComponent,
-    RecommendationsDisplay,
-    GroundingComponent,
-  ],
+  imports: [AltTextDisplayComponent, SpinnerIconComponent, RecommendationsDisplay, GroundingComponent],
   templateUrl: './alt-text-panel.html',
   styleUrl: './alt-text-panel.css',
 })

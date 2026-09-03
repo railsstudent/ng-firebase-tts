@@ -54,8 +54,6 @@ describe('RecommendationsDisplay', () => {
     expect(cards.length).toBe(1);
     expect(recId.nativeElement.textContent).toContain('REC-01:');
     expect(recText.nativeElement.textContent).toContain('Increase text contrast');
-    expect(recReason.nativeElement.textContent).toContain(
-      'High opacity background makes it difficult to read',
-    );
+    expect(recReason.nativeElement.textContent).toContain('High opacity background makes it difficult to read');
   });
 });

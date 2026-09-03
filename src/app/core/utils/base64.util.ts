@@ -9,9 +9,6 @@ export function decodeBase64(base64: string): Uint8Array {
 
 export function isBlobPart(value: unknown): value is BlobPart {
   return (
-    typeof value === 'string' ||
-    value instanceof Blob ||
-    value instanceof ArrayBuffer ||
-    ArrayBuffer.isView(value)
+    typeof value === 'string' || value instanceof Blob || value instanceof ArrayBuffer || ArrayBuffer.isView(value)
   );
 }

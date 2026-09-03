@@ -7,12 +7,10 @@ describe('AssetRegistry', () => {
   let revokeObjectUrlSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    createObjectUrlSpy = vi
-      .spyOn(URL, 'createObjectURL')
-      .mockImplementation((file: Blob | MediaSource) => {
-        const size = 'size' in file ? file.size : 0;
-        return `blob:http://localhost/${size}`;
-      });
+    createObjectUrlSpy = vi.spyOn(URL, 'createObjectURL').mockImplementation((file: Blob | MediaSource) => {
+      const size = 'size' in file ? file.size : 0;
+      return `blob:http://localhost/${size}`;
+    });
     revokeObjectUrlSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
 
     TestBed.configureTestingModule({

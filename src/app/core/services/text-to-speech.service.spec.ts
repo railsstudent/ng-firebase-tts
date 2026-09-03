@@ -138,9 +138,7 @@ describe('TextToSpeechService', () => {
         response: {},
       });
 
-      await expect(service.synthesize('Empty Fact', 'Puck')).rejects.toThrow(
-        'No audio data received in response.',
-      );
+      await expect(service.synthesize('Empty Fact', 'Puck')).rejects.toThrow('No audio data received in response.');
     });
   });
 

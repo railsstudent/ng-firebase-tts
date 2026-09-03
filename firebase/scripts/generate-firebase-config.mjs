@@ -29,9 +29,7 @@ try {
     .map(([key]) => key);
 
   if (missing.length > 0) {
-    console.warn(
-      `Warning: The following keys are missing or contain placeholder values: ${missing.join(', ')}`,
-    );
+    console.warn(`Warning: The following keys are missing or contain placeholder values: ${missing.join(', ')}`);
   }
 
   // Check if recaptcha enterprise key is missing

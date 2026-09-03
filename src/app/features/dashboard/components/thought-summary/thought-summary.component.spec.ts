@@ -60,9 +60,7 @@ describe('ThoughtSummaryComponent', () => {
     expect(wrapper).toBeTruthy();
     expect(usageSection).toBeNull();
     expect(thoughtSection).toBeTruthy();
-    expect(thoughtSection.nativeElement.textContent).toContain(
-      'Thinking about Mars surface chemistry...',
-    );
+    expect(thoughtSection.nativeElement.textContent).toContain('Thinking about Mars surface chemistry...');
   });
 
   // TEST CASE 4: Both Provided

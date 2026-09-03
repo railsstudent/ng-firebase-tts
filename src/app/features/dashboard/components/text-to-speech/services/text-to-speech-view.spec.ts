@@ -77,9 +77,7 @@ describe('TextToSpeechViewService', () => {
       vi.spyOn(URL, 'revokeObjectURL');
 
       const config = { prompt: 'Sync prompt', voice: 'Kore', fact: 'Interesting fact' };
-      await expect(service.generateSpeech('sync', config)).rejects.toThrow(
-        'Error generating speech (Sync).',
-      );
+      await expect(service.generateSpeech('sync', config)).rejects.toThrow('Error generating speech (Sync).');
 
       expect(mockAudioPlayerService.stopAll).toHaveBeenCalled();
       expect(service.audioUrl()).toBeUndefined();
@@ -101,11 +99,7 @@ describe('TextToSpeechViewService', () => {
       const config = { prompt: 'Stream prompt', voice: 'Kore', fact: 'Interesting fact' };
       await service.generateSpeech('stream', config);
 
-      expect(mockSpeechService.synthesizeStream).toHaveBeenCalledWith(
-        'Stream prompt',
-        'Kore',
-        true,
-      );
+      expect(mockSpeechService.synthesizeStream).toHaveBeenCalledWith('Stream prompt', 'Kore', true);
       expect(mockAudioPlayerService.initialize).toHaveBeenCalledWith(24000, 1);
       expect(mockAudioPlayerService.processChunk).toHaveBeenCalledWith(new Uint8Array([1, 2]));
       expect(mockAudioPlayerService.awaitPlaybackComplete).toHaveBeenCalled();
@@ -122,9 +116,7 @@ describe('TextToSpeechViewService', () => {
       mockSpeechService.synthesizeStream.mockReturnValue(mockGenerator);
 
       const config = { prompt: 'Stream prompt', voice: 'Kore', fact: 'Interesting fact' };
-      await expect(service.generateSpeech('stream', config)).rejects.toThrow(
-        'Error generating speech (Stream).',
-      );
+      await expect(service.generateSpeech('stream', config)).rejects.toThrow('Error generating speech (Stream).');
 
       expect(mockAudioPlayerService.stopAll).toHaveBeenCalled();
       expect(service.audioUrl()).toBeUndefined();
@@ -144,11 +136,7 @@ describe('TextToSpeechViewService', () => {
       const config = { prompt: 'WebAudio prompt', voice: 'Puck', fact: 'Interesting fact' };
       await service.generateSpeech('web_audio_api', config);
 
-      expect(mockSpeechService.synthesizeStream).toHaveBeenCalledWith(
-        'WebAudio prompt',
-        'Puck',
-        false,
-      );
+      expect(mockSpeechService.synthesizeStream).toHaveBeenCalledWith('WebAudio prompt', 'Puck', false);
       expect(mockAudioPlayerService.initialize).toHaveBeenCalledWith(16000, expect.any(Number));
       expect(mockAudioPlayerService.processChunk).toHaveBeenCalledWith(new Uint8Array([3, 4]));
       expect(mockAudioPlayerService.awaitPlaybackComplete).not.toHaveBeenCalled();

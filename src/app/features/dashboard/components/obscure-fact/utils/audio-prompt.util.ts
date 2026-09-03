@@ -52,9 +52,7 @@ function insertAudioTagsToTranscript({ transcript, pace, emotion }: AudioPrompt)
   const audioTags = `${makeTag(emotion)}${makeTag(pace)}`;
   const cleanedTranscript = sanitizeTranscript(transcript);
 
-  const parts = cleanedTranscript.split(
-    /(?<!\b(?:Mr|Mrs|Ms|Dr|St|i\.e|e\.g))([.!?\n\r]+[”"’']*\s*)/,
-  );
+  const parts = cleanedTranscript.split(/(?<!\b(?:Mr|Mrs|Ms|Dr|St|i\.e|e\.g))([.!?\n\r]+[”"’']*\s*)/);
   return parts
     .map((text, i, arr) => {
       if (i % 2 !== 0) {

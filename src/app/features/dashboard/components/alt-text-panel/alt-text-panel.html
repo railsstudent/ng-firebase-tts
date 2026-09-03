@@ -19,9 +19,7 @@
   }
   @if (!isLoading() && imageAnalysis) {
     <div class="results-wrapper">
-      <app-alt-text-display
-        [altText]="analysis()?.parsed?.alternativeText || 'Default alternative text'"
-      />
+      <app-alt-text-display [altText]="analysis()?.parsed?.alternativeText || 'Default alternative text'" />
       <app-recommendations-display [recommendations]="analysis()?.parsed?.recommendations || []" />
     </div>
   }
