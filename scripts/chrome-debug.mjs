@@ -13,7 +13,7 @@ function getChromePath() {
     '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
     path.join(os.homedir(), 'Applications/Google Chrome.app/Contents/MacOS/Google Chrome'),
     '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary',
-    '/Applications/Chromium.app/Contents/MacOS/Chromium'
+    '/Applications/Chromium.app/Contents/MacOS/Chromium',
   ];
   return paths.find((p) => fs.existsSync(p)) || null;
 }
@@ -22,7 +22,7 @@ const CONFIG = {
   port: 9222,
   chromeBinPath: getChromePath(),
   debugProfileDir: path.join(os.tmpdir(), 'chrome-debug-profile'),
-  defaultProfileDir: path.join(os.homedir(), 'Library/Application Support/Google/Chrome')
+  defaultProfileDir: path.join(os.homedir(), 'Library/Application Support/Google/Chrome'),
 };
 
 const TARGET_PORT_FILE = path.join(CONFIG.defaultProfileDir, 'DevToolsActivePort');
@@ -78,9 +78,9 @@ async function startChrome(daemon = true) {
       `--user-data-dir=${CONFIG.debugProfileDir}`,
       '--no-first-run',
       '--no-default-browser-check',
-      '--disable-sync'
+      '--disable-sync',
     ],
-    { detached: daemon, stdio: daemon ? 'ignore' : 'inherit' }
+    { detached: daemon, stdio: daemon ? 'ignore' : 'inherit' },
   );
   if (daemon) proc.unref();
 
@@ -121,7 +121,11 @@ function stopChrome() {
 function statusChrome() {
   const inUse = (() => {
     try {
-      return execSync(`lsof -ti :${CONFIG.port}`, { stdio: ['pipe', 'pipe', 'ignore'] }).toString().trim().length > 0;
+      return (
+        execSync(`lsof -ti :${CONFIG.port}`, { stdio: ['pipe', 'pipe', 'ignore'] })
+          .toString()
+          .trim().length > 0
+      );
     } catch {
       return false;
     }

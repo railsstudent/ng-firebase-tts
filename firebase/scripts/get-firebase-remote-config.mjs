@@ -1,16 +1,22 @@
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+import { exec } from 'node:child_process';
+import { promisify } from 'node:util';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const execAsync = promisify(exec);
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const firebaseDir = path.resolve(__dirname, '..');
 
 try {
-  // Fetch remote config as JSON
-  const output = execSync('npx firebase remoteconfig:get --json --project default', {
-    encoding: 'utf-8',
+  // Fetch remote config asynchronously
+  const { stdout } = await execAsync('npx firebase remoteconfig:get --json --project default', {
     cwd: firebaseDir,
   });
-  const config = JSON.parse(output);
+  const config = JSON.parse(stdout);
   const parameters = config?.result?.parameters;
 
   // Extract default values from parameters

@@ -1,5 +1,9 @@
-const fs = require('fs');
-const path = require('path');
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 try {
   const envPath = path.resolve(__dirname, '../.env');
@@ -25,7 +29,9 @@ try {
     .map(([key]) => key);
 
   if (missing.length > 0) {
-    console.warn(`Warning: The following keys are missing or contain placeholder values: ${missing.join(', ')}`);
+    console.warn(
+      `Warning: The following keys are missing or contain placeholder values: ${missing.join(', ')}`,
+    );
   }
 
   // Check if recaptcha enterprise key is missing
