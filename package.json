@@ -13,7 +13,7 @@
     "prepare": "husky",
     "format": "prettier --write \"**/*.{ts,js,mjs,json,html}\"",
     "preview": "npx serve dist/ng-firebase-tts/browser -p 5005 -s",
-    "preview:emulator": "npm run build && npx serve dist/ng-firebase-tts/browser --listen $PORT",
+    "preview:emulator": "npx serve dist/ng-firebase-tts/browser --listen $PORT",
     "firebase:emulate": "cd firebase; firebase emulators:start --project default",
     "config:fetch": "node firebase/scripts/get-firebase-remote-config.mjs",
     "config:generate": "node firebase/scripts/generate-firebase-config.mjs",
