@@ -21,9 +21,9 @@ Check if the skills are already installed before proceeding:
    ```bash
    npx skills add firebase/agent-skills --agent cursor --skill "*"
    ```
-   _Note: Omit `--yes` and `--global` to choose the installation location
+   *Note: Omit `--yes` and `--global` to choose the installation location
    manually. If prompted interactively in the terminal, ensure you send the
-   appropriate user choices via standard input to complete the installation._
+   appropriate user choices via standard input to complete the installation.*
 1. **Verify Installation**: Re-run the checks in steps 1 or 2 to confirm that
    `firebase-basics` is now available.
 
@@ -36,8 +36,8 @@ The MCP server allows Cursor to interact directly with Firebase projects.
    - Global: `~/.cursor/mcp.json`
    - Project: `.cursor/mcp.json`
 
-   _Note: If the directory or `mcp.json` file does not exist, create them and
-   initialize the file with `{ "mcpServers": {} }` before proceeding._
+   *Note: If the directory or `mcp.json` file does not exist, create them and
+   initialize the file with `{ "mcpServers": {} }` before proceeding.*
 
 1. **Check Existing Configuration**: Open `mcp.json` and check the `mcpServers`
    section for a `firebase` entry.
@@ -79,8 +79,8 @@ The MCP server allows Cursor to interact directly with Firebase projects.
    }
    ```
 
-   _CRITICAL: Merge this configuration into the existing `mcp.json` file. You
-   MUST preserve any other existing servers inside the `mcpServers` object._
+   *CRITICAL: Merge this configuration into the existing `mcp.json` file. You
+   MUST preserve any other existing servers inside the `mcpServers` object.*
 
 1. **Verify Configuration**: Save the file and confirm the `firebase` block is
    present and properly formatted JSON.

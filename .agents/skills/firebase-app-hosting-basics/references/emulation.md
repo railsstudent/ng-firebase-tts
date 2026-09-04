@@ -19,7 +19,7 @@ runConfig:
 
 env:
   - variable: API_KEY
-    value: 'local-dev-api-key' # Override secret with local value
+    value: "local-dev-api-key" # Override secret with local value
 ```
 
 ## Running the Emulator

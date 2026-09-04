@@ -29,7 +29,7 @@ Check if the extension is already installed before proceeding:
    new installation occurred. **Stop and wait** for their confirmation before
    proceeding.
 
----
+______________________________________________________________________
 
 ## Alternative: Manual MCP Configuration (Project Scope)
 

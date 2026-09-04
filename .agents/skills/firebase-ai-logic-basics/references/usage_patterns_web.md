@@ -60,7 +60,7 @@ async function fileToGenerativePart(file) {
     reader.onloadend = () => resolve(reader.result.split(',')[1]);
     reader.readAsDataURL(file);
   });
-
+  
   return {
     inlineData: {
       data: await base64EncodedDataPromise,

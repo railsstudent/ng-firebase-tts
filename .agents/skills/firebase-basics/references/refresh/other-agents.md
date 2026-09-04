@@ -27,8 +27,8 @@ Replace `<AGENT_NAME>` with the actual agent name, which can be found in the
    npx -y skills list --agent <AGENT_NAME> --global
    ```
 
-   _Note: If a skill shows `Agents: not linked` in the output, it is installed
-   but not currently available to the agent._
+   *Note: If a skill shows `Agents: not linked` in the output, it is installed
+   but not currently available to the agent.*
 
 1. **Add Missing or Unlinked Skills:** Compare the results from Step 1 and Step
    2\. For each missing or unlinked skill, follow the appropriate conditional

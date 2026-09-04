@@ -23,7 +23,7 @@ When using SwiftUI, you **MUST** ensure `FirebaseApp.configure()` is called
 
 - **UNSAFE (CRASH):** Declaring a `@State` (for `@Observable`) or `@StateObject`
   (for Combine) property in the root `App` struct if its initializer touches
-  Firebase. Property initializers run _before_ the `App.init()` body, meaning
+  Firebase. Property initializers run *before* the `App.init()` body, meaning
   the object's `init()` will fire before Firebase is configured.
 - **SAFE:** Initialize Firebase in `App.init()` and pass your state objects into
   the sub-views (like `ContentView`), or use `onAppear` for delayed setup.
@@ -81,7 +81,7 @@ struct YourApp: App {
   init() {
     // ✅ SAFE: This runs FIRST
     FirebaseApp.configure()
-
+    
     // ✅ SAFE: Initialize state ONLY AFTER Firebase is configured
     _authManager = State(initialValue: AuthManager())
   }

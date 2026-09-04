@@ -53,8 +53,8 @@ platform-specific quirks.
 
 ## 4. Prototyping Workaround: Bypassing Firestore Composite Indices
 
-_Note: This is a Firestore consideration frequently encountered while fetching
-user-specific auth data._
+*Note: This is a Firestore consideration frequently encountered while fetching
+user-specific auth data.*
 
 When querying data via `FirebaseFirestore.instance`, using
 `.where('userId', isEqualTo: uid)` combined with a sort on a different field
@@ -103,11 +103,11 @@ class AuthService {
         if (googleUser == null) return null; // Cancelled
 
         final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-
+        
         final AuthCredential credential = GoogleAuthProvider.credential(
           idToken: googleAuth.idToken,
         );
-
+        
         return await _auth.signInWithCredential(credential);
       }
     } catch (e) {

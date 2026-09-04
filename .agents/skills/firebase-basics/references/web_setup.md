@@ -37,18 +37,18 @@ npx -y firebase-tools@latest apps:sdkconfig <APP_ID>
 Copy the output config object into your initialization file:
 
 ```javascript
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: 'API_KEY',
-  authDomain: 'PROJECT_ID.firebaseapp.com',
-  projectId: 'PROJECT_ID',
-  storageBucket: 'PROJECT_ID.firebasestorage.app',
-  messagingSenderId: 'SENDER_ID',
-  appId: 'APP_ID',
-  measurementId: 'G-MEASUREMENT_ID',
+  apiKey: "API_KEY",
+  authDomain: "PROJECT_ID.firebaseapp.com",
+  projectId: "PROJECT_ID",
+  storageBucket: "PROJECT_ID.firebasestorage.app",
+  messagingSenderId: "SENDER_ID",
+  appId: "APP_ID",
+  measurementId: "G-MEASUREMENT_ID"
 };
 
 // Initialize Firebase
@@ -63,13 +63,13 @@ export { app };
 Import specific services as needed (Modular API):
 
 ```javascript
-import { getFirestore, collection, getDocs } from 'firebase/firestore';
-import { app } from './firebase'; // Import the initialized app
+import { getFirestore, collection, getDocs } from "firebase/firestore";
+import { app } from "./firebase"; // Import the initialized app
 
 const db = getFirestore(app);
 
 async function getUsers() {
-  const querySnapshot = await getDocs(collection(db, 'users'));
+  const querySnapshot = await getDocs(collection(db, "users"));
   querySnapshot.forEach((doc) => {
     console.log(`${doc.id} => ${doc.data()}`);
   });

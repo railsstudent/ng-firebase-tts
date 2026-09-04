@@ -74,7 +74,7 @@ To fully manage Firebase, the agent needs specific skills and the Firebase MCP
 server installed. Refer to the main `SKILL.md` for direct links to the
 installation instructions specific to your agent environment.
 
----
+______________________________________________________________________
 
 **CRITICAL AGENT RULE:** Do NOT proceed with any other Firebase tasks until
 EVERY step above has been successfully verified and completed.

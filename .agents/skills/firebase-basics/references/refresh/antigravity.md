@@ -24,8 +24,8 @@ if skills are installed at the project level, omit the `--global` flag.
    npx -y skills list --agent antigravity --global
    ```
 
-   _Note: If a skill shows `Agents: not linked` in the output, it is installed
-   but not currently available to Antigravity._
+   *Note: If a skill shows `Agents: not linked` in the output, it is installed
+   but not currently available to Antigravity.*
 
 1. **Add Missing or Unlinked Skills:** Compare the results from Step 1 and Step
    2\. For each missing or unlinked skill, follow the appropriate conditional

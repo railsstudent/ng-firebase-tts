@@ -6,8 +6,8 @@ First, ensure you have initialized the Firebase App (see `firebase-basics`
 skill). Then, initialize the Auth service:
 
 ```javascript
-import { getAuth } from 'firebase/auth';
-import { app } from './firebase'; // Your initialized Firebase App
+import { getAuth } from "firebase/auth";
+import { app } from "./firebase"; // Your initialized Firebase App
 
 const auth = getAuth(app);
 export { auth };
@@ -19,19 +19,19 @@ If you are running the Authentication emulator (usually on port 9099), connect
 to it immediately after initialization.
 
 ```javascript
-import { getAuth, connectAuthEmulator } from 'firebase/auth';
+import { getAuth, connectAuthEmulator } from "firebase/auth";
 
 const auth = getAuth();
 // Connect to emulator if running locally
-if (location.hostname === 'localhost') {
-  connectAuthEmulator(auth, 'http://localhost:9099');
+if (location.hostname === "localhost") {
+  connectAuthEmulator(auth, "http://localhost:9099");
 }
 ```
 
 ## Sign Up with Email/Password
 
 ```javascript
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 
 const auth = getAuth();
 createUserWithEmailAndPassword(auth, email, password)
@@ -49,7 +49,7 @@ createUserWithEmailAndPassword(auth, email, password)
 ## Sign In with Google (Popup)
 
 ```javascript
-import { getAuth, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 
 const auth = getAuth();
 const provider = new GoogleAuthProvider();
@@ -85,7 +85,7 @@ signInWithPopup(auth, provider)
 ## Sign In with Facebook (Popup)
 
 ```javascript
-import { getAuth, signInWithPopup, FacebookAuthProvider } from 'firebase/auth';
+import { getAuth, signInWithPopup, FacebookAuthProvider } from "firebase/auth";
 
 const auth = getAuth();
 const provider = new FacebookAuthProvider();
@@ -106,7 +106,7 @@ signInWithPopup(auth, provider)
 ## Sign In with Apple (Popup)
 
 ```javascript
-import { getAuth, signInWithPopup, OAuthProvider } from 'firebase/auth';
+import { getAuth, signInWithPopup, OAuthProvider } from "firebase/auth";
 
 const auth = getAuth();
 const provider = new OAuthProvider('apple.com');
@@ -126,7 +126,7 @@ signInWithPopup(auth, provider)
 ## Sign In with Twitter (Popup)
 
 ```javascript
-import { getAuth, signInWithPopup, TwitterAuthProvider } from 'firebase/auth';
+import { getAuth, signInWithPopup, TwitterAuthProvider } from "firebase/auth";
 
 const auth = getAuth();
 const provider = new TwitterAuthProvider();
@@ -147,7 +147,7 @@ signInWithPopup(auth, provider)
 ## Sign In with GitHub (Popup)
 
 ```javascript
-import { getAuth, signInWithPopup, GithubAuthProvider } from 'firebase/auth';
+import { getAuth, signInWithPopup, GithubAuthProvider } from "firebase/auth";
 
 const auth = getAuth();
 const provider = new GithubAuthProvider();
@@ -166,7 +166,7 @@ signInWithPopup(auth, provider)
 ## Sign In with Microsoft (Popup)
 
 ```javascript
-import { getAuth, signInWithPopup, OAuthProvider } from 'firebase/auth';
+import { getAuth, signInWithPopup, OAuthProvider } from "firebase/auth";
 
 const auth = getAuth();
 const provider = new OAuthProvider('microsoft.com');
@@ -185,7 +185,7 @@ signInWithPopup(auth, provider)
 ## Sign In with Yahoo (Popup)
 
 ```javascript
-import { getAuth, signInWithPopup, OAuthProvider } from 'firebase/auth';
+import { getAuth, signInWithPopup, OAuthProvider } from "firebase/auth";
 
 const auth = getAuth();
 const provider = new OAuthProvider('yahoo.com');
@@ -204,7 +204,7 @@ signInWithPopup(auth, provider)
 ## Sign In Anonymously
 
 ```javascript
-import { getAuth, signInAnonymously } from 'firebase/auth';
+import { getAuth, signInAnonymously } from "firebase/auth";
 
 const auth = getAuth();
 signInAnonymously(auth)
@@ -222,7 +222,7 @@ signInAnonymously(auth)
 **1. Send Auth Link**
 
 ```javascript
-import { getAuth, sendSignInLinkToEmail } from 'firebase/auth';
+import { getAuth, sendSignInLinkToEmail } from "firebase/auth";
 
 const auth = getAuth();
 const actionCodeSettings = {
@@ -244,7 +244,7 @@ sendSignInLinkToEmail(auth, email, actionCodeSettings)
 **2. Complete Sign In (on landing page)**
 
 ```javascript
-import { getAuth, isSignInWithEmailLink, signInWithEmailLink } from 'firebase/auth';
+import { getAuth, isSignInWithEmailLink, signInWithEmailLink } from "firebase/auth";
 
 const auth = getAuth();
 
@@ -271,7 +271,7 @@ Recommended way to get the current user. This listener triggers whenever the
 user signs in or out.
 
 ```javascript
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const auth = getAuth();
 onAuthStateChanged(auth, (user) => {
@@ -290,14 +290,12 @@ onAuthStateChanged(auth, (user) => {
 ## Sign Out
 
 ```javascript
-import { getAuth, signOut } from 'firebase/auth';
+import { getAuth, signOut } from "firebase/auth";
 
 const auth = getAuth();
-signOut(auth)
-  .then(() => {
-    // Sign-out successful.
-  })
-  .catch((error) => {
-    // An error happened.
-  });
+signOut(auth).then(() => {
+  // Sign-out successful.
+}).catch((error) => {
+  // An error happened.
+});
 ```

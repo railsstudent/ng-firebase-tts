@@ -137,7 +137,7 @@ flutter run -d chrome --web-hostname=localhost --web-port=5000
 ### 4. Elaborating on `WidgetsFlutterBinding.ensureInitialized()`
 
 In your `main.dart`, this call is mandatory before `Firebase.initializeApp()`.
-_Why?_ Because Firebase initialization requires communication across Flutter's
+*Why?* Because Firebase initialization requires communication across Flutter's
 native iOS/Android method channels. `ensureInitialized()` guarantees the Fluter
 engine is fully booted up and ready to handle these native platform calls before
 `runApp()` executes.

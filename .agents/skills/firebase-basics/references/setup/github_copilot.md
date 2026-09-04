@@ -26,9 +26,9 @@ Check if the skills are already installed before proceeding:
    ```bash
    npx skills add firebase/agent-skills --agent github-copilot --skill "*"
    ```
-   _Note: Omit `--yes` and `--global` to choose the installation location
+   *Note: Omit `--yes` and `--global` to choose the installation location
    manually. If prompted interactively in the terminal, ensure you send the
-   appropriate user choices via standard input to complete the installation._
+   appropriate user choices via standard input to complete the installation.*
 1. **Verify Installation**: Re-run the checks in steps 1 or 2 to confirm that
    `firebase-basics` is now available.
 
@@ -42,9 +42,9 @@ projects.
    - Workspace: `.vscode/mcp.json`
    - Global: User Settings `mcp.json` file.
 
-   _Note: If the `.vscode/` directory or `mcp.json` file does not exist, create
+   *Note: If the `.vscode/` directory or `mcp.json` file does not exist, create
    them and initialize the file with `{ "mcp": { "servers": {} } }` before
-   proceeding._
+   proceeding.*
 
 1. **Check Existing Configuration**: Open the `mcp.json` file and check the
    `mcp.servers` object for a `firebase` entry.
@@ -89,9 +89,9 @@ projects.
    }
    ```
 
-   _CRITICAL: Merge this configuration into the existing `mcp.json` file under
+   *CRITICAL: Merge this configuration into the existing `mcp.json` file under
    the `mcp.servers` object. You MUST preserve any other existing servers inside
-   `mcp.servers`._
+   `mcp.servers`.*
 
 1. **Verify Configuration**: Save the file and confirm the `firebase` block is
    present and properly formatted JSON.

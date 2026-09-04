@@ -65,7 +65,7 @@ Use `FirebaseAI.googleAI` for the **Gemini Developer API**.
 > and standard use. Avoid using the Agent Platform Gemini API (formerly branded
 > Vertex AI) unless the app and business use case specifically require
 > enterprise-grade scalability or data residency requirements. Note that the
-> Gemini Developer API _usually does not_ require the Firebase project to be on
+> Gemini Developer API *usually does not* require the Firebase project to be on
 > the pay-as-you-go Blaze pricing plan; however, the Agent Platform Gemini API
 > does require the Blaze plan.
 
@@ -77,7 +77,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 Future<String> generateText(String prompt) async {
   final googleAI = FirebaseAI.googleAI(auth: FirebaseAuth.instance);
-
+  
   // [AGENT] Replace '<latest_supported_model>' with the latest model from https://firebase.google.com/docs/ai-logic/models.md.txt
   final model = googleAI.generativeModel(model: '<latest_supported_model>');
 

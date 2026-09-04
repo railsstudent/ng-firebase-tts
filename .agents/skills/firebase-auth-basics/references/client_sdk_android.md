@@ -12,7 +12,7 @@ your Firebase Project using the Firebase CLI:
 npx -y firebase-tools@latest init auth
 ```
 
----
+______________________________________________________________________
 
 ### 2. Add Dependencies
 
@@ -30,7 +30,7 @@ dependencies {
 }
 ```
 
----
+______________________________________________________________________
 
 ### 3. Initialize FirebaseAuth
 
@@ -48,7 +48,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val auth = Firebase.auth
-
+        
         setContent {
             MaterialTheme {
                 Text("Auth initialized!")
@@ -75,7 +75,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val auth = Firebase.auth
-
+        
         setContent {
             MaterialTheme {
                 Text("Auth initialized!")
@@ -85,7 +85,7 @@ class MainActivity : ComponentActivity() {
 }
 ```
 
----
+______________________________________________________________________
 
 ### 4. Check Current Auth State
 
@@ -104,7 +104,7 @@ public override fun onStart() {
 }
 ```
 
----
+______________________________________________________________________
 
 ### 5. Sign Up New Users (Email/Password)
 
@@ -126,7 +126,7 @@ fun signUpUser(email: String, password: String) {
 }
 ```
 
----
+______________________________________________________________________
 
 ### 6. Sign In Existing Users (Email/Password)
 
@@ -148,7 +148,7 @@ fun signInUser(email: String, password: String) {
 }
 ```
 
----
+______________________________________________________________________
 
 ### 7. Sign Out
 

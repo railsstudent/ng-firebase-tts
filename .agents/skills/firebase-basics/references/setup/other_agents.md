@@ -28,9 +28,9 @@ Check if the skills are already installed before proceeding:
    ```bash
    npx skills add firebase/agent-skills --agent <agent-name> --skill "*"
    ```
-   _Note: Omit `--yes` and `--global` to choose the installation location
+   *Note: Omit `--yes` and `--global` to choose the installation location
    manually. If prompted interactively in the terminal, ensure you send the
-   appropriate user choices via standard input to complete the installation._
+   appropriate user choices via standard input to complete the installation.*
 1. **Verify Installation**: Re-run the checks in steps 1 or 2 to confirm that
    `firebase-basics` is now available.
 
@@ -42,8 +42,8 @@ The MCP server allows the agent to interact directly with Firebase projects.
    (e.g., `~/.codeium/windsurf/mcp_config.json`, `cline_mcp_settings.json`, or
    `claude_desktop_config.json`).
 
-   _Note: If the document or its containing directory does not exist, create
-   them and initialize the file with `{ "mcpServers": {} }` before proceeding._
+   *Note: If the document or its containing directory does not exist, create
+   them and initialize the file with `{ "mcpServers": {} }` before proceeding.*
 
 1. **Check Existing Configuration**: Open the configuration file and check the
    `mcpServers` section for a `firebase` entry.
@@ -85,8 +85,8 @@ The MCP server allows the agent to interact directly with Firebase projects.
    }
    ```
 
-   _CRITICAL: Merge this configuration into the existing file. You MUST preserve
-   any other existing servers inside the `mcpServers` object._
+   *CRITICAL: Merge this configuration into the existing file. You MUST preserve
+   any other existing servers inside the `mcpServers` object.*
 
 1. **Verify Configuration**: Save the file and confirm the `firebase` block is
    present and properly formatted JSON.

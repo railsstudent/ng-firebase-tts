@@ -9,7 +9,7 @@ executes in the app root.
 - **FATAL CRASH:** `@Observable class AuthManager { let auth = Auth.auth() }`
   initialized as a `@State` in the App root.
 - **SAFE PATTERN:** Initialize `Auth.auth()` lazily
-  (`lazy var auth = Auth.auth()`) OR explicitly initialize the manager _after_
+  (`lazy var auth = Auth.auth()`) OR explicitly initialize the manager *after*
   `FirebaseApp.configure()` finishes.
 
 ## 1. Import and Initialize
