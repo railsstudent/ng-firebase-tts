@@ -1,13 +1,16 @@
-import { IS_BROWSER, WINDOW } from '@/core/constants/navigator.const';
+import { WINDOW } from '@/core/constants/navigator.const';
+import { PwaUpdateService } from '@/core/services/pwa-update.service';
 import { TestBed } from '@angular/core/testing';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { Subject } from 'rxjs';
-import { PwaUpdateService } from './pwa-update.service';
 
 describe('PwaUpdateService', () => {
-  let swUpdateMock: { isEnabled: boolean; versionUpdates: Subject<VersionReadyEvent> };
-  let isBrowserMock: boolean;
-  let windowMock: { location: { reload: () => void } };
+  let swUpdateMock: {
+    isEnabled: boolean;
+    versionUpdates: Subject<VersionReadyEvent>;
+    activateUpdate: () => Promise<boolean>;
+  };
+  let windowMock: { location: { reload: () => void } } | null;
   let reloadCalled: boolean;
 
   beforeEach(() => {
@@ -15,8 +18,8 @@ describe('PwaUpdateService', () => {
     swUpdateMock = {
       isEnabled: true,
       versionUpdates: new Subject<VersionReadyEvent>(),
+      activateUpdate: () => Promise.resolve(true),
     };
-    isBrowserMock = true;
     windowMock = {
       location: {
         reload: () => {
@@ -32,8 +35,7 @@ describe('PwaUpdateService', () => {
       providers: [
         PwaUpdateService,
         { provide: SwUpdate, useValue: swUpdateMock },
-        { provide: IS_BROWSER, useFactory: () => isBrowserMock },
-        { provide: WINDOW, useValue: windowMock },
+        { provide: WINDOW, useFactory: () => windowMock },
       ],
     });
     return TestBed.inject(PwaUpdateService);
@@ -44,7 +46,7 @@ describe('PwaUpdateService', () => {
     expect(service.updateAvailable()).toBe(false);
   });
 
-  it('should emit true when isBrowser is true, SwUpdate is enabled, and VERSION_READY is fired', () => {
+  it('should emit true when window is present, SwUpdate is enabled, and VERSION_READY is fired', () => {
     const service = createService();
     swUpdateMock.versionUpdates.next({
       type: 'VERSION_READY',
@@ -63,8 +65,8 @@ describe('PwaUpdateService', () => {
     expect(service.updateAvailable()).toBe(false);
   });
 
-  it('should not emit true when IS_BROWSER is false', () => {
-    isBrowserMock = false;
+  it('should not emit true when WINDOW is null (SSR)', () => {
+    windowMock = null;
     const service = createService();
     swUpdateMock.versionUpdates.next({
       type: 'VERSION_READY',
@@ -85,16 +87,16 @@ describe('PwaUpdateService', () => {
     expect(service.updateAvailable()).toBe(false);
   });
 
-  it('should call window.location.reload() when reloadPage() is called in browser', () => {
+  it('should call window.location.reload() when reloadPage() is called in browser', async () => {
     const service = createService();
-    service.reloadPage();
+    await service.reloadPage();
     expect(reloadCalled).toBe(true);
   });
 
-  it('should not call window.location.reload() when reloadPage() is called in SSR', () => {
-    isBrowserMock = false;
+  it('should not call window.location.reload() when reloadPage() is called in SSR', async () => {
+    windowMock = null;
     const service = createService();
-    service.reloadPage();
+    await service.reloadPage();
     expect(reloadCalled).toBe(false);
   });
 });

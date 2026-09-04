@@ -1,3 +1,19 @@
 runConfig:
   minInstances: 0
   maxInstances: 2  # Prevents Google Cloud from scaling up infinitely during an attack
+
+env:
+  - variable: APP_FIREBASE_API_KEY
+    secret: firebase_api_key
+  - variable: APP_FIREBASE_AUTH_DOMAIN
+    secret: firebase_auth_domain
+  - variable: APP_FIREBASE_PROJECT_ID
+    secret: firebase_project_id
+  - variable: APP_FIREBASE_STORAGE_BUCKET
+    secret: firebase_storage_bucket
+  - variable: APP_FIREBASE_MESSAGING_SENDER_ID
+    secret: firebase_messaging_sender_id
+  - variable: APP_FIREBASE_APP_ID
+    secret: firebase_app_id
+  - variable: APP_FIREBASE_RECAPTCHA_ENTERPRISE_KEY
+    secret: firebase_recaptcha_enterprise_key

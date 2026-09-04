@@ -19,6 +19,7 @@
     "config:generate": "node firebase/scripts/generate-firebase-config.mjs",
     "config:pull": "node firebase/scripts/deploy-remote-config.mjs pull",
     "config:push": "node firebase/scripts/deploy-remote-config.mjs push",
+    "config:secrets": "node firebase/scripts/deploy-apphosting-secrets.mjs",
     "chrome:debug": "node scripts/chrome-debug.mjs start",
     "chrome:debug:stop": "node scripts/chrome-debug.mjs stop",
     "chrome:debug:status": "node scripts/chrome-debug.mjs status"
