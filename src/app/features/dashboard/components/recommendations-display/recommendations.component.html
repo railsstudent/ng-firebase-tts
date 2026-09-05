@@ -1,15 +1,37 @@
 <div class="recommendations-wrapper">
   <h3 class="recommendations-title">Recommendations</h3>
-  <div class="recommendations-list">
+  <div class="recommendations-list" ngAccordionGroup [multiExpandable]="true">
     @for (item of recommendations(); track item.id) {
       <div class="recommendation-card">
-        <p>
-          <span class="recommendation-id">{{ item.id }}: </span>
-          <span class="recommendation-text">{{ item.text }}</span>
-        </p>
-        <p>
-          <span class="recommendation-reason-label">Reason:</span>
-          <span class="recommendation-reason-text">{{ item.reason }}</span>
+        <h4 class="m-0">
+          <p ngAccordionTrigger [panel]="panelRef" #triggerRef="ngAccordionTrigger" class="recommendation-trigger">
+            <span class="recommendation-text-group">
+              <span class="recommendation-id">{{ item.id }}: </span>
+              <span class="recommendation-text">{{ item.text }}</span>
+            </span>
+
+            <!-- 2. Bind rotate class directly to the triggerRef.expanded() signal -->
+            <svg
+              class="expand-icon"
+              [class.expand-icon__expanded]="triggerRef.expanded()"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0
+111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </p>
+        </h4>
+        <p ngAccordionPanel #panelRef="ngAccordionPanel">
+          <ng-template ngAccordionContent>
+            <span class="recommendation-reason-label">Reason:</span>
+            <span class="recommendation-reason-text">{{ item.reason }}</span>
+          </ng-template>
         </p>
       </div>
     } @empty {

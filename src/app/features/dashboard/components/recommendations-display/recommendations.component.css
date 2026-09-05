@@ -35,3 +35,23 @@
 .no-recommendations {
   @apply text-slate-500 italic;
 }
+
+[ngAccordionTrigger] {
+  @apply cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 rounded;
+}
+
+.recommendation-trigger {
+  @apply flex items-center justify-between w-full py-1;
+}
+
+.recommendation-text-group {
+  @apply flex-1 pr-2;
+}
+
+.expand-icon {
+  @apply w-5 h-5 text-indigo-400 transition-transform duration-200 flex-shrink-0;
+}
+
+.expand-icon__expanded {
+  @apply rotate-180 text-indigo-300;
+}
