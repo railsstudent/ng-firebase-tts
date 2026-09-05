@@ -1,10 +1,10 @@
 <div class="tags-wrapper">
   <h3 class="tags-title">Suggested Tags</h3>
-  <div class="tags-list">
+  <div ngListbox class="tags-list" orientation="horizontal" selectionMode="explicit" multi="false">
     @for (tag of tags(); track tag) {
-      <span class="tag-pill">
-        {{ tag }}
-      </span>
+      <div ngOption #optionRef="ngOption" [value]="tag" [label]="tag" class="tag-option">
+        <span class="tag-pill" [class]="{ 'tag-pill-selected': optionRef.selected() }">{{ tag }}</span>
+      </div>
     } @empty {
       <p class="no-tags-message">No tags were generated for this image.</p>
     }

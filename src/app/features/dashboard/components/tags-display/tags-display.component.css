@@ -19,3 +19,9 @@
 .no-tags-message {
   @apply text-slate-500 italic;
 }
+
+/* Active Highlight when selected */
+.tag-pill-selected,
+.tag-option[aria-selected='true'] .tag-pill {
+  @apply bg-indigo-600 text-white border-indigo-400 shadow-md shadow-indigo-500/20;
+}
