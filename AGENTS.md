@@ -44,9 +44,32 @@ Issues and specs live as local markdown files under `.scratch/`. See `docs/agent
 
 Domain documentation layout is single-context. See `docs/agents/domain.md`.
 
-## Command Verification & Validation Loop
+## Documentation & MCP Research Protocols
 
-When editing or creating files in this repository, you MUST follow these constraints regarding command execution:
+When researching framework/platform APIs, architecture, or resolving errors:
 
-1. **Defer Verification to End-of-Task**: Do NOT run verification commands (`npm run lint`, `npm run format`, `npm test`, `npm run test:once`) recursively or after every individual contiguous block edit. This slows down the interactive developer loop. Gather all contiguous and related edits, apply them first, and run validation commands EXACTLY ONCE at the end of the complete task milestone.
-2. **ESLint Compliance in Spec Files**: When generating or updating unit tests (`*.spec.ts`), ensure they adhere to the project's ESLint config. Avoid common violations like relative imports (always use absolute path aliases starting with `@/`) and missing curly braces. Do not use legacy reactive forms or custom test classes that expand member visibility just for testing.
+1. **Angular Questions (`angular-cli` MCP)**:
+   - Primary: Query the `angular-cli` MCP server (`search_documentation`, `get_best_practices`, `ai_tutor`) targeting the project's current major Angular version (`22`).
+   - Fallback: Use web search if the MCP server is unavailable or returns no results.
+
+2. **Firebase & Google Cloud Questions (`firebase-mcp-server`)**:
+   - Primary: Query the `firebase-mcp-server` (`developerknowledge_answer_query`, `developerknowledge_search_documents`) for App Hosting, Remote Config, Firebase Security Rules, and Firebase Web SDK 12.x documentation.
+   - Fallback: Use web search if the tool is unavailable or hits rate limits.
+
+3. **General Third-Party Tools (Tailwind v4, Vitest, etc.)**:
+   - Use web search directly for libraries outside the official Angular / Firebase MCP knowledge bases.
+
+## Testing & Command Verification Loop
+
+When editing, creating, or testing files in this repository, you MUST follow these constraints:
+
+1. **Targeted Testing via Vitest MCP Server**:
+   - During feature development and refactoring, use the `vitest` MCP server (`run_tests`) to run tests against specifically modified files or component directories (e.g. `target: "./src/app/core/services/audio-player.service.spec.ts"`).
+   - Use `analyze_coverage` with `target: "<source-file-or-dir>"` to identify exact uncovered lines, functions, and branches when writing or updating tests.
+   - Ensure `set_project_root` is initialized prior to running Vitest MCP operations.
+
+2. **Defer Full-Suite Verification to End-of-Task**:
+   - Do NOT run full repo-wide commands (`npm run lint`, `npm run format`, `npm test`, full `npm run test:once`, `npm run build`) recursively after every individual contiguous block edit. Gather all contiguous and related edits, apply them first, and run full validation commands EXACTLY ONCE at the end of the complete task milestone.
+
+3. **ESLint Compliance in Spec Files**:
+   - When generating or updating unit tests (`*.spec.ts`), ensure they adhere to the project's ESLint config. Avoid common violations like relative imports (always use absolute path aliases starting with `@/`) and missing curly braces. Do not use legacy reactive forms or custom test classes that expand member visibility just for testing.

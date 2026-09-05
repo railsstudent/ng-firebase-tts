@@ -1,1 +1,2 @@
-npm run config:secrets
+npm run test:once && npm run config:secrets
+

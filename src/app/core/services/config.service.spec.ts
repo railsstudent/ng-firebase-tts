@@ -137,7 +137,7 @@ describe('ConfigService', () => {
     expect(service.appConfig).toEqual({
       useLimitedUseAppCheckTokens: false,
       vertexAILocation: 'global',
-      geminiModelName: 'gemini-3.7-flash',
+      geminiModelName: 'gemini-3.8-flash',
       geminiTTSModelName: '',
       thinkingLevel: 'LOW',
     });
@@ -184,7 +184,7 @@ describe('ConfigService', () => {
     expect(service.appConfig).toEqual({
       useLimitedUseAppCheckTokens: false,
       vertexAILocation: 'global',
-      geminiModelName: 'gemini-3.7-flash',
+      geminiModelName: 'gemini-3.8-flash',
       geminiTTSModelName: '',
       thinkingLevel: 'LOW',
     });
