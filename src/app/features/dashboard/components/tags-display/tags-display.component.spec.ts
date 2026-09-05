@@ -43,6 +43,22 @@ describe('TagsDisplayComponent', () => {
       expect(listbox.nativeElement.getAttribute('aria-orientation')).toBe('horizontal');
     });
 
+    it('should set dynamic aria-label on the listbox with the tag count', () => {
+      fixture.componentRef.setInput('tags', ['Mars', 'Landscape']);
+      fixture.detectChanges();
+
+      const listbox = fixture.debugElement.query(By.css('[ngListbox]'));
+      expect(listbox.nativeElement.getAttribute('aria-label')).toBe('Suggested tags, 2 items');
+
+      fixture.componentRef.setInput('tags', ['SingleTag']);
+      fixture.detectChanges();
+      expect(listbox.nativeElement.getAttribute('aria-label')).toBe('Suggested tags, 1 item');
+
+      fixture.componentRef.setInput('tags', []);
+      fixture.detectChanges();
+      expect(listbox.nativeElement.getAttribute('aria-label')).toBe('Suggested tags, 0 items');
+    });
+
     it('should render options with role="option", initial aria-selected="false", and matching text', () => {
       const sampleTags = ['Mars', 'Landscape', 'Sunset'];
       fixture.componentRef.setInput('tags', sampleTags);
@@ -114,6 +130,19 @@ describe('TagsDisplayComponent', () => {
       fixture.detectChanges();
       expect(options[0].nativeElement.getAttribute('aria-selected')).toBe('false');
       expect(options[2].nativeElement.getAttribute('aria-selected')).toBe('true');
+    });
+
+    it('should toggle selection off (deselect) when an already selected option is clicked again', () => {
+      const options = fixture.debugElement.queryAll(By.css('[ngOption]'));
+      const firstOption = options[0].nativeElement;
+
+      firstOption.click();
+      fixture.detectChanges();
+      expect(firstOption.getAttribute('aria-selected')).toBe('true');
+
+      firstOption.click();
+      fixture.detectChanges();
+      expect(firstOption.getAttribute('aria-selected')).toBe('false');
     });
   });
 

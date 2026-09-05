@@ -1,6 +1,13 @@
 <div class="tags-wrapper">
   <h3 class="tags-title">Suggested Tags</h3>
-  <div ngListbox class="tags-list" orientation="horizontal" selectionMode="explicit" multi="false">
+  <div
+    ngListbox
+    class="tags-list"
+    orientation="horizontal"
+    selectionMode="explicit"
+    multi="false"
+    [aria-label]="tagAriaLabel()"
+  >
     @for (tag of tags(); track tag) {
       <div ngOption #optionRef="ngOption" [value]="tag" [label]="tag" class="tag-option">
         <span class="tag-pill" [class]="{ 'tag-pill-selected': optionRef.selected() }">{{ tag }}</span>

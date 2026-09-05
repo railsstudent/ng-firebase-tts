@@ -21,7 +21,7 @@ Integrate `@angular/aria` to scaffold headless, accessible components for the AI
 7. As a mobile developer, I want the custom tags to have toggleable single-selection (with no selection initially, and the ability to click again to deselect), so that users can have full control to clear their selections.
 8. As a screen reader user, when I focus the AI Voice Model Selector, I want it to be announced as an interactive dropdown, so that I know I can open it to reveal option lists.
 9. As a keyboard-only user, I want to open the voice selector dropdown, use Arrow keys to highlight voices, and press Enter to select a voice, so that I can customize audio parameters without using a mouse.
-10. As a developer, I want custom accessible components (such as Voice Selector) to communicate via clean reactive inputs and outputs (such as `(valueChange)`), allowing parent components to seamlessly bind them to forms or local signals as needed.
+10. As a developer, I want custom accessible components (such as Voice Selector) to communicate via outputs (such as `(valueChange)`), allowing parent components to seamlessly bind them to forms or local signals as needed.
 11. As a designer, I want all ARIA state-based visual indicators (such as rotated chevron icons on expanded panels, active highlight backgrounds on options) to be styled dynamically matching Angular Aria patterns, avoiding unnecessary custom state management.
 
 ## Implementation Decisions
@@ -46,13 +46,13 @@ Integrate `@angular/aria` to scaffold headless, accessible components for the AI
 ### 4. Collapsible Recommendations Display (Lazy-Rendered Accordion)
 
 - Refactor the recommendations list in `recommendations.component.html` to a multi-expandable accordion container (`ngAccordionGroup`, `[multiExpandable]="true"`).
-- Attach `ngAccordionTrigger` to each recommendation title element to manage accessibility focus and toggle corresponding content panels following Angular Aria headless patterns.
+- Attach headless `ngAccordionTrigger` directives (e.g. `<p ngAccordionTrigger>`) to recommendation titles within the card headings to manage keyboard navigation and toggle corresponding `ngAccordionPanel` containers following official Angular Aria headless patterns.
 - Style chevron indicators dynamically with rotation transition when expanded.
 - Wrap content panels inside `<ng-template ngAccordionContent>` to activate lazy rendering, ensuring hidden text only enters the DOM upon user expansion.
 
 ### 5. Seams and Core Architecture
 
-- Style integration is achieved directly within components' CSS stylesheets by referencing Tailwind CSS v4 utilities and ARIA modifiers (`aria-selected:`, `aria-expanded:`, `focus-visible:`).
+- Style integration is achieved directly within components' CSS stylesheets and templates by referencing Tailwind CSS v4 utilities, component-scoped classes, and ARIA state bindings (`[aria-selected='true']`, `optionRef.selected()`, `triggerRef.expanded()`, `focus-visible:`).
 - Form bindings update Angular modern Signal Forms, ensuring zero impact on downstream speech-generation models and services.
 
 ---

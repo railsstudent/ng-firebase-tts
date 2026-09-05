@@ -1,5 +1,5 @@
 import { Listbox, Option } from '@angular/aria/listbox';
-import { Component, input } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 
 @Component({
   selector: 'app-tags-display',
@@ -9,4 +9,10 @@ import { Component, input } from '@angular/core';
 })
 export class TagsDisplayComponent {
   tags = input<string[]>([]);
+
+  tagAriaLabel = computed(() => {
+    const numItems = this.tags().length;
+    const items = `item${numItems === 1 ? '' : 's'}`;
+    return `Suggested tags, ${numItems} ${items}`;
+  });
 }

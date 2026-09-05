@@ -1,4 +1,7 @@
-import { SORTED_VOICE_OPTIONS } from '@/features/dashboard/components/voice-selector/constants/voice-options.const';
+import {
+  SORTED_VOICE_MAP,
+  SORTED_VOICE_OPTIONS,
+} from '@/features/dashboard/components/voice-selector/constants/voice-options.const';
 import { VoiceSelectorComponent } from '@/features/dashboard/components/voice-selector/voice-selector.component';
 import { DEFAULT_VOICE } from '@/features/dashboard/constants/voice-name.const';
 import { ComponentHarness } from '@angular/cdk/testing';
@@ -46,7 +49,7 @@ describe('VoiceSelectorComponent', () => {
     });
 
     it('should map each voice name to its formatted label in sortedVoiceMap', () => {
-      const map = component.sortedVoiceMap;
+      const map = SORTED_VOICE_MAP;
       expect(map.size).toBe(SORTED_VOICE_OPTIONS.length);
 
       SORTED_VOICE_OPTIONS.forEach((voice) => {
@@ -189,16 +192,21 @@ describe('VoiceSelectorComponent', () => {
       expect(component.popupExpanded()).toBe(false);
     });
 
-    it('should close the popup when Escape key is pressed', () => {
+    it('should close the popup and restore focus to the trigger when Escape key is pressed', () => {
       component.popupExpanded.set(true);
       fixture.detectChanges();
 
       const comboboxEl = fixture.debugElement.query(By.css('[ngCombobox]'));
+      const trigger = comboboxEl.nativeElement as HTMLElement;
+      trigger.focus();
+      expect(document.activeElement).toBe(trigger);
+
       comboboxEl.triggerEventHandler('keydown.escape', new KeyboardEvent('keydown', { key: 'Escape' }));
       comboboxEl.triggerEventHandler('expandedChange', false);
       fixture.detectChanges();
 
       expect(component.popupExpanded()).toBe(false);
+      expect(document.activeElement).toBe(trigger);
     });
 
     it('should execute afterRenderEffect callback on render tick', async () => {
@@ -208,7 +216,7 @@ describe('VoiceSelectorComponent', () => {
       TestBed.flushEffects();
       await fixture.whenRenderingDone();
 
-      expect(component.listBox()).toBeTruthy();
+      expect(component.listbox()).toBeTruthy();
     });
   });
 

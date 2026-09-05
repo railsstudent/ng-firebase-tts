@@ -29,12 +29,12 @@ const TARGET_PORT_FILE = path.join(CONFIG.defaultProfileDir, 'DevToolsActivePort
 
 function killProcessOnPort(port) {
   try {
-    const pids = execSync(`lsof -ti :${port}`, { stdio: ['pipe', 'pipe', 'ignore'] })
+    const processIds = execSync(`lsof -ti :${port}`, { stdio: ['pipe', 'pipe', 'ignore'] })
       .toString()
       .trim()
       .split('\n')
       .filter(Boolean);
-    for (const pid of pids) process.kill(Number(pid), 'SIGKILL');
+    for (const processId of processIds) process.kill(Number(processId), 'SIGKILL');
   } catch {
     // Port already free
   }

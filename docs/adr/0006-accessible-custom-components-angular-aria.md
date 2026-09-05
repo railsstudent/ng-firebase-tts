@@ -28,8 +28,8 @@ We will adopt `@angular/aria` for headless accessibility primitives and `@angula
    - Use `ngAccordionGroup` with multi-expansion enabled (`[multiExpandable]="true"`) to allow collapsible recommendation cards.
    - Embed panel contents inside `<ng-template ngAccordionContent>` to activate lazy rendering, ensuring hidden text does not bloat the DOM until expanded.
 
-4. **Tailwind CSS v4 ARIA State Styling**:
-   - Style all interactive, active, and focused states natively in the HTML/CSS templates using Tailwind CSS v4's standard modifiers (e.g., `aria-selected:`, `aria-expanded:`, `focus-visible:`).
+4. **Tailwind CSS v4 & ARIA State Styling**:
+   - Style all interactive, active, and focused states natively in the HTML/CSS templates using Tailwind CSS v4's utilities, scoped stylesheets, and ARIA state bindings (`[aria-selected='true']`, `optionRef.selected()`, `triggerRef.expanded()`, `focus-visible:`).
    - Keeping the component TypeScript files completely stateless regarding presentational states.
 
 ## Consequences

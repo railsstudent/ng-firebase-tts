@@ -68,7 +68,7 @@
   @apply flex-1 text-slate-200;
 }
 
-/* --- Checkmark Visibility --- */
+/* --- Check mark Visibility --- */
 [ngOption]:not([aria-selected='true']) .option-check {
   @apply invisible;
 }

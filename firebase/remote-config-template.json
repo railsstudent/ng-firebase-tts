@@ -17,20 +17,12 @@
     }
   ],
   "parameters": {
-    "useLimitedUseAppCheckTokens": {
+    "geminiModelName": {
       "defaultValue": {
-        "value": "false"
+        "value": "gemini-3.8-flash"
       },
-      "conditionalValues": {
-        "allow-replay-protection": {
-          "value": "true"
-        },
-        "hybrid-chrome-built-in": {
-          "value": "true"
-        }
-      },
-      "description": "Whether or not to enable replay protection",
-      "valueType": "BOOLEAN"
+      "description": "Gemini Model Name",
+      "valueType": "STRING"
     },
     "functionEmulatorHost": {
       "defaultValue": {
@@ -79,17 +71,25 @@
       "description": "Location where the functions are deployed",
       "valueType": "STRING"
     },
-    "geminiModelName": {
+    "useLimitedUseAppCheckTokens": {
       "defaultValue": {
-        "value": "gemini-3.7-flash"
+        "value": "false"
       },
-      "description": "Germini Model Name",
-      "valueType": "STRING"
+      "conditionalValues": {
+        "allow-replay-protection": {
+          "value": "true"
+        },
+        "hybrid-chrome-built-in": {
+          "value": "true"
+        }
+      },
+      "description": "Whether or not to enable replay protection",
+      "valueType": "BOOLEAN"
     }
   },
   "version": {
-    "versionNumber": "16",
-    "updateTime": "2026-08-29T05:43:49.088103Z",
+    "versionNumber": "18",
+    "updateTime": "2026-09-06T01:22:49.555670Z",
     "updateUser": {
       "email": "cleung334@gmail.com"
     },

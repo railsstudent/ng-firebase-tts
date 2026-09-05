@@ -19,8 +19,8 @@ Follow this directory layout and architectural pattern when adding new files:
 
 When writing or refactoring TypeScript code, you MUST adhere to the following rules:
 
-1. **Private Backing Variables & Signals**: Always use JavaScript native `#` prefixes (e.g. `readonly #state = signal(...)`, `#engine: Engine | null = null`).
-2. **Tailwind CSS v4 Component Styling**: Always prioritize Tailwind CSS v4 `@apply` utility classes over raw vanilla CSS inside component-scoped stylesheets. To compile correctly in isolation, you MUST prepend an explicit `@reference` directive pointing relatively to the global `src/styles.css` stylesheet file.
+1. **Private Backing Variables & Signals**: Always use JavaScript native `#` prefixes for internal private state and injected services (e.g. `readonly #state = signal(...)`, `#engine: Engine | null = null`). Signal queries (`viewChild`, `viewChildren`, `contentChild`, `contentChildren`) and template-accessible properties/signals are public by design and exempt from `#` prefixes.
+2. **Tailwind CSS v4 Component Styling**: Always prioritize Tailwind CSS v4 `@apply` utility classes over raw vanilla CSS inside component-scoped stylesheets. To compile correctly in isolation, you MUST prepend an explicit `@reference` directive pointing relatively to the global `src/styles.css` stylesheet file (relative paths like `@reference "../../../../../styles.css";` are specifically required and allowed for CSS `@reference`, as CSS does not support TypeScript path aliases).
    - **Correct**:
 
      ```css
@@ -72,4 +72,4 @@ When editing, creating, or testing files in this repository, you MUST follow the
    - Do NOT run full repo-wide commands (`npm run lint`, `npm run format`, `npm test`, full `npm run test:once`, `npm run build`) recursively after every individual contiguous block edit. Gather all contiguous and related edits, apply them first, and run full validation commands EXACTLY ONCE at the end of the complete task milestone.
 
 3. **ESLint Compliance in Spec Files**:
-   - When generating or updating unit tests (`*.spec.ts`), ensure they adhere to the project's ESLint config. Avoid common violations like relative imports (always use absolute path aliases starting with `@/`) and missing curly braces. Do not use legacy reactive forms or custom test classes that expand member visibility just for testing.
+   - When generating or updating unit tests (`*.spec.ts`), ensure they adhere to the project's ESLint config. Avoid common violations like relative imports in TypeScript (always use absolute path aliases starting with `@/` for TS files; relative paths are strictly for CSS `@reference` directives) and missing curly braces. Do not use legacy reactive forms or custom test classes that expand member visibility just for testing.

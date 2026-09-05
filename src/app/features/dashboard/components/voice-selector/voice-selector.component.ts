@@ -8,6 +8,11 @@ import {
   SORTED_VOICE_OPTIONS,
 } from '@/features/dashboard/components/voice-selector/constants/voice-options.const';
 
+function getVoiceValue(newValues: string[]) {
+  const candidate = newValues?.[0];
+  return candidate && SORTED_VOICE_MAP.has(candidate) ? candidate : DEFAULT_VOICE;
+}
+
 @Component({
   selector: 'app-voice-selector',
   templateUrl: './voice-selector.component.html',
@@ -15,27 +20,25 @@ import {
   imports: [Combobox, ComboboxPopup, ComboboxWidget, Listbox, Option, OverlayModule],
 })
 export class VoiceSelectorComponent {
-  listBox = viewChild(Listbox);
+  listbox = viewChild(Listbox);
 
   valueChange = output<string>();
 
   sortedVoiceOptions = SORTED_VOICE_OPTIONS;
-
-  sortedVoiceMap = SORTED_VOICE_MAP;
 
   selectedValues = signal([DEFAULT_VOICE]);
 
   popupExpanded = signal(false);
 
   displayLabel = computed(() => {
-    const value = this.selectedValues()?.[0] || DEFAULT_VOICE;
-    return this.sortedVoiceMap.get(value) || this.sortedVoiceMap.get(DEFAULT_VOICE);
+    const value = getVoiceValue(this.selectedValues());
+    return SORTED_VOICE_MAP.get(value) || SORTED_VOICE_MAP.get(DEFAULT_VOICE);
   });
 
   constructor() {
     afterRenderEffect(() => {
       try {
-        this.listBox()?.scrollActiveItemIntoView();
+        this.listbox()?.scrollActiveItemIntoView();
       } catch {
         // Safely ignored in headless / jsdom test environments
       }
@@ -48,6 +51,6 @@ export class VoiceSelectorComponent {
 
   onValueChange(newValues: string[]) {
     this.selectedValues.set(newValues);
-    this.valueChange.emit(newValues?.[0] || DEFAULT_VOICE);
+    this.valueChange.emit(getVoiceValue(newValues));
   }
 }

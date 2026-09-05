@@ -87,9 +87,9 @@ export function convertToWav(rawData: Uint8Array, mimeType: string): Blob {
 }
 
 export function extractInlineData(chunk: GenerateContentResponse) {
-  const inlinenData = chunk.candidates?.[0]?.content?.parts?.[0]?.inlineData;
-  if (inlinenData) {
-    return { data: inlinenData.data, mimeType: inlinenData.mimeType };
+  const inlineData = chunk.candidates?.[0]?.content?.parts?.[0]?.inlineData;
+  if (inlineData) {
+    return { data: inlineData.data, mimeType: inlineData.mimeType };
   }
   return { data: undefined, mimeType: undefined };
 }
