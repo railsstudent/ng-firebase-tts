@@ -16,14 +16,6 @@
   @apply flex flex-col gap-1.5;
 }
 
-.form-field-group-full {
-  @apply flex flex-col gap-1.5 md:col-span-2;
-}
-
-.form-field-label {
-  @apply text-xs font-bold text-slate-400 uppercase tracking-wider ml-1;
-}
-
 .form-field-textarea {
   @apply w-full bg-slate-900/60 border border-slate-700 rounded-lg px-4 py-2 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all;
 }
@@ -32,10 +24,6 @@
   @apply bg-slate-900/60 border border-slate-700 rounded-lg px-4 py-2 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all;
 }
 
-.form-field-select {
-  @apply bg-slate-900/60 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all appearance-none cursor-pointer;
-}
-
-.select-option-bg {
-  @apply bg-slate-800;
+.form-field-group-full {
+  @apply flex flex-col gap-1.5 md:col-span-2;
 }

@@ -1,5 +1,6 @@
 /* You can add global styles to this file, and also import other style files */
 
+@import '@fontsource/material-symbols-outlined/400.css';
 @import 'tailwindcss';
 
 .error-block {
@@ -12,4 +13,8 @@
 
 .btn-image-selector {
   @apply bg-slate-900/50 text-white px-3 py-1.5 text-sm rounded-md hover:bg-slate-900/80 transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm;
+}
+
+.form-field-label {
+  @apply text-xs font-bold text-slate-400 uppercase tracking-wider ml-1;
 }

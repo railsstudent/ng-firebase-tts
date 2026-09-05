@@ -25,3 +25,14 @@ export const VOICE_OPTIONS: VoiceItem[] = [
   { name: 'Sadaltager', description: 'Knowledgeable' },
   { name: 'Sulafat', description: 'Warm' },
 ];
+
+export const SORTED_VOICE_OPTIONS = [...VOICE_OPTIONS]
+  .sort((a, b) => a.name.localeCompare(b.name))
+  .map((option) => ({
+    name: option.name,
+    label: `${option.name} - ${option.description}`,
+  }));
+
+export const SORTED_VOICE_MAP = new Map<string, string>(
+  SORTED_VOICE_OPTIONS.map((option) => [option.name, option.label]),
+);

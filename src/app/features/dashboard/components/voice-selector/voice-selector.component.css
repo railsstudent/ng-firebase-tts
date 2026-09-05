@@ -1,0 +1,74 @@
+@reference "../../../../../styles.css";
+
+:host {
+  @apply block w-full md:col-span-2;
+}
+
+.form-field-group-full {
+  @apply flex flex-col gap-1.5 w-full;
+}
+
+.form-field-select {
+  @apply bg-slate-900/60 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all cursor-pointer;
+}
+
+/* --- Combobox Trigger Styles --- */
+.voice-trigger {
+  @apply flex items-center justify-between select-none py-2.5;
+}
+
+.voice-trigger-left {
+  @apply flex items-center gap-2.5;
+}
+
+.voice-trigger-text {
+  @apply font-medium text-white;
+}
+
+/* --- Icon Classes (Material Symbols Built-In) --- */
+.voice-icon {
+  font-family: 'Material Symbols Outlined';
+  @apply text-indigo-400 text-lg shrink-0 select-none;
+}
+
+.voice-arrow {
+  font-family: 'Material Symbols Outlined';
+  @apply text-slate-400 text-lg transition-transform duration-200 select-none;
+}
+
+.voice-trigger[aria-expanded='true'] .voice-arrow {
+  @apply rotate-180 text-indigo-400;
+}
+
+/* --- Popup Overlay Container --- */
+.voice-popup-container {
+  @apply w-full bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden mt-1 max-h-60 z-50 backdrop-blur-md;
+}
+
+/* --- Listbox Container --- */
+[ngListbox] {
+  @apply flex flex-col p-1.5 overflow-y-auto max-h-56 gap-0.5 outline-none;
+}
+
+/* --- Option Items --- */
+[ngOption] {
+  @apply flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-200 cursor-pointer transition-colors text-sm select-none;
+}
+
+[ngOption]:hover,
+[ngOption][data-active='true'] {
+  @apply bg-slate-800 text-white outline-none;
+}
+
+[ngOption][aria-selected='true'] {
+  @apply bg-indigo-950/60 text-indigo-200 font-semibold;
+}
+
+.voice-option-text {
+  @apply flex-1 text-slate-200;
+}
+
+/* --- Checkmark Visibility --- */
+[ngOption]:not([aria-selected='true']) .option-check {
+  @apply invisible;
+}

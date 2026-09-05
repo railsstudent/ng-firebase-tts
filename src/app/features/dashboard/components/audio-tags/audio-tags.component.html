@@ -38,14 +38,6 @@
     </div>
 
     <!-- Voice Option -->
-    <div class="form-field-group-full">
-      <label for="voiceOption" class="form-field-label">AI Voice Model</label>
-      <select id="voiceOption" [formField]="audioPromptForm.voiceOption" class="form-field-select">
-        <option value="" disabled selected>Select a voice...</option>
-        @for (option of sortedVoiceOptions(); track option.name) {
-          <option [value]="option.name" class="select-option-bg">{{ option.label }}</option>
-        }
-      </select>
-    </div>
+    <app-voice-selector (valueChange)="onValueChange($event)" />
   </div>
 </div>
