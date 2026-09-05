@@ -14,14 +14,15 @@ Traditionally, implementing these custom accessible widgets requires writing com
 We will adopt `@angular/aria` for headless accessibility primitives and `@angular/cdk/overlay` for floating panel placement, styled natively using Tailwind CSS v4's state modifiers:
 
 1. **AI Voice Model Selector (Hybrid WAI-ARIA Combobox + CDK Floating Overlay Pattern)**:
-   - Use `@angular/aria` primitives (`ngCombobox`, `ngComboboxPopup`, `ngListbox`, `ngOption`) to manage ARIA attributes, keyboard navigation (Arrow Up/Down, Enter, Escape), and focus management.
+   - Extract into a focused, reusable feature component (`VoiceSelectorComponent`) with an `@Output() valueChange` contract.
+   - Use `@angular/aria` primitives (`ngCombobox`, `ngComboboxPopup`, `ngListbox`, `ngOption`) following official Angular patterns:
+     - Overlay popup dismissal via `(click)="onCommit()"`, `(keydown.enter)="onCommit()"`, and `(keydown.space)="onCommit()"` on `ngListbox`.
+     - Automatic scroll synchronization via `afterRenderEffect(() => this.listBox()?.scrollActiveItemIntoView())` to ensure the active option is brought into view when the overlay opens.
    - Use `@angular/cdk/overlay` (`cdkConnectedOverlay`) to handle floating anchor positioning, collision avoidance, and viewport boundary auto-flipping.
-   - Keep this custom component fully integrated with Angular's modern Signal Forms (`[formField]`).
 
 2. **Suggested Image Tags List (Single-Select Explicit Listbox Pattern)**:
-   - Move from plain `<span>` lists to a semantic `<ul>`/`<li>` listbox using `ngListbox`, `[multi]="false"`, and explicit selection (`selectionMode="explicit"`).
-   - Enable `allowEmpty` support so that clicking or pressing Enter on an already active tag toggles it off (clearing the selection).
-   - This provides low-noise keyboard navigation (arrows move focus, reading the option text, and selection only happens when explicitly confirmed).
+   - Adopt headless listbox directives (`ngListbox`, `multi="false"`, `selectionMode="explicit"`) on accessible container elements, decorating child items with `ngOption`.
+   - Leverage `@angular/aria`'s built-in toggle behavior (where re-selecting an active tag toggles it off) for clean, low-noise keyboard navigation without unnecessary template boilerplate.
 
 3. **Collapsible Recommendations (Lazy-Rendered Accordion Pattern)**:
    - Use `ngAccordionGroup` with multi-expansion enabled (`[multiExpandable]="true"`) to allow collapsible recommendation cards.

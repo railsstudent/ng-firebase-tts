@@ -1,8 +1,7 @@
 import { VoiceSelectorComponent } from '@/features/dashboard/components/voice-selector/voice-selector.component';
 import { DEFAULT_VOICE } from '@/features/dashboard/constants/voice-name.const';
 import { AudioPromptData } from '@/features/dashboard/interfaces/audio-prompt-data.interface';
-import { Listbox } from '@angular/aria/listbox';
-import { Component, signal, viewChild } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { form, FormField } from '@angular/forms/signals';
 
 @Component({
@@ -12,8 +11,6 @@ import { form, FormField } from '@angular/forms/signals';
   styleUrl: './audio-tags.component.css',
 })
 export class AudioTagsComponent {
-  listBox = viewChild(Listbox);
-
   #audioPromptModel = signal<AudioPromptData>({
     scene: 'A news anchor reading the news in a busy newsroom',
     emotion: 'professional, slightly serious',

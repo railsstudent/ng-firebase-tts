@@ -1,17 +1,17 @@
-import { RecommendationsDisplay } from '@/features/dashboard/components/recommendations-display/recommendations.component';
+import { RecommendationsDisplayComponent } from '@/features/dashboard/components/recommendations-display/recommendations.component';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
 describe('RecommendationsDisplay', () => {
-  let component: RecommendationsDisplay;
-  let fixture: ComponentFixture<RecommendationsDisplay>;
+  let component: RecommendationsDisplayComponent;
+  let fixture: ComponentFixture<RecommendationsDisplayComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [RecommendationsDisplay],
+      imports: [RecommendationsDisplayComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(RecommendationsDisplay);
+    fixture = TestBed.createComponent(RecommendationsDisplayComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

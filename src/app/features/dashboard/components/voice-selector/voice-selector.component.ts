@@ -3,7 +3,10 @@ import { Combobox, ComboboxPopup, ComboboxWidget } from '@angular/aria/combobox'
 import { Listbox, Option } from '@angular/aria/listbox';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { afterRenderEffect, Component, computed, output, signal, viewChild } from '@angular/core';
-import { SORTED_VOICE_MAP, SORTED_VOICE_OPTIONS } from './constants/voice-options.const';
+import {
+  SORTED_VOICE_MAP,
+  SORTED_VOICE_OPTIONS,
+} from '@/features/dashboard/components/voice-selector/constants/voice-options.const';
 
 @Component({
   selector: 'app-voice-selector',
@@ -26,7 +29,7 @@ export class VoiceSelectorComponent {
 
   displayLabel = computed(() => {
     const value = this.selectedValues()?.[0] || DEFAULT_VOICE;
-    return this.sortedVoiceMap.get(value) || this.sortedVoiceMap.get(DEFAULT_VOICE) || '';
+    return this.sortedVoiceMap.get(value) || this.sortedVoiceMap.get(DEFAULT_VOICE);
   });
 
   constructor() {

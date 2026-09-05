@@ -1,8 +1,21 @@
+import { SORTED_VOICE_OPTIONS } from '@/features/dashboard/components/voice-selector/constants/voice-options.const';
+import { VoiceSelectorComponent } from '@/features/dashboard/components/voice-selector/voice-selector.component';
 import { DEFAULT_VOICE } from '@/features/dashboard/constants/voice-name.const';
+import { ComponentHarness } from '@angular/cdk/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { SORTED_VOICE_OPTIONS } from './constants/voice-options.const';
-import { VoiceSelectorComponent } from './voice-selector.component';
+
+export class VoiceSelectorHarness extends ComponentHarness {
+  static hostSelector = 'app-voice-selector';
+
+  protected getTriggerText = this.locatorFor('.voice-trigger-text');
+
+  async getDisplayText(): Promise<string> {
+    const trigger = await this.getTriggerText();
+    return trigger.text();
+  }
+}
 
 describe('VoiceSelectorComponent', () => {
   let component: VoiceSelectorComponent;
@@ -166,6 +179,37 @@ describe('VoiceSelectorComponent', () => {
       listboxEl.triggerEventHandler('keydown.space', new KeyboardEvent('keydown', { key: ' ' }));
       expect(component.popupExpanded()).toBe(false);
     });
+
+    it('should update popupExpanded when combobox emits expandedChange', () => {
+      const comboboxEl = fixture.debugElement.query(By.css('[ngCombobox]'));
+      comboboxEl.triggerEventHandler('expandedChange', true);
+      expect(component.popupExpanded()).toBe(true);
+
+      comboboxEl.triggerEventHandler('expandedChange', false);
+      expect(component.popupExpanded()).toBe(false);
+    });
+
+    it('should close the popup when Escape key is pressed', () => {
+      component.popupExpanded.set(true);
+      fixture.detectChanges();
+
+      const comboboxEl = fixture.debugElement.query(By.css('[ngCombobox]'));
+      comboboxEl.triggerEventHandler('keydown.escape', new KeyboardEvent('keydown', { key: 'Escape' }));
+      comboboxEl.triggerEventHandler('expandedChange', false);
+      fixture.detectChanges();
+
+      expect(component.popupExpanded()).toBe(false);
+    });
+
+    it('should execute afterRenderEffect callback on render tick', async () => {
+      component.popupExpanded.set(true);
+      fixture.detectChanges();
+
+      TestBed.flushEffects();
+      await fixture.whenRenderingDone();
+
+      expect(component.listBox()).toBeTruthy();
+    });
   });
 
   describe('Seam 4: Visual State & CSS Class Verification', () => {
@@ -184,6 +228,14 @@ describe('VoiceSelectorComponent', () => {
 
       const optionCheckEls = fixture.debugElement.queryAll(By.css('.option-check'));
       expect(optionCheckEls.length).toBe(SORTED_VOICE_OPTIONS.length);
+    });
+  });
+
+  describe('Seam 5: CDK Component Harness Integration', () => {
+    it('should query component state via CDK ComponentHarness', async () => {
+      const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, VoiceSelectorHarness);
+      const text = await harness.getDisplayText();
+      expect(text).toContain(DEFAULT_VOICE);
     });
   });
 });

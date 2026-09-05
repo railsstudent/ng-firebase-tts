@@ -6,8 +6,8 @@ import { Component, input } from '@angular/core';
   selector: 'app-recommendations-display',
   templateUrl: './recommendations.component.html',
   styleUrl: './recommendations.component.css',
-  imports: [AccordionGroup, AccordionTrigger, AccordionPanel, AccordionPanel, AccordionContent],
+  imports: [AccordionGroup, AccordionTrigger, AccordionPanel, AccordionContent],
 })
-export class RecommendationsDisplay {
+export class RecommendationsDisplayComponent {
   recommendations = input<Recommendation[]>([]);
 }

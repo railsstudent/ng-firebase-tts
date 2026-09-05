@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { AudioTagsComponent } from '@/features/dashboard/components/audio-tags/audio-tags.component';
 import { DEFAULT_VOICE } from '@/features/dashboard/constants/voice-name.const';
-import { AudioTagsComponent } from './audio-tags.component';
 
 describe('AudioTagsComponent', () => {
   let component: AudioTagsComponent;
