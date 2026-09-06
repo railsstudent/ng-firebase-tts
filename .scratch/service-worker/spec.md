@@ -24,6 +24,8 @@ Enable a fully offline-capable Progressive Web App (PWA) experience by completin
 10. As an application developer, I want the Service Worker to be disabled during local development, so that I do not run into caching issues while writing code.
 11. As an application developer, I want the Service Worker registration to happen only after the application is fully stable (or after a timeout), so that initial loading performance is completely unblocked.
 12. As an application developer, I want dynamic AI and TTS API network calls to bypass Service Worker caching, so that real-time AI responses are always fresh and never served stale from local cache.
+13. As an active user with a long-running browser session, I want the application to periodically check for service worker updates in the background without interrupting my current task, so that I am notified as soon as a new version is deployed.
+14. As a user encountering a corrupted cache or unrecoverable service worker state, I want the application to automatically perform an emergency reload, so that missing or invalid chunk hashes do not break my experience.
 
 ## Implementation Decisions
 
@@ -44,12 +46,14 @@ The HTML index template (`src/index.html`) will be updated in its `<head>` secti
 - `<meta name="theme-color" content="#0f172a">`
 - iOS Safari compatibility tags: `<meta name="apple-mobile-web-app-capable" content="yes">`, `<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">`, and `<link rel="apple-touch-icon" href="icons/icon-192.png">`.
 
-### 3. Application Update Management (`SwUpdate`)
+### 3. Application Update Management & Recovery
 
-An update handler service or initialization hook using Angular's `SwUpdate` service will be established:
+The core update service will coordinate service worker lifecycle events and browser reload workflows:
 
-- Subscribe to `SwUpdate.versionUpdates`.
-- Upon receiving a `VERSION_READY` event, prompt the user or emit a notification asking them to reload the application to activate the latest build.
+- **Reactive Update State**: Expose reactive update availability to notify the user interface when a newly deployed application version has been downloaded and is ready for activation.
+- **Background Update Checks**: Schedule non-blocking periodic update checks defaulting to 1 hour after the application achieves stability, with support for configurable injection overrides to streamline local testing.
+- **Unrecoverable State Recovery**: Detect unrecoverable service worker cache failures and initiate an automatic emergency reload to purge corrupted state.
+- **Safe Application Reload**: Allow users to voluntarily activate the new version and reload the page cleanly.
 
 ### 4. Dynamic Data & AI Caching Strategy (`dataGroups`)
 
@@ -68,7 +72,7 @@ We will utilize the existing Angular Service Worker registration seam via `provi
 
 ### Good Test Principles
 
-A robust test should only test **external behavior** (e.g., the presence of the manifest link, correct theme color values, build-time config inclusion, proper icon paths, update notification handling, and end-to-end PWA installability) rather than the internal mechanics of the Angular `@angular/service-worker` package.
+A robust test should only test **external behavior** (e.g., the presence of the manifest link, correct theme color values, build-time config inclusion, proper icon paths, update notification handling, and end-to-end PWA installability) rather than internal implementation mechanics or library-specific operators.
 
 ### 1. Build Verification
 
@@ -88,7 +92,12 @@ Unit tests will assert that:
 
 Unit tests will assert that:
 
-- The update management service subscribes to `SwUpdate.versionUpdates` and handles `VERSION_READY` events appropriately.
+- The update service initializes in a default non-ready state and signals availability when a valid version-ready event is detected.
+- Non-ready or intermediate lifecycle events are ignored without triggering update alerts.
+- Non-browser (SSR) or disabled worker environments are handled gracefully without raising runtime errors.
+- Periodic update checks commence only after initial application stability.
+- Corrupted or unrecoverable cache states trigger automatic browser recovery.
+- Triggering an update reload activates the new version and refreshes the application.
 
 ### 4. Runtime & E2E PWA Verification Procedures
 

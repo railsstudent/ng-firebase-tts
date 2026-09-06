@@ -28,8 +28,10 @@ We will adopt Angular's native Service Worker (`@angular/service-worker`) with a
    - Standardize `theme_color` and `background_color` to `#0f172a` (matching `bg-slate-900`) for seamless status bar integration and splash screen rendering.
    - Include 192x192 and 512x512 maskable PNG icons for full PWA installability compliance.
 
-5. **Lifecycle Updates (`SwUpdate`)**:
-   - Subscribe to `SwUpdate.versionUpdates` to notify users when a new deployment version is ready.
+5. **Lifecycle Updates & Crash Recovery (`SwUpdate`)**:
+   - Subscribe to `SwUpdate.versionUpdates` to notify users via the Service Worker Update Banner when a new deployment version (`VERSION_READY`) is available.
+   - **Background Polling Seam**: Initiate periodic update checks using `ApplicationRef.isStable` followed by a 1-hour interval (configurable via dependency injection for testing and local dev overrides) to check for updates without blocking initial hydration or creating overlapping network requests.
+   - **Unrecoverable Crash Recovery**: Listen to `SwUpdate.unrecoverable` events and automatically trigger an emergency `window.location.reload()` to purge corrupted or missing cached chunks and restore the application to a functional state.
 
 ## Consequences
 
