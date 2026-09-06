@@ -19,12 +19,20 @@ The technique of scheduling incoming Float32 PCM sample buffers on an active Web
 _Avoid_: Audio chunk queuing, interval playing, naive audio play
 
 **Voice Profile**:
-A prebuilt Gemini speech persona (e.g. `Kore`, `Puck`, `Fenrir`, `Zephyr`) configured in the speech generation parameters.
+A prebuilt Gemini speech persona (e.g. `Aoede`, `Charon`, `Fenrir`, `Kore`, `Puck`, `Zephyr`) configured in the speech generation parameters. Presented in the user interface as the **AI Voice Model**.
 _Avoid_: Speaker name, voice actor, voice ID
+
+**Speech Generation Mode**:
+The client-side strategy used to synthesize and play audio: `Synchronous` (full buffer generation before playback), `Stream` (chunked playback via Media Source), or `Web Audio API` (real-time gapless timeline scheduling).
+_Avoid_: Audio mode, player type, playback format
 
 **Audio Prompt**:
 A structured text input composed of generated image facts, tags, or alternative text combined with tone instructions sent to the Gemini TTS model.
 _Avoid_: Speech text, TTS input, narration script
+
+**Vocal Customization (Audio Tags)**:
+The contextual parameter set consisting of **Scene Description**, **Vocal Emotion**, and **Speaking Pace** combined with a chosen Voice Profile to shape the synthesized speech delivery.
+_Avoid_: Speech parameters, voice filters, audio metadata
 
 ### Image Analysis & Multimodal Vision
 
@@ -43,6 +51,20 @@ _Avoid_: External links, search references, web scrapings
 **Recommendation**:
 An actionable, numbered suggestion provided by Gemini to make an analyzed image more engaging or visually interesting.
 _Avoid_: Suggestion, tip, image advice
+
+### Headless Accessible Components & UI Patterns
+
+**Accessible Combobox**:
+An accessible dropdown selector combining `@angular/aria` (`ngCombobox`, `ngListbox`) and `@angular/cdk/overlay` with active-descendant focus management and collision-aware popover positioning.
+_Avoid_: Custom select, dropdown menu, select box
+
+**Explicit Single-Select Listbox**:
+A horizontal tag selector (`ngListbox`) configured with explicit selection mode (`selectionMode="explicit"`, `multi="false"`), supporting toggleable click-to-select / click-to-deselect behavior and dynamic screen-reader count announcements.
+_Avoid_: Tag list, button pills, chip array
+
+**Lazy-Rendered Accordion**:
+A multi-expandable collapsible container (`ngAccordionGroup`, `[multiExpandable]="true"`) utilizing `<ng-template ngAccordionContent>` to defer DOM rendering of panel contents until expanded by the user.
+_Avoid_: Collapsible panel, accordion widget, expandable card
 
 ### Core Architecture & Configuration
 
