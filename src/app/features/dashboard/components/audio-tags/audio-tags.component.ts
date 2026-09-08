@@ -1,7 +1,7 @@
 import { VoiceSelectorComponent } from '@/features/dashboard/components/voice-selector/voice-selector.component';
 import { DEFAULT_VOICE } from '@/features/dashboard/constants/voice-name.const';
 import { AudioPromptData } from '@/features/dashboard/interfaces/audio-prompt-data.interface';
-import { Component, signal } from '@angular/core';
+import { Component, computed, signal } from '@angular/core';
 import { form, FormField } from '@angular/forms/signals';
 
 @Component({
@@ -17,14 +17,18 @@ export class AudioTagsComponent {
     pace: 'moderate, clear enunciation',
     voiceOption: DEFAULT_VOICE,
   });
-  audioPromptForm = form(this.#audioPromptModel);
 
   audioPromptModel = this.#audioPromptModel.asReadonly();
 
-  onValueChange(newValue: string) {
+  audioPromptForm = form(this.#audioPromptModel);
+
+  selectedValue = computed(() => this.#audioPromptModel().voiceOption);
+
+  onValueChange(newValues: string) {
+    const voiceOption = newValues ?? DEFAULT_VOICE;
     this.#audioPromptModel.update((model) => ({
       ...model,
-      voiceOption: newValue,
+      voiceOption,
     }));
   }
 }

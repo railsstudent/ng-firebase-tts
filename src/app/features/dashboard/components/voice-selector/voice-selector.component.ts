@@ -1,16 +1,15 @@
-import { DEFAULT_VOICE } from '@/features/dashboard/constants/voice-name.const';
-import { Combobox, ComboboxPopup, ComboboxWidget } from '@angular/aria/combobox';
-import { Listbox, Option } from '@angular/aria/listbox';
-import { OverlayModule } from '@angular/cdk/overlay';
-import { afterRenderEffect, Component, computed, output, signal, viewChild } from '@angular/core';
 import {
   SORTED_VOICE_MAP,
   SORTED_VOICE_OPTIONS,
 } from '@/features/dashboard/components/voice-selector/constants/voice-options.const';
+import { DEFAULT_VOICE } from '@/features/dashboard/constants/voice-name.const';
+import { Combobox, ComboboxPopup, ComboboxWidget } from '@angular/aria/combobox';
+import { Listbox, Option } from '@angular/aria/listbox';
+import { OverlayModule } from '@angular/cdk/overlay';
+import { afterRenderEffect, Component, computed, model, signal, viewChild } from '@angular/core';
 
-function getVoiceValue(newValues: string[]) {
-  const candidate = newValues?.[0];
-  return candidate && SORTED_VOICE_MAP.has(candidate) ? candidate : DEFAULT_VOICE;
+function getVoiceValue(newValue: string) {
+  return newValue && SORTED_VOICE_MAP.has(newValue) ? newValue : DEFAULT_VOICE;
 }
 
 @Component({
@@ -22,16 +21,14 @@ function getVoiceValue(newValues: string[]) {
 export class VoiceSelectorComponent {
   listbox = viewChild(Listbox);
 
-  valueChange = output<string>();
-
   sortedVoiceOptions = SORTED_VOICE_OPTIONS;
 
-  selectedValues = signal([DEFAULT_VOICE]);
+  selectedValue = model.required<string>();
 
   popupExpanded = signal(false);
 
   displayLabel = computed(() => {
-    const value = getVoiceValue(this.selectedValues());
+    const value = getVoiceValue(this.selectedValue());
     return SORTED_VOICE_MAP.get(value);
   });
 
@@ -41,10 +38,5 @@ export class VoiceSelectorComponent {
 
   onCommit() {
     this.popupExpanded.set(false);
-  }
-
-  onValueChange(newValues: string[]) {
-    this.selectedValues.set(newValues);
-    this.valueChange.emit(getVoiceValue(newValues));
   }
 }

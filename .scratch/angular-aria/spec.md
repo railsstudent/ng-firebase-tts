@@ -21,7 +21,7 @@ Integrate `@angular/aria` to scaffold headless, accessible components for the AI
 7. As a mobile developer, I want the custom tags to have toggleable single-selection (with no selection initially, and the ability to click again to deselect), so that users can have full control to clear their selections.
 8. As a screen reader user, when I focus the AI Voice Model Selector, I want it to be announced as an interactive dropdown, so that I know I can open it to reveal option lists.
 9. As a keyboard-only user, I want to open the voice selector dropdown, use Arrow keys to highlight voices, and press Enter to select a voice, so that I can customize audio parameters without using a mouse.
-10. As a developer, I want custom accessible components (such as Voice Selector) to communicate via outputs (such as `(valueChange)`), allowing parent components to seamlessly bind them to forms or local signals as needed.
+10. As a developer, I want the custom voice selector to synchronize its selection with the parent view so that user choices update the audio prompt parameters.
 11. As a designer, I want all ARIA state-based visual indicators (such as rotated chevron icons on expanded panels, active highlight backgrounds on options) to be styled dynamically matching Angular Aria patterns, avoiding unnecessary custom state management.
 
 ## Implementation Decisions
@@ -36,7 +36,7 @@ Integrate `@angular/aria` to scaffold headless, accessible components for the AI
 - Bind the trigger utilizing `ngCombobox` and the popup dropdown utilizing `ngComboboxPopup` paired with `ngComboboxWidget`, `ngListbox`, and `ngOption`.
 - Dismiss the overlay on user commitment via `(click)="onCommit()"`, `(keydown.enter)="onCommit()"`, and `(keydown.space)="onCommit()"` on `ngListbox`.
 - Maintain active element visibility using `afterRenderEffect(() => this.listBox()?.scrollActiveItemIntoView())`.
-- Communicate voice changes upwards via `@Output() valueChange` to update parent Signal Forms models.
+- Maintain seamless value synchronization between the selector and the parent container.
 
 ### 3. Accessible Suggested Tags List (Single-Select Listbox)
 
@@ -53,7 +53,7 @@ Integrate `@angular/aria` to scaffold headless, accessible components for the AI
 ### 5. Seams and Core Architecture
 
 - Style integration is achieved directly within components' CSS stylesheets and templates by referencing Tailwind CSS v4 utilities, component-scoped classes, and ARIA state bindings (`[aria-selected='true']`, `optionRef.selected()`, `triggerRef.expanded()`, `focus-visible:`).
-- Form bindings update Angular modern Signal Forms, ensuring zero impact on downstream speech-generation models and services.
+- Parent component encapsulates form state updates seamlessly, ensuring zero impact on downstream speech-generation models and services.
 
 ---
 

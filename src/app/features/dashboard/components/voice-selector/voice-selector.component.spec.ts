@@ -37,12 +37,14 @@ describe('VoiceSelectorComponent', () => {
 
     fixture = TestBed.createComponent(VoiceSelectorComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('selectedValue', DEFAULT_VOICE);
     fixture.detectChanges();
   });
 
   describe('Seam 1: Data Model & Lookup Consistency', () => {
-    it('should create the component', () => {
+    it('should create the component with required model input', () => {
       expect(component).toBeTruthy();
+      expect(component.selectedValue()).toEqual(DEFAULT_VOICE);
     });
 
     it('should sort prebuilt voice options alphabetically by name', () => {
@@ -63,16 +65,19 @@ describe('VoiceSelectorComponent', () => {
       });
     });
 
-    it('should compute displayLabel from selectedValues with default fallback', () => {
+    it('should compute displayLabel from selectedValue with default fallback', () => {
       expect(component.displayLabel()).toContain(DEFAULT_VOICE);
 
-      component.selectedValues.set(['Zephyr']);
+      fixture.componentRef.setInput('selectedValue', 'Zephyr');
+      fixture.detectChanges();
       expect(component.displayLabel()).toContain('Zephyr');
 
-      component.selectedValues.set(['NonExistentVoice']);
+      fixture.componentRef.setInput('selectedValue', 'NonExistentVoice');
+      fixture.detectChanges();
       expect(component.displayLabel()).toContain(DEFAULT_VOICE);
 
-      component.selectedValues.set([]);
+      fixture.componentRef.setInput('selectedValue', '');
+      fixture.detectChanges();
       expect(component.displayLabel()).toContain(DEFAULT_VOICE);
     });
   });
@@ -129,32 +134,7 @@ describe('VoiceSelectorComponent', () => {
   });
 
   describe('Seam 3: User Interaction & Output Emission', () => {
-    it('should emit valueChange output and update selectedValues on onValueChange', () => {
-      let emittedValue = '';
-      component.valueChange.subscribe((val) => (emittedValue = val));
-
-      component.onValueChange(['Puck']);
-      fixture.detectChanges();
-
-      expect(component.selectedValues()).toEqual(['Puck']);
-      expect(emittedValue).toBe('Puck');
-      expect(component.displayLabel()).toContain('Puck');
-    });
-
-    it('should fall back to DEFAULT_VOICE when onValueChange receives empty array', () => {
-      let emittedValue = '';
-      component.valueChange.subscribe((val) => (emittedValue = val));
-
-      component.onValueChange([]);
-      fixture.detectChanges();
-
-      expect(emittedValue).toBe(DEFAULT_VOICE);
-    });
-
-    it('should emit valueChange when template listbox emits valueChange', () => {
-      let emittedValue = '';
-      component.valueChange.subscribe((val) => (emittedValue = val));
-
+    it('should update selectedValue model when template listbox emits valueChange', () => {
       component.popupExpanded.set(true);
       fixture.detectChanges();
 
@@ -162,8 +142,16 @@ describe('VoiceSelectorComponent', () => {
       listboxEl.triggerEventHandler('valueChange', ['Fenrir']);
       fixture.detectChanges();
 
-      expect(emittedValue).toBe('Fenrir');
-      expect(component.selectedValues()).toEqual(['Fenrir']);
+      expect(component.selectedValue()).toEqual('Fenrir');
+      expect(component.displayLabel()).toContain('Fenrir');
+    });
+
+    it('should update displayLabel when selectedValue is set to an empty string', () => {
+      component.selectedValue.set('');
+      fixture.detectChanges();
+
+      expect(component.selectedValue()).toEqual('');
+      expect(component.displayLabel()).toContain(DEFAULT_VOICE);
     });
 
     it('should close the popup when onCommit is called or listbox is committed via click/Enter/Space', () => {

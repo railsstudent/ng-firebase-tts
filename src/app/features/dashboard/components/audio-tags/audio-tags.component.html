@@ -38,6 +38,6 @@
     </div>
 
     <!-- Voice Option -->
-    <app-voice-selector (valueChange)="onValueChange($event)" />
+    <app-voice-selector [selectedValue]="selectedValue()" (selectedValueChange)="onValueChange($event)" />
   </div>
 </div>

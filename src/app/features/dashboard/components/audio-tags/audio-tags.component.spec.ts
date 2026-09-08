@@ -61,16 +61,16 @@ describe('AudioTagsComponent', () => {
       expect(voiceSelectorEl).toBeTruthy();
     });
 
-    it('should update voiceOption in audioPromptModel on onValueChange', () => {
+    it('should update voiceOption in audioPromptModel on onValueChange with string array', () => {
       component.onValueChange('Zephyr');
       fixture.detectChanges();
 
       expect(component.audioPromptModel().voiceOption).toBe('Zephyr');
     });
 
-    it('should update voiceOption when app-voice-selector emits valueChange in template', () => {
+    it('should update voiceOption when app-voice-selector emits selectedValueChange in template', () => {
       const voiceSelectorEl = fixture.debugElement.query(By.css('app-voice-selector'));
-      voiceSelectorEl.triggerEventHandler('valueChange', 'Puck');
+      voiceSelectorEl.triggerEventHandler('selectedValueChange', 'Puck');
       fixture.detectChanges();
 
       expect(component.audioPromptModel().voiceOption).toBe('Puck');

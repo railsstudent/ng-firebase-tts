@@ -1,7 +1,7 @@
 # 0006: Accessible Custom Components using Angular Aria, CDK Overlay, and Tailwind CSS v4
 
 - **Status**: Accepted
-- **Date**: 2026-09-02 (Updated 2026-09-05)
+- **Date**: 2026-09-02 (Updated 2026-09-09)
 
 ## Context
 
@@ -14,7 +14,7 @@ Traditionally, implementing these custom accessible widgets requires writing com
 We will adopt `@angular/aria` for headless accessibility primitives and `@angular/cdk/overlay` for floating panel placement, styled natively using Tailwind CSS v4's state modifiers:
 
 1. **AI Voice Model Selector (Hybrid WAI-ARIA Combobox + CDK Floating Overlay Pattern)**:
-   - Extract into a focused, reusable feature component (`VoiceSelectorComponent`) with an `@Output() valueChange` contract.
+   - Extract into a focused, reusable feature component (`VoiceSelectorComponent`) responsible for voice selection, keeping the chosen voice synchronized with the parent container and audio prompt generation.
    - Use `@angular/aria` primitives (`ngCombobox`, `ngComboboxPopup`, `ngListbox`, `ngOption`) following official Angular patterns:
      - Overlay popup dismissal via `(click)="onCommit()"`, `(keydown.enter)="onCommit()"`, and `(keydown.space)="onCommit()"` on `ngListbox`.
      - Automatic scroll synchronization via `afterRenderEffect(() => this.listBox()?.scrollActiveItemIntoView())` to ensure the active option is brought into view when the overlay opens.
