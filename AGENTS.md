@@ -63,10 +63,16 @@ When researching framework/platform APIs, architecture, or resolving errors:
 
 When editing, creating, or testing files in this repository, you MUST follow these constraints:
 
-1. **Targeted Testing via Vitest MCP Server**:
-   - During feature development and refactoring, use the `vitest` MCP server (`run_tests`) to run tests against specifically modified files or component directories (e.g. `target: "./src/app/core/services/audio-player.service.spec.ts"`).
-   - Use `analyze_coverage` with `target: "<source-file-or-dir>"` to identify exact uncovered lines, functions, and branches when writing or updating tests.
-   - Ensure `set_project_root` is initialized prior to running Vitest MCP operations.
+1. **Targeted Testing via Angular CLI MCP Server**:
+   - During feature development and refactoring, use the `angular-cli` MCP server (`run_target`) with `target: "test"` to run tests against specifically modified files or component directories.
+   - To run targeted tests with coverage, pass key-value options such as:
+
+     ```json
+     {
+       "coverage": true,
+       "include": ["src/app/features/dashboard/components/tags-display/tags-display.component.spec.ts"]
+     }
+     ```
 
 2. **Defer Full-Suite Verification to End-of-Task**:
    - Do NOT run full repo-wide commands (`npm run lint`, `npm run format`, `npm test`, full `npm run test:once`, `npm run build`) recursively after every individual contiguous block edit. Gather all contiguous and related edits, apply them first, and run full validation commands EXACTLY ONCE at the end of the complete task milestone.

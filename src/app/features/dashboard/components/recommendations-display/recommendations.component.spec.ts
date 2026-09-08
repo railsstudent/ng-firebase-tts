@@ -34,16 +34,14 @@ describe('RecommendationsDisplay', () => {
     });
 
     it('should reactively update the DOM when recommendations input signal changes', () => {
-      fixture.componentRef.setInput('recommendations', [
-        { id: 'REC-01', text: 'First Recommendation', reason: 'Reason 1' },
-      ]);
+      fixture.componentRef.setInput('recommendations', [{ id: 1, text: 'First Recommendation', reason: 'Reason 1' }]);
       fixture.detectChanges();
 
       expect(fixture.debugElement.queryAll(By.css('.recommendation-card')).length).toBe(1);
 
       fixture.componentRef.setInput('recommendations', [
-        { id: 'REC-01', text: 'First Recommendation', reason: 'Reason 1' },
-        { id: 'REC-02', text: 'Second Recommendation', reason: 'Reason 2' },
+        { id: 1, text: 'First Recommendation', reason: 'Reason 1' },
+        { id: 2, text: 'Second Recommendation', reason: 'Reason 2' },
       ]);
       fixture.detectChanges();
 
@@ -54,7 +52,7 @@ describe('RecommendationsDisplay', () => {
   describe('Dimension 2 & 4: Expansion, Lazy Rendering & Teardown Lifecycle', () => {
     const mockRecommendations = [
       {
-        id: 'REC-01',
+        id: 1,
         text: 'Increase text contrast',
         reason: 'High opacity background makes it difficult to read',
       },

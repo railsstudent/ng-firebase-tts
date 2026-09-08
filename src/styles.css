@@ -3,6 +3,24 @@
 @import '@fontsource/material-symbols-outlined/400.css';
 @import 'tailwindcss';
 
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined', sans-serif;
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: 'liga';
+}
+
 .error-block {
   @apply mt-6 bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded-lg relative;
 }
