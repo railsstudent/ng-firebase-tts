@@ -1,6 +1,6 @@
-import { Metadata } from './grounding.type';
-import { Recommendation } from './recommendation.type';
-import { TokenUsage } from './token-usage.type';
+import { Metadata } from './grounding.interface';
+import { Recommendation } from './recommendation.interface';
+import { TokenUsage } from './token-usage.interface';
 
 export interface ImageAnalysis {
   alternativeText: string;

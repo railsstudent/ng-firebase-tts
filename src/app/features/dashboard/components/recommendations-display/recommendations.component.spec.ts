@@ -105,9 +105,7 @@ describe('RecommendationsDisplay', () => {
 
   describe('Dimension 3: Keyboard & WAI-ARIA Semantics', () => {
     beforeEach(() => {
-      fixture.componentRef.setInput('recommendations', [
-        { id: 'REC-01', text: 'Increase text contrast', reason: 'Reason 1' },
-      ]);
+      fixture.componentRef.setInput('recommendations', [{ id: 1, text: 'Increase text contrast', reason: 'Reason 1' }]);
       fixture.detectChanges();
     });
 

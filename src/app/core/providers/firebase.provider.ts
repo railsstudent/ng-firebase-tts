@@ -1,5 +1,5 @@
 import { AI_BACKEND, SAFETY_SETTINGS, VISION_AI_MODEL } from '@/core/constants/firebase.constant';
-import { AppRemoteConfig } from '@/core/interfaces/app-remote-config.type';
+import { AppRemoteConfig } from '@/core/interfaces/app-remote-config.interface';
 import { ImageAnalysisSchema } from '@/core/schemas/image-analysis.schema';
 import { ConfigService } from '@/core/services/config.service';
 import { inject, makeEnvironmentProviders } from '@angular/core';

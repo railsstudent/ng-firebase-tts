@@ -1,4 +1,4 @@
-import { ImageAnalysisResponse } from '@/core/interfaces/image-analysis.type';
+import { ImageAnalysisResponse } from '@/core/interfaces/image-analysis.interface';
 import { VisionService } from '@/core/services/vision.service';
 import { AltTextPanel } from '@/features/dashboard/components/alt-text-panel/alt-text-panel';
 import { PhotoPanel } from '@/features/dashboard/components/photo-panel/photo-panel';

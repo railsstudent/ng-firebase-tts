@@ -1,4 +1,4 @@
-import { Metadata } from '@/core/interfaces/grounding.type';
+import { Metadata } from '@/core/interfaces/grounding.interface';
 import { afterRenderEffect, Component, computed, ElementRef, inject, input, Renderer2, signal } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 

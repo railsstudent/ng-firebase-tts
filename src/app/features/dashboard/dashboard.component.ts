@@ -1,4 +1,4 @@
-import { ImageAnalysisResponse } from '@/core/interfaces/image-analysis.type';
+import { ImageAnalysisResponse } from '@/core/interfaces/image-analysis.interface';
 import { Component, signal } from '@angular/core';
 import { AnalyzerPanelComponent } from './components/analyzer-panel/analyzer-panel.component';
 import { ThoughtSummaryComponent } from './components/thought-summary/thought-summary.component';

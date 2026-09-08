@@ -1,5 +1,5 @@
 import { MAX_PLAYBACK_RATE, MIN_PLAYBACK_RATE } from '@/core/constants/text-to-speech.constant';
-import { RawAudioBinary } from '@/core/interfaces/text-to-speech.type';
+import { RawAudioBinary } from '@/core/interfaces/text-to-speech.interface';
 import { AudioPlayerService } from '@/core/services/audio-player.service';
 import { TextToSpeechService } from '@/core/services/text-to-speech.service';
 import { revokeBlobURL } from '@/core/utils/blob.util';

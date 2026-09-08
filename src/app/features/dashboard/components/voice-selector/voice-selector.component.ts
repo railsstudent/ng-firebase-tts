@@ -32,17 +32,11 @@ export class VoiceSelectorComponent {
 
   displayLabel = computed(() => {
     const value = getVoiceValue(this.selectedValues());
-    return SORTED_VOICE_MAP.get(value) || SORTED_VOICE_MAP.get(DEFAULT_VOICE);
+    return SORTED_VOICE_MAP.get(value);
   });
 
   constructor() {
-    afterRenderEffect(() => {
-      try {
-        this.listbox()?.scrollActiveItemIntoView();
-      } catch {
-        // Safely ignored in headless / jsdom test environments
-      }
-    });
+    afterRenderEffect(() => this.listbox()?.scrollActiveItemIntoView());
   }
 
   onCommit() {

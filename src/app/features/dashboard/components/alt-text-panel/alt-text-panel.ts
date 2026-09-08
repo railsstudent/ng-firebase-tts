@@ -1,4 +1,4 @@
-import { ImageAnalysisResponse } from '@/core/interfaces/image-analysis.type';
+import { ImageAnalysisResponse } from '@/core/interfaces/image-analysis.interface';
 import { AltTextDisplayComponent } from '@/features/dashboard/components/alt-text-display/alt-text-display.component';
 import { GroundingComponent } from '@/features/dashboard/components/grounding/grounding.component';
 import { RecommendationsDisplayComponent } from '@/features/dashboard/components/recommendations-display/recommendations.component';

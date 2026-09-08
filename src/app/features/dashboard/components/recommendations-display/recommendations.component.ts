@@ -1,4 +1,4 @@
-import { Recommendation } from '@/core/interfaces/recommendation.type';
+import { Recommendation } from '@/core/interfaces/recommendation.interface';
 import { AccordionContent, AccordionGroup, AccordionPanel, AccordionTrigger } from '@angular/aria/accordion';
 import { Component, input } from '@angular/core';
 

@@ -24,6 +24,12 @@ describe('VoiceSelectorComponent', () => {
   let component: VoiceSelectorComponent;
   let fixture: ComponentFixture<VoiceSelectorComponent>;
 
+  beforeAll(() => {
+    if (!window.HTMLElement.prototype.scrollIntoView) {
+      window.HTMLElement.prototype.scrollIntoView = () => undefined;
+    }
+  });
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [VoiceSelectorComponent],

@@ -1,4 +1,4 @@
-import { ImageAnalysisResponse } from '@/core/interfaces/image-analysis.type';
+import { ImageAnalysisResponse } from '@/core/interfaces/image-analysis.interface';
 import { ObscureFactComponent } from '@/features/dashboard/components/obscure-fact/obscure-fact.component';
 import { PhotoUploadComponent } from '@/features/dashboard/components/photo-upload/photo-upload.component';
 import { TagsDisplayComponent } from '@/features/dashboard/components/tags-display/tags-display.component';

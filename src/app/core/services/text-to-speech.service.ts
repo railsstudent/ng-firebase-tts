@@ -1,6 +1,6 @@
 import { AI_BACKEND } from '@/core/constants/firebase.constant';
 import { DEFAULT_SAMPLE_RATE } from '@/core/constants/text-to-speech.constant';
-import { RawAudioBinary, SpeechChunkData } from '@/core/interfaces/text-to-speech.type';
+import { RawAudioBinary, SpeechChunkData } from '@/core/interfaces/text-to-speech.interface';
 import { decodeBase64 } from '@/core/utils/base64.util';
 import { convertToWav, extractInlineData, parseMimeType } from '@/core/utils/mime-type.util';
 import { inject, Service } from '@angular/core';

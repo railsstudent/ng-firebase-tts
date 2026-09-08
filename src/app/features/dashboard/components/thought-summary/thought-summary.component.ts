@@ -1,4 +1,4 @@
-import { TokenUsage } from '@/core/interfaces/token-usage.type';
+import { TokenUsage } from '@/core/interfaces/token-usage.interface';
 import { Component, computed, input } from '@angular/core';
 import { marked } from 'marked';
 

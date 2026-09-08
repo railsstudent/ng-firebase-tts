@@ -1,4 +1,4 @@
-import { AppRemoteConfig } from '@/core/interfaces/app-remote-config.type';
+import { AppRemoteConfig } from '@/core/interfaces/app-remote-config.interface';
 import { injectOnlineStatus } from '@/core/utils/connection.util';
 import { configureAppCheckDebugToken, injectIsLocalhost } from '@/core/utils/platform.util';
 import firebaseConfig from '@/public/firebase.config.json';
