@@ -11,19 +11,19 @@ describe('TextToSpeechComponent', () => {
     generateSpeech: ReturnType<typeof vi.fn>;
     audioUrl: Signal<string | undefined>;
     playbackRate: Signal<number>;
-    loadingRate: Signal<GenerateSpeechMode | 'idle'>;
+    loadingMode: Signal<GenerateSpeechMode | 'idle'>;
   };
 
   beforeEach(async () => {
     const audioUrlSignal = signal<string | undefined>(undefined);
     const playbackRateSignal = signal(1.25);
-    const loadingRateSignal = signal<GenerateSpeechMode | 'idle'>('idle');
+    const loadingModeSignal = signal<GenerateSpeechMode | 'idle'>('idle');
 
     mockViewService = {
       generateSpeech: vi.fn(),
       audioUrl: audioUrlSignal,
       playbackRate: playbackRateSignal,
-      loadingRate: loadingRateSignal,
+      loadingMode: loadingModeSignal,
     };
 
     await TestBed.configureTestingModule({
@@ -52,11 +52,11 @@ describe('TextToSpeechComponent', () => {
   it('should compute isLoading correctly based on loadingRate signal', () => {
     expect(component.isLoading()).toBe(false);
 
-    (mockViewService.loadingRate as unknown as WritableSignal<GenerateSpeechMode | 'idle'>).set('sync');
+    (mockViewService.loadingMode as unknown as WritableSignal<GenerateSpeechMode | 'idle'>).set('sync');
     fixture.detectChanges();
     expect(component.isLoading()).toBe(true);
 
-    (mockViewService.loadingRate as unknown as WritableSignal<GenerateSpeechMode | 'idle'>).set('idle');
+    (mockViewService.loadingMode as unknown as WritableSignal<GenerateSpeechMode | 'idle'>).set('idle');
     fixture.detectChanges();
     expect(component.isLoading()).toBe(false);
   });
@@ -95,7 +95,7 @@ describe('TextToSpeechComponent', () => {
     expect(webAudioBtn.textContent).toContain('Web Audio API');
 
     (mockViewService.playbackRate as unknown as WritableSignal<number>).set(1.15);
-    (mockViewService.loadingRate as unknown as WritableSignal<GenerateSpeechMode | 'idle'>).set('web_audio_api');
+    (mockViewService.loadingMode as unknown as WritableSignal<GenerateSpeechMode | 'idle'>).set('web_audio_api');
     fixture.detectChanges();
 
     expect(webAudioBtn.textContent).toContain('Speak (Playback rate: 1.15)');

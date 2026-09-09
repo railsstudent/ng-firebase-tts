@@ -4,9 +4,9 @@ import { RawAudioBinary } from '@/core/interfaces/text-to-speech.interface';
 import { AudioPlayerService } from '@/core/services/audio-player.service';
 import { ConfigService } from '@/core/services/config.service';
 import { TextToSpeechService } from '@/core/services/text-to-speech.service';
+import { TextToSpeechViewService } from '@/features/dashboard/components/text-to-speech/services/text-to-speech-view';
 import { Injector } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { TextToSpeechViewService } from './text-to-speech-view';
 
 async function* createStreamGenerator(
   items: (Blob | RawAudioBinary | undefined)[],
@@ -63,7 +63,7 @@ describe('TextToSpeechViewService', () => {
     expect(service).toBeTruthy();
     expect(service.playbackRate()).toBe(DEFAULT_PLAYBACK_RATE);
     expect(service.audioUrl()).toBeUndefined();
-    expect(service.loadingRate()).toBe('idle');
+    expect(service.loadingMode()).toBe('idle');
   });
 
   describe('generateSpeech - Sync Mode', () => {
@@ -77,7 +77,7 @@ describe('TextToSpeechViewService', () => {
 
       expect(mockSpeechService.synthesize).toHaveBeenCalledWith('Sync prompt', 'Kore');
       expect(service.audioUrl()).toBe('blob:sync-url');
-      expect(service.loadingRate()).toBe('idle');
+      expect(service.loadingMode()).toBe('idle');
     });
 
     it('should catch exceptions, clean up, and throw error', async () => {
@@ -110,10 +110,22 @@ describe('TextToSpeechViewService', () => {
       expect(service.audioUrl()).toBe('blob:stream-url');
     });
 
+    it('should handle stream ending without a Blob payload gracefully without setting audioUrl', async () => {
+      mockSpeechService.synthesizeStream.mockReturnValue(
+        createStreamGenerator([{ decodedData: new Uint8Array([1, 2]), sampleRate: 24000 }]),
+      );
+
+      const config = { prompt: 'Stream prompt', voice: 'Aoede', fact: 'Interesting fact' };
+      await service.generateSpeech('stream', config);
+
+      expect(mockAudioPlayerService.awaitPlaybackComplete).toHaveBeenCalled();
+      expect(service.audioUrl()).toBeUndefined();
+    });
+
     it('should handle streaming exceptions, clean up, and throw error', async () => {
       mockSpeechService.synthesizeStream.mockReturnValue(
         createErrorStreamGenerator(
-          { decodedData: new Uint8Array([1]), sampleRate: 24000 },
+          { decodedData: new Uint8Array([1, 2]), sampleRate: 24000 },
           new Error('Stream interrupted'),
         ),
       );
@@ -153,6 +165,23 @@ describe('TextToSpeechViewService', () => {
       );
 
       expect(mockAudioPlayerService.stopAll).toHaveBeenCalled();
+    });
+  });
+
+  describe('Validation and Edge Cases', () => {
+    it('should return early and not trigger generation if promptArgs.fact is empty', async () => {
+      const config = { prompt: 'Prompt', voice: 'Aoede', fact: '' };
+      await service.generateSpeech('sync', config);
+
+      expect(mockSpeechService.synthesize).not.toHaveBeenCalled();
+      expect(service.loadingMode()).toBe('idle');
+    });
+
+    it('should throw error if an unsupported generation mode is provided', async () => {
+      const config = { prompt: 'Prompt', voice: 'Aoede', fact: 'Fact' };
+      const invalidMode = 'invalid_mode' as unknown as Parameters<typeof service.generateSpeech>[0];
+
+      await expect(service.generateSpeech(invalidMode, config)).rejects.toThrow('Error generating speech (Sync).');
     });
   });
 

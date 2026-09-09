@@ -22,7 +22,7 @@ export class TextToSpeechComponent {
 
   audioUrl = this.speechService.audioUrl;
   playbackRate = this.speechService.playbackRate;
-  loadingMode = this.speechService.loadingRate;
+  loadingMode = this.speechService.loadingMode;
 
   isLoading = computed(() => this.loadingMode() !== 'idle');
 

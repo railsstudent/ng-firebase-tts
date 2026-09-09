@@ -1,10 +1,10 @@
 import { VISION_AI_MODEL } from '@/core/constants/firebase.constant';
 import { ImageAnalysisResponse } from '@/core/interfaces/image-analysis.interface';
 import { VisionService } from '@/core/services/vision.service';
+import { AnalyzerPanelComponent } from '@/features/dashboard/components/analyzer-panel/analyzer-panel.component';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { GenerativeModel } from 'firebase/ai';
-import { AnalyzerPanelComponent } from './analyzer-panel.component';
 
 const mockGenerativeModel: Partial<GenerativeModel> = {
   model: 'gemini-2.5-flash',
@@ -137,5 +137,35 @@ describe('AnalyzerPanelComponent', () => {
   // TEST CASE 6: Dynamic Service Resolution on Demand (must fail with synchronous inject)
   it('should not construct VisionService or request VISION_AI_MODEL during component creation', () => {
     expect(aiModelFactory).not.toHaveBeenCalled();
+  });
+
+  // TEST CASE 7: Undefined File Guard (Line 23)
+  it('should return early without initiating generation if file is undefined', async () => {
+    expect(aiModelFactory).not.toHaveBeenCalled();
+
+    await component.handleGenerateClick(undefined);
+    fixture.detectChanges();
+
+    expect(aiModelFactory).not.toHaveBeenCalled();
+    expect(mockVisionService.generateAltText).not.toHaveBeenCalled();
+    expect(component.isLoading()).toBe(false);
+    expect(component.analysis()).toBeUndefined();
+    expect(component.error()).toBeUndefined();
+  });
+
+  // TEST CASE 8: Non-Error Catch Fallback (Line 38)
+  it('should fallback to generic error message if thrown value is not an instance of Error', async () => {
+    expect(aiModelFactory).not.toHaveBeenCalled();
+
+    const mockFile = new File(['image'], 'mars.png', { type: 'image/png' });
+    mockVisionService.generateAltText.mockRejectedValue('String rejection error');
+
+    await component.handleGenerateClick(mockFile);
+    fixture.detectChanges();
+
+    expect(aiModelFactory).toHaveBeenCalledOnce();
+    expect(component.isLoading()).toBe(false);
+    expect(component.analysis()).toBeUndefined();
+    expect(component.error()).toBe('An unknown error occurred.');
   });
 });
