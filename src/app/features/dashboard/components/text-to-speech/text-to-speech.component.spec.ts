@@ -87,4 +87,17 @@ describe('TextToSpeechComponent', () => {
 
     expect(component.ttsError()).toBe('Mock synthesis error');
   });
+
+  it('should render playback rate in the Web Audio API button during active streaming', () => {
+    const buttons = fixture.nativeElement.querySelectorAll('button.btn-audio');
+    const webAudioBtn = buttons[2];
+
+    expect(webAudioBtn.textContent).toContain('Web Audio API');
+
+    (mockViewService.playbackRate as unknown as WritableSignal<number>).set(1.15);
+    (mockViewService.loadingRate as unknown as WritableSignal<GenerateSpeechMode | 'idle'>).set('web_audio_api');
+    fixture.detectChanges();
+
+    expect(webAudioBtn.textContent).toContain('Speak (Playback rate: 1.15)');
+  });
 });

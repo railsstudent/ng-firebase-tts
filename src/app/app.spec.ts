@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing';
+import { DeferBlockState, TestBed } from '@angular/core/testing';
 import { App } from './app';
 
 import { SwUpdate } from '@angular/service-worker';
@@ -46,5 +46,19 @@ describe('App', () => {
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('h1')?.textContent).toContain('Firebase AI Logic Obscure Fact Speech Generator');
+  });
+
+  it('should defer pwa-update-banner and resolve upon idle defer block completion', async () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+
+    const deferBlocks = await fixture.getDeferBlocks();
+    expect(deferBlocks.length).toBe(1);
+
+    await deferBlocks[0].render(DeferBlockState.Complete);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('app-pwa-update-banner')).not.toBeNull();
   });
 });

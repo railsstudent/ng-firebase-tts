@@ -1,59 +1,67 @@
+import { AI_BACKEND } from '@/core/constants/firebase.constant';
+import { DEFAULT_PLAYBACK_RATE } from '@/core/constants/text-to-speech.constant';
+import { RawAudioBinary } from '@/core/interfaces/text-to-speech.interface';
 import { AudioPlayerService } from '@/core/services/audio-player.service';
+import { ConfigService } from '@/core/services/config.service';
 import { TextToSpeechService } from '@/core/services/text-to-speech.service';
-import { signal } from '@angular/core';
+import { Injector } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { TextToSpeechViewService } from './text-to-speech-view';
 
+async function* createStreamGenerator(
+  items: (Blob | RawAudioBinary | undefined)[],
+): AsyncGenerator<Blob | RawAudioBinary | undefined, void, unknown> {
+  for (const item of items) {
+    yield item;
+  }
+}
+
+async function* createErrorStreamGenerator(
+  chunk: RawAudioBinary,
+  error: Error,
+): AsyncGenerator<Blob | RawAudioBinary | undefined, void, unknown> {
+  yield chunk;
+  throw error;
+}
+
+const mockSpeechService = {
+  synthesize: vi.spyOn(TextToSpeechService.prototype, 'synthesize'),
+  synthesizeStream: vi.spyOn(TextToSpeechService.prototype, 'synthesizeStream'),
+};
+
+const mockAudioPlayerService = {
+  initialize: vi.spyOn(AudioPlayerService.prototype, 'initialize').mockImplementation(() => undefined),
+  processChunk: vi.spyOn(AudioPlayerService.prototype, 'processChunk').mockImplementation(() => undefined),
+  stopAll: vi.spyOn(AudioPlayerService.prototype, 'stopAll').mockImplementation(() => undefined),
+  awaitPlaybackComplete: vi.spyOn(AudioPlayerService.prototype, 'awaitPlaybackComplete').mockResolvedValue(undefined),
+};
+
 describe('TextToSpeechViewService', () => {
   let service: TextToSpeechViewService;
-  let mockSpeechService: {
-    synthesize: ReturnType<typeof vi.fn>;
-    synthesizeStream: ReturnType<typeof vi.fn>;
-    speak: ReturnType<typeof vi.fn>;
-  };
-  let mockAudioPlayerService: {
-    playbackRate: ReturnType<typeof vi.fn>;
-    initialize: ReturnType<typeof vi.fn>;
-    processChunk: ReturnType<typeof vi.fn>;
-    stopAll: ReturnType<typeof vi.fn>;
-    awaitPlaybackComplete: ReturnType<typeof vi.fn>;
-  };
 
   beforeEach(() => {
-    mockSpeechService = {
-      synthesize: vi.fn(),
-      synthesizeStream: vi.fn(),
-      speak: vi.fn(),
-    };
-    mockAudioPlayerService = {
-      playbackRate: vi.fn(),
-      initialize: vi.fn(),
-      processChunk: vi.fn(),
-      stopAll: vi.fn(),
-      awaitPlaybackComplete: vi.fn().mockResolvedValue(undefined),
-    };
-
-    const pbRateSignal = signal(1.25);
-    Object.defineProperty(mockAudioPlayerService, 'playbackRate', {
-      value: pbRateSignal.asReadonly(),
-      writable: true,
-    });
+    vi.clearAllMocks();
+    mockAudioPlayerService.awaitPlaybackComplete.mockResolvedValue(undefined);
 
     TestBed.configureTestingModule({
       providers: [
         TextToSpeechViewService,
-        { provide: TextToSpeechService, useValue: mockSpeechService },
-        { provide: AudioPlayerService, useValue: mockAudioPlayerService },
+        { provide: AI_BACKEND, useValue: {} },
+        {
+          provide: ConfigService,
+          useValue: {
+            appConfig: { geminiTTSModelName: 'gemini-2.0-flash-exp' },
+          },
+        },
       ],
     });
 
     service = TestBed.inject(TextToSpeechViewService);
-    vi.clearAllMocks();
   });
 
-  it('should be created and expose playbackRate', () => {
+  it('should be created and expose initial state with default playbackRate independently of AudioPlayerService', () => {
     expect(service).toBeTruthy();
-    expect(service.playbackRate()).toBe(1.25);
+    expect(service.playbackRate()).toBe(DEFAULT_PLAYBACK_RATE);
     expect(service.audioUrl()).toBeUndefined();
     expect(service.loadingRate()).toBe('idle');
   });
@@ -87,13 +95,9 @@ describe('TextToSpeechViewService', () => {
   describe('generateSpeech - Stream Mode', () => {
     it('should generate speech in stream mode and set the audio URL from final Blob', async () => {
       const mockBlob = new Blob(['streamed pcm'], { type: 'audio/pcm' });
-      const mockGenerator = {
-        async *[Symbol.asyncIterator]() {
-          yield { decodedData: new Uint8Array([1, 2]), sampleRate: 24000 };
-          yield mockBlob;
-        },
-      };
-      mockSpeechService.synthesizeStream.mockReturnValue(mockGenerator);
+      mockSpeechService.synthesizeStream.mockReturnValue(
+        createStreamGenerator([{ decodedData: new Uint8Array([1, 2]), sampleRate: 24000 }, mockBlob]),
+      );
       vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:stream-url');
 
       const config = { prompt: 'Stream prompt', voice: 'Kore', fact: 'Interesting fact' };
@@ -107,13 +111,12 @@ describe('TextToSpeechViewService', () => {
     });
 
     it('should handle streaming exceptions, clean up, and throw error', async () => {
-      const mockGenerator = {
-        async *[Symbol.asyncIterator]() {
-          yield { decodedData: new Uint8Array([1]), sampleRate: 24000 };
-          throw new Error('Stream interrupted');
-        },
-      };
-      mockSpeechService.synthesizeStream.mockReturnValue(mockGenerator);
+      mockSpeechService.synthesizeStream.mockReturnValue(
+        createErrorStreamGenerator(
+          { decodedData: new Uint8Array([1]), sampleRate: 24000 },
+          new Error('Stream interrupted'),
+        ),
+      );
 
       const config = { prompt: 'Stream prompt', voice: 'Kore', fact: 'Interesting fact' };
       await expect(service.generateSpeech('stream', config)).rejects.toThrow('Error generating speech (Stream).');
@@ -125,13 +128,9 @@ describe('TextToSpeechViewService', () => {
 
   describe('generateSpeech - Web Audio API Mode', () => {
     it('should stream zero-latency speaker chunks with shouldWait: false', async () => {
-      const mockGenerator = {
-        async *[Symbol.asyncIterator]() {
-          yield { decodedData: new Uint8Array([3, 4]), sampleRate: 16000 };
-          yield undefined;
-        },
-      };
-      mockSpeechService.synthesizeStream.mockReturnValue(mockGenerator);
+      mockSpeechService.synthesizeStream.mockReturnValue(
+        createStreamGenerator([{ decodedData: new Uint8Array([3, 4]), sampleRate: 16000 }, undefined]),
+      );
 
       const config = { prompt: 'WebAudio prompt', voice: 'Puck', fact: 'Interesting fact' };
       await service.generateSpeech('web_audio_api', config);
@@ -154,6 +153,18 @@ describe('TextToSpeechViewService', () => {
       );
 
       expect(mockAudioPlayerService.stopAll).toHaveBeenCalled();
+    });
+  });
+
+  describe('Dynamic Service Resolution on Demand', () => {
+    it('should not synchronously resolve TextToSpeechService or AudioPlayerService from injector during construction', () => {
+      const injector = TestBed.inject(Injector);
+      const getSpy = vi.spyOn(injector, 'get');
+
+      TestBed.runInInjectionContext(() => new TextToSpeechViewService());
+
+      expect(getSpy).not.toHaveBeenCalledWith(TextToSpeechService);
+      expect(getSpy).not.toHaveBeenCalledWith(AudioPlayerService);
     });
   });
 

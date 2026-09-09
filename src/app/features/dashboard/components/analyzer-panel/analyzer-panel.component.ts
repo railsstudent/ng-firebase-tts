@@ -1,8 +1,7 @@
 import { ImageAnalysisResponse } from '@/core/interfaces/image-analysis.interface';
-import { VisionService } from '@/core/services/vision.service';
 import { AltTextPanel } from '@/features/dashboard/components/alt-text-panel/alt-text-panel';
 import { PhotoPanel } from '@/features/dashboard/components/photo-panel/photo-panel';
-import { Component, inject, model, signal } from '@angular/core';
+import { Component, injectAsync, model, signal } from '@angular/core';
 
 @Component({
   selector: 'app-analyzer-panel',
@@ -11,7 +10,9 @@ import { Component, inject, model, signal } from '@angular/core';
   styleUrl: './analyzer-panel.component.css',
 })
 export class AnalyzerPanelComponent {
-  private readonly visionService = inject(VisionService);
+  private readonly asyncVisionService = injectAsync(() =>
+    import('@/core/services/vision.service').then((m) => m.VisionService),
+  );
 
   analysis = model<ImageAnalysisResponse | undefined>(undefined);
   error = signal<string | undefined>(undefined);
@@ -27,7 +28,8 @@ export class AnalyzerPanelComponent {
     this.analysis.set(undefined);
 
     try {
-      const results = await this.visionService.generateAltText(file);
+      const service = await this.asyncVisionService();
+      const results = await service.generateAltText(file);
       this.analysis.set(results);
     } catch (e: unknown) {
       if (e instanceof Error) {

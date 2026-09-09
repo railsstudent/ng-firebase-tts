@@ -79,6 +79,16 @@ describe('AudioPlayerService', () => {
     expect(globalThis.AudioContext).toHaveBeenCalledWith({ sampleRate: 24000 });
   });
 
+  describe('SSR Safety', () => {
+    it('should instantiate safely and no-op without crashing when AudioContext is undefined in global scope', () => {
+      vi.stubGlobal('AudioContext', undefined);
+
+      const ssrService = new AudioPlayerService();
+      expect(ssrService).toBeDefined();
+      expect(() => ssrService.stopAll()).not.toThrow();
+    });
+  });
+
   it('should not process chunk if AudioContext is not initialized', () => {
     const rawBytes = new Uint8Array([0, 0, 100, 100]);
     service.processChunk(rawBytes);

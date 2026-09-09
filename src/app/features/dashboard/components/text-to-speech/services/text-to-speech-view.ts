@@ -1,23 +1,25 @@
-import { MAX_PLAYBACK_RATE, MIN_PLAYBACK_RATE } from '@/core/constants/text-to-speech.constant';
+import { DEFAULT_PLAYBACK_RATE, MAX_PLAYBACK_RATE, MIN_PLAYBACK_RATE } from '@/core/constants/text-to-speech.constant';
 import { RawAudioBinary } from '@/core/interfaces/text-to-speech.interface';
-import { AudioPlayerService } from '@/core/services/audio-player.service';
-import { TextToSpeechService } from '@/core/services/text-to-speech.service';
 import { revokeBlobURL } from '@/core/utils/blob.util';
 import { FactConfig } from '@/features/dashboard/interfaces/fact-config.interface';
 import { GenerateSpeechMode } from '@/features/dashboard/types/generate-speech-mode.type';
-import { DestroyRef, inject, Injectable, signal } from '@angular/core';
+import { DestroyRef, inject, Injectable, injectAsync, signal } from '@angular/core';
 
 @Injectable()
 export class TextToSpeechViewService {
-  private readonly speechService = inject(TextToSpeechService);
-  private readonly audioPlayerService = inject(AudioPlayerService);
+  private readonly asyncSpeechService = injectAsync(() =>
+    import('@/core/services/text-to-speech.service').then((m) => m.TextToSpeechService),
+  );
+  private readonly asyncAudioPlayerService = injectAsync(() =>
+    import('@/core/services/audio-player.service').then((m) => m.AudioPlayerService),
+  );
 
   destroyRef$ = inject(DestroyRef);
   #audioUrl = signal<string | undefined>(undefined);
   #loadingMode = signal<GenerateSpeechMode | 'idle'>('idle');
 
   audioUrl = this.#audioUrl.asReadonly();
-  playbackRate = this.audioPlayerService.playbackRate;
+  playbackRate = signal(DEFAULT_PLAYBACK_RATE);
   loadingRate = this.#loadingMode.asReadonly();
 
   constructor() {
@@ -27,25 +29,32 @@ export class TextToSpeechViewService {
     });
   }
 
-  private handlePlaybackError(e: unknown, createdUrl: string | undefined) {
+  private async handlePlaybackError(e: unknown, createdUrl: string | undefined) {
     console.error('Streaming playback failed:', e);
-    this.audioPlayerService.stopAll();
+    const audioPlayerService = await this.asyncAudioPlayerService();
+    audioPlayerService.stopAll();
     revokeBlobURL(createdUrl);
   }
 
-  private processStreamChunk(isInitialized: boolean, playbackRate: number, chunk: RawAudioBinary) {
+  private async processStreamChunk(
+    isInitialized: boolean,
+    playbackRate: number,
+    chunk: RawAudioBinary,
+  ): Promise<boolean> {
+    const audioPlayerService = await this.asyncAudioPlayerService();
     if (!isInitialized) {
-      this.audioPlayerService.initialize(chunk.sampleRate, playbackRate);
+      audioPlayerService.initialize(chunk.sampleRate, playbackRate);
       isInitialized = true;
     }
-    this.audioPlayerService.processChunk(chunk.decodedData);
+    audioPlayerService.processChunk(chunk.decodedData);
     return isInitialized;
   }
 
   private async handleSync(promptArgs: FactConfig) {
     let createdUrl: string | undefined = undefined;
     try {
-      const blob = await this.speechService.synthesize(promptArgs.prompt, promptArgs.voice);
+      const speechService = await this.asyncSpeechService();
+      const blob = await speechService.synthesize(promptArgs.prompt, promptArgs.voice);
       createdUrl = this.setAudioUrl(blob);
     } catch (e) {
       this.handlePlaybackError(e, createdUrl);
@@ -65,17 +74,20 @@ export class TextToSpeechViewService {
     let isInitialized = false;
     try {
       const { prompt, voice, shouldWait = false } = promptArgs;
-      const playbackRate = shouldWait ? 1 : this.setRandomPlaybackRate();
+      const streamPlaybackRate = shouldWait ? 1 : this.setRandomPlaybackRate();
+      this.playbackRate.set(streamPlaybackRate);
 
-      for await (const chunk of this.speechService.synthesizeStream(prompt, voice, shouldWait)) {
+      const speechService = await this.asyncSpeechService();
+      for await (const chunk of speechService.synthesizeStream(prompt, voice, shouldWait)) {
         if (chunk instanceof Blob) {
           finalBlob = chunk;
         } else if (chunk) {
-          isInitialized = this.processStreamChunk(isInitialized, playbackRate, chunk);
+          isInitialized = await this.processStreamChunk(isInitialized, this.playbackRate(), chunk);
         }
       }
       if (shouldWait) {
-        await this.audioPlayerService.awaitPlaybackComplete();
+        const audioPlayerService = await this.asyncAudioPlayerService();
+        await audioPlayerService.awaitPlaybackComplete();
         createdUrl = this.setAudioUrl(finalBlob);
       }
     } catch (e) {
