@@ -60,25 +60,56 @@ async function fetchSdkConfigViaCli(webAppName) {
 }
 
 try {
-  if (!fs.existsSync(envPath)) {
-    throw new Error(`.env file not found at: ${envPath}`);
+  let app;
+  let recaptchaEnterpriseKey;
+  let appCheckDebugToken = '';
+
+  if (fs.existsSync(envPath)) {
+    // 1. If .env exists: load it and use Firebase CLI
+    process.loadEnvFile(envPath);
+    console.log('Success: Loaded .env file');
+
+    const webAppName = process.env.APP_FIREBASE_WEB_APP_NAME;
+    if (!webAppName || webAppName.trim() === '' || webAppName.startsWith('<')) {
+      throw new Error('Missing or placeholder value for APP_FIREBASE_WEB_APP_NAME in .env');
+    }
+
+    recaptchaEnterpriseKey = process.env.APP_FIREBASE_RECAPTCHA_ENTERPRISE_KEY;
+    if (!recaptchaEnterpriseKey || recaptchaEnterpriseKey.trim() === '' || recaptchaEnterpriseKey.startsWith('<')) {
+      throw new Error('Missing or placeholder value for APP_FIREBASE_RECAPTCHA_ENTERPRISE_KEY in .env');
+    }
+
+    appCheckDebugToken = process.env.APP_FIREBASE_APPCHECK_DEBUG_TOKEN || '';
+    app = await fetchSdkConfigViaCli(webAppName);
+  } else {
+    // 2. Otherwise: use process.env directly to construct the object
+    console.log('Warning: .env file does not exist. Using process.env to construct config object');
+
+    app = {
+      apiKey: process.env.APP_FIREBASE_API_KEY,
+      authDomain: process.env.APP_FIREBASE_AUTH_DOMAIN,
+      projectId: process.env.APP_FIREBASE_PROJECT_ID,
+      storageBucket: process.env.APP_FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: process.env.APP_FIREBASE_MESSAGING_SENDER_ID,
+      appId: process.env.APP_FIREBASE_APP_ID,
+    };
+
+    recaptchaEnterpriseKey = process.env.APP_FIREBASE_RECAPTCHA_ENTERPRISE_KEY;
+    appCheckDebugToken = process.env.APP_FIREBASE_APPCHECK_DEBUG_TOKEN || '';
+
+    // Validate that required keys are present
+    const missing = Object.entries(app)
+      .filter(([, value]) => !value || value.startsWith('<'))
+      .map(([key]) => key);
+
+    if (missing.length > 0) {
+      throw new Error(`The following process.env keys are missing or invalid: ${missing.join(', ')}`);
+    }
+
+    if (!recaptchaEnterpriseKey || recaptchaEnterpriseKey.startsWith('<')) {
+      throw new Error('APP_FIREBASE_RECAPTCHA_ENTERPRISE_KEY is missing or invalid in process.env');
+    }
   }
-
-  process.loadEnvFile(envPath);
-  console.log('Success: Loaded .env file');
-
-  const webAppName = process.env.APP_FIREBASE_WEB_APP_NAME;
-  if (!webAppName || webAppName.trim() === '' || webAppName.startsWith('<')) {
-    throw new Error('Missing or placeholder value for APP_FIREBASE_WEB_APP_NAME in .env');
-  }
-
-  const recaptchaEnterpriseKey = process.env.APP_FIREBASE_RECAPTCHA_ENTERPRISE_KEY;
-  if (!recaptchaEnterpriseKey || recaptchaEnterpriseKey.trim() === '' || recaptchaEnterpriseKey.startsWith('<')) {
-    throw new Error('Missing or placeholder value for APP_FIREBASE_RECAPTCHA_ENTERPRISE_KEY in .env');
-  }
-
-  const appCheckDebugToken = process.env.APP_FIREBASE_APPCHECK_DEBUG_TOKEN || '';
-  const app = await fetchSdkConfigViaCli(webAppName);
 
   const config = {
     app,
