@@ -138,7 +138,7 @@ describe('ConfigService', () => {
       useLimitedUseAppCheckTokens: false,
       vertexAILocation: 'global',
       geminiModelName: 'gemini-3.8-flash',
-      geminiTTSModelName: '',
+      geminiTTSModelName: 'gemini-3.1-flash-tts-preview',
       thinkingLevel: 'LOW',
     });
   });
@@ -185,7 +185,7 @@ describe('ConfigService', () => {
       useLimitedUseAppCheckTokens: false,
       vertexAILocation: 'global',
       geminiModelName: 'gemini-3.8-flash',
-      geminiTTSModelName: '',
+      geminiTTSModelName: 'gemini-3.1-flash-tts-preview',
       thinkingLevel: 'LOW',
     });
   });

@@ -36,6 +36,7 @@ export default defineConfig({
     'wayfinder',
     'gaplessly',
     'toggleable',
+    'sdkconfig',
   ],
   ignorePaths: [
     'node_modules',

@@ -1,10 +1,10 @@
 {
-  "geminiModelName": "gemini-3.8-flash",
   "functionEmulatorHost": "localhost",
   "functionEmulatorPort": "5001",
-  "vertexAILocation": "global",
-  "geminiTTSModelName": "",
-  "thinkingLevel": "LOW",
   "functionRegion": "asia-east2",
-  "useLimitedUseAppCheckTokens": "false"
+  "geminiModelName": "gemini-3.8-flash",
+  "geminiTTSModelName": "gemini-3.1-flash-tts-preview",
+  "thinkingLevel": "LOW",
+  "useLimitedUseAppCheckTokens": "false",
+  "vertexAILocation": "global"
 }

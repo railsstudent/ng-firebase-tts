@@ -13,18 +13,8 @@ const firebaseDir = path.resolve(__dirname, '..');
 const envPath = path.join(firebaseDir, '.env');
 const backendId = 'ng-firebase-tts';
 
-const SECRET_MAPPINGS = [
-  { envVar: 'APP_FIREBASE_API_KEY', secretName: 'firebase_api_key' },
-  { envVar: 'APP_FIREBASE_AUTH_DOMAIN', secretName: 'firebase_auth_domain' },
-  { envVar: 'APP_FIREBASE_PROJECT_ID', secretName: 'firebase_project_id' },
-  { envVar: 'APP_FIREBASE_STORAGE_BUCKET', secretName: 'firebase_storage_bucket' },
-  { envVar: 'APP_FIREBASE_MESSAGING_SENDER_ID', secretName: 'firebase_messaging_sender_id' },
-  { envVar: 'APP_FIREBASE_APP_ID', secretName: 'firebase_app_id' },
-  { envVar: 'APP_FIREBASE_RECAPTCHA_ENTERPRISE_KEY', secretName: 'firebase_recaptcha_enterprise_key' },
-];
-
 /**
- * Loads .env and validates all required environment variables upfront.
+ * Loads .env and validates required environment variables upfront.
  */
 function loadAndValidateEnv(targetPath) {
   if (!fs.existsSync(targetPath)) {
@@ -33,14 +23,53 @@ function loadAndValidateEnv(targetPath) {
 
   process.loadEnvFile(targetPath);
 
-  const missingOrInvalid = SECRET_MAPPINGS.filter(({ envVar }) => {
+  const required = ['APP_FIREBASE_WEB_APP_NAME', 'APP_FIREBASE_RECAPTCHA_ENTERPRISE_KEY'];
+  const missingOrInvalid = required.filter((envVar) => {
     const val = process.env[envVar];
     return !val || val.trim() === '' || val.startsWith('<');
-  }).map(({ envVar }) => envVar);
+  });
 
   if (missingOrInvalid.length > 0) {
     throw new Error(`Missing or placeholder values for: ${missingOrInvalid.join(', ')} in ${targetPath}`);
   }
+}
+
+/**
+ * Fetches Firebase Web App SDK configuration dynamically using Firebase CLI.
+ */
+async function fetchSdkConfigViaCli(webAppName) {
+  console.log(`🔍 Querying Firebase CLI for web app: "${webAppName}"...`);
+
+  const { stdout: listStdout } = await execAsync('npx firebase apps:list WEB --json --project default', {
+    cwd: firebaseDir,
+  });
+
+  const listResponse = JSON.parse(listStdout);
+  const apps = listResponse?.result || [];
+  const targetApp = apps.find((app) => app.displayName === webAppName);
+
+  if (!targetApp) {
+    const availableNames = apps.map((app) => `"${app.displayName}"`).join(', ');
+    throw new Error(
+      `Web app with displayName "${webAppName}" not found in project. Available web apps: [${availableNames || 'none'}]`,
+    );
+  }
+
+  const { appId } = targetApp;
+  console.log(`Found Web App "${webAppName}" with appId: ${appId}. Fetching SDK configuration...`);
+
+  const { stdout: sdkStdout } = await execAsync(`npx firebase apps:sdkconfig WEB ${appId} --json --project default`, {
+    cwd: firebaseDir,
+  });
+
+  const sdkResponse = JSON.parse(sdkStdout);
+  const sdkConfig = sdkResponse?.result?.sdkConfig;
+
+  if (!sdkConfig) {
+    throw new Error(`Failed to retrieve SDK configuration for appId: ${appId}`);
+  }
+
+  return sdkConfig;
 }
 
 /**
@@ -106,10 +135,9 @@ async function syncAllSecrets(mappings, targetBackend, cwd) {
   console.log('🚀 Starting parallel App Hosting secrets synchronization...');
 
   await Promise.all(
-    mappings.map(({ envVar, secretName }) => {
-      const value = process.env[envVar];
-      console.log(`🔒 Setting secret "${secretName}" from ${envVar}...`);
-      return setSecretValue(secretName, value, cwd);
+    mappings.map(({ secretName, secretValue }) => {
+      console.log(`🔒 Setting secret "${secretName}"...`);
+      return setSecretValue(secretName, secretValue, cwd);
     }),
   );
 
@@ -121,7 +149,24 @@ async function syncAllSecrets(mappings, targetBackend, cwd) {
 // === Top-Level Execution ===
 try {
   loadAndValidateEnv(envPath);
-  await syncAllSecrets(SECRET_MAPPINGS, backendId, firebaseDir);
+
+  const webAppName = process.env.APP_FIREBASE_WEB_APP_NAME;
+  const sdkConfig = await fetchSdkConfigViaCli(webAppName);
+
+  const mappings = [
+    { secretName: 'firebase_api_key', secretValue: sdkConfig.apiKey },
+    { secretName: 'firebase_auth_domain', secretValue: sdkConfig.authDomain },
+    { secretName: 'firebase_project_id', secretValue: sdkConfig.projectId },
+    { secretName: 'firebase_storage_bucket', secretValue: sdkConfig.storageBucket },
+    { secretName: 'firebase_messaging_sender_id', secretValue: sdkConfig.messagingSenderId },
+    { secretName: 'firebase_app_id', secretValue: sdkConfig.appId },
+    {
+      secretName: 'firebase_recaptcha_enterprise_key',
+      secretValue: process.env.APP_FIREBASE_RECAPTCHA_ENTERPRISE_KEY,
+    },
+  ];
+
+  await syncAllSecrets(mappings, backendId, firebaseDir);
 } catch (error) {
   console.error('❌ Secrets synchronization failed:', error.message);
   process.exit(1);
