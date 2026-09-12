@@ -1,7 +1,7 @@
 # 0007: Firebase App Hosting Secret Management and Zero-Credential Git Strategy
 
 - **Status**: Accepted
-- **Date**: 2026-09-04 (Updated 2026-09-10)
+- **Date**: 2026-09-04 (Updated 2026-09-12)
 
 ## Context
 
@@ -69,11 +69,12 @@ A dedicated Node.js automation script (`npm run config:secrets`) handles cloud p
 
 ### 5. Git `pre-push` Gatekeeper Hook (`.husky/pre-push`)
 
-To completely eliminate human error (forgetting to sync changed keys), we use a Git `pre-push` Husky hook.
+To completely eliminate human error (forgetting to sync changed keys) without slowing down routine development on feature branches, we use a Git `pre-push` Husky hook:
 
-- Every time `git push` is executed, Husky runs `npm run test:once && npm run config:secrets` on the developer's machine first.
+- Every time `git push` is executed, Husky runs `npm run test:once` on all branches first to prevent pushing failing code.
+- The hook inspects the destination ref via `stdin`: only pushes targeting the **`main` branch** trigger `npm run config:secrets` to synchronize secrets to Firebase App Hosting. Pushes to feature branches skip secret synchronization.
 - If the local keys are valid and successfully synced to the cloud safe, the git push is allowed to proceed to GitHub.
-- If there is a typo or missing value, the hook aborts the git push instantly, protecting the build pipeline from running with broken or empty secrets.
+- If there is a typo or missing value when pushing to `main`, the hook aborts the git push instantly, protecting the production build pipeline from running with broken or empty secrets.
 
 ### 6. Build-Time Container Injection
 
@@ -94,11 +95,16 @@ sequenceDiagram
     participant Host as App Hosting Cloud Build
 
     Dev->>Hook: git push (triggers Husky pre-push)
-    Hook->>Env: Load APP_FIREBASE_WEB_APP_NAME & reCAPTCHA Key
-    Hook->>CLI: firebase apps:list & apps:sdkconfig
-    CLI-->>Hook: Return SDK config
-    Hook->>Cloud: firebase apphosting:secrets:set (streamed stdin)
-    Hook->>Cloud: firebase apphosting:secrets:grantaccess
+    Hook->>Hook: npm run test:once (all branches)
+    alt Target is main branch
+        Hook->>Env: Load APP_FIREBASE_WEB_APP_NAME & reCAPTCHA Key
+        Hook->>CLI: firebase apps:list & apps:sdkconfig
+        CLI-->>Hook: Return SDK config
+        Hook->>Cloud: firebase apphosting:secrets:set (streamed stdin)
+        Hook->>Cloud: firebase apphosting:secrets:grantaccess
+    else Feature branch
+        Hook->>Hook: Skip secrets sync
+    end
     Hook->>GitHub: Allow git push (apphosting.yaml with secret names only)
     GitHub->>Host: Webhook trigger build
     Host->>Cloud: Resolve secret values into process.env
@@ -113,8 +119,9 @@ sequenceDiagram
 - **100% Zero Secrets in Git**: No API keys, credentials, or reCAPTCHA tokens exist in the repository, completely eliminating GitHub security scanner alerts.
 - **Zero Redundant SDK Config**: Developers never need to manually copy 6 individual SDK keys into `.env` files; the CLI dynamically resolves the correct values from the Web App name.
 - **Zero Web Console Overhead**: Developers never need to open the GCP Console or manually type environment variables into the Firebase Web Console UI.
-- **Human-Error Prevention**: Git blocks the push if you have typos or missing configuration keys locally, keeping deployment configuration completely secure and working.
+- **Fast Feature Iteration**: Pre-push secret synchronization is isolated to `main` branch pushes; feature branch pushes only execute unit tests without cloud synchronization delay.
+- **Human-Error Prevention**: Git blocks pushes to `main` if you have typos or missing configuration keys locally, keeping deployment configuration completely secure and working.
 
 ### Negative / Trade-offs
 
-- Running `git push` takes an additional 5-10 seconds on the client machine to complete the cloud secrets synchronization process.
+- Running `git push` to `main` takes an additional 5-10 seconds on the client machine to complete the cloud secrets synchronization process.
