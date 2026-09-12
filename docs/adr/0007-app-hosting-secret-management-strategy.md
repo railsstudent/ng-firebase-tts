@@ -63,9 +63,11 @@ To prevent corrupt or empty strings from being provisioned or compiled, automati
 
 A dedicated Node.js automation script (`npm run config:secrets`) handles cloud provisioning directly from the developer's terminal:
 
-- Dynamically resolves SDK values via the Firebase CLI using `APP_FIREBASE_WEB_APP_NAME`.
+- **Single Source of Truth (`apphosting.yaml`)**: Dynamically parses the `env:` declarations in `apphosting.yaml` instead of maintaining duplicate hardcoded mappings in script code.
+- **Dynamic Key Resolution**: Derives Firebase SDK properties dynamically from `variableName` (e.g. `APP_FIREBASE_API_KEY` $\rightarrow$ `apiKey`) and falls back to `.env` for custom application secrets (e.g. `APP_FIREBASE_RECAPTCHA_ENTERPRISE_KEY`).
+- **Dynamic Backend ID Resolution**: Resolves the target backend ID dynamically from CLI arguments (`--backend <name>`), `APP_FIREBASE_BACKEND_ID` in `.env`, or defaulting to the project's `package.json` `name`.
 - Streams secret values securely into Firebase Cloud via `npx firebase apphosting:secrets:set <secretName> --data-file - --force` without interactive prompts.
-- Grants read permissions to the backend compute service account via `npx firebase apphosting:secrets:grantaccess <secrets> -b ng-firebase-tts`.
+- Grants read permissions to the backend compute service account via `npx firebase apphosting:secrets:grantaccess <secrets> -b <backendId>`.
 
 ### 5. Git `pre-push` Gatekeeper Hook (`.husky/pre-push`)
 

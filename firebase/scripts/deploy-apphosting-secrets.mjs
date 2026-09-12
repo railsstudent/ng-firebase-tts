@@ -10,8 +10,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const firebaseDir = path.resolve(__dirname, '..');
+const projectRootDir = path.resolve(firebaseDir, '..');
 const envPath = path.join(firebaseDir, '.env');
-const backendId = 'ng-firebase-tts';
+const appHostingYamlPath = path.join(projectRootDir, 'apphosting.yaml');
 
 /**
  * Loads .env and validates required environment variables upfront.
@@ -32,6 +33,102 @@ function loadAndValidateEnv(targetPath) {
   if (missingOrInvalid.length > 0) {
     throw new Error(`Missing or placeholder values for: ${missingOrInvalid.join(', ')} in ${targetPath}`);
   }
+}
+
+/**
+ * Resolves the App Hosting backend ID dynamically:
+ * 1. CLI flag: --backend <name> or -b <name>
+ * 2. Environment variable: process.env.APP_FIREBASE_BACKEND_ID
+ * 3. package.json "name" field
+ */
+function resolveBackendId(targetRootDir) {
+  const args = process.argv.slice(2);
+  const backendArgIndex = args.findIndex((arg) => arg === '--backend' || arg === '-b');
+  if (backendArgIndex !== -1 && args[backendArgIndex + 1]) {
+    return args[backendArgIndex + 1].trim();
+  }
+
+  if (process.env.APP_FIREBASE_BACKEND_ID && process.env.APP_FIREBASE_BACKEND_ID.trim() !== '') {
+    return process.env.APP_FIREBASE_BACKEND_ID.trim();
+  }
+
+  const pkgPath = path.join(targetRootDir, 'package.json');
+  if (fs.existsSync(pkgPath)) {
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+    if (pkg.name) {
+      return pkg.name;
+    }
+  }
+
+  throw new Error(
+    'Could not resolve backend ID. Pass --backend <name>, set APP_FIREBASE_BACKEND_ID, or ensure package.json has a "name".',
+  );
+}
+
+/**
+ * Dynamically parses secret declarations from apphosting.yaml.
+ * Matches:
+ *   - variable: APP_FIREBASE_API_KEY
+ *     secret: firebase_api_key
+ */
+function parseAppHostingSecrets(yamlPath) {
+  if (!fs.existsSync(yamlPath)) {
+    throw new Error(`apphosting.yaml not found at: ${yamlPath}`);
+  }
+
+  const content = fs.readFileSync(yamlPath, 'utf8');
+  const secretEntries = [];
+  const regex = /-\s+variable:\s*([^\s]+)\s+secret:\s*([^\s]+)/g;
+
+  let match;
+  while ((match = regex.exec(content)) !== null) {
+    secretEntries.push({
+      variableName: match[1],
+      secretName: match[2],
+    });
+  }
+
+  if (secretEntries.length === 0) {
+    throw new Error(`No secret declarations found in ${yamlPath}`);
+  }
+
+  return secretEntries;
+}
+
+/**
+ * Converts 'APP_FIREBASE_MESSAGING_SENDER_ID' -> 'messagingSenderId'
+ */
+function variableToSdkKey(variableName) {
+  return variableName
+    .replace(/^APP_FIREBASE_/, '')
+    .toLowerCase()
+    .replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+}
+
+/**
+ * Resolves secret values dynamically without hardcoded dictionary maps:
+ * 1. Derives SDK property from variableName and checks sdkConfig.
+ * 2. Fallbacks to process.env (e.g. for reCAPTCHA Enterprise key or custom variables).
+ */
+function resolveSecretMappings(declaredSecrets, sdkConfig) {
+  return declaredSecrets.map(({ variableName, secretName }) => {
+    // 1. Try resolving from Firebase SDK configuration
+    const sdkKey = variableToSdkKey(variableName);
+    if (sdkConfig && sdkConfig[sdkKey]) {
+      return { secretName, secretValue: sdkConfig[sdkKey] };
+    }
+
+    // 2. Try resolving from process.env (.env file)
+    const envValue = process.env[variableName];
+    if (envValue && !envValue.startsWith('<')) {
+      return { secretName, secretValue: envValue };
+    }
+
+    // 3. Fail fast if declared in YAML but missing everywhere
+    throw new Error(
+      `Variable "${variableName}" (secret: ${secretName}) in apphosting.yaml could not be resolved from Firebase SDK config or .env`,
+    );
+  });
 }
 
 /**
@@ -150,21 +247,12 @@ async function syncAllSecrets(mappings, targetBackend, cwd) {
 try {
   loadAndValidateEnv(envPath);
 
+  const backendId = resolveBackendId(projectRootDir);
+  const declaredSecrets = parseAppHostingSecrets(appHostingYamlPath);
   const webAppName = process.env.APP_FIREBASE_WEB_APP_NAME;
   const sdkConfig = await fetchSdkConfigViaCli(webAppName);
 
-  const mappings = [
-    { secretName: 'firebase_api_key', secretValue: sdkConfig.apiKey },
-    { secretName: 'firebase_auth_domain', secretValue: sdkConfig.authDomain },
-    { secretName: 'firebase_project_id', secretValue: sdkConfig.projectId },
-    { secretName: 'firebase_storage_bucket', secretValue: sdkConfig.storageBucket },
-    { secretName: 'firebase_messaging_sender_id', secretValue: sdkConfig.messagingSenderId },
-    { secretName: 'firebase_app_id', secretValue: sdkConfig.appId },
-    {
-      secretName: 'firebase_recaptcha_enterprise_key',
-      secretValue: process.env.APP_FIREBASE_RECAPTCHA_ENTERPRISE_KEY,
-    },
-  ];
+  const mappings = resolveSecretMappings(declaredSecrets, sdkConfig);
 
   await syncAllSecrets(mappings, backendId, firebaseDir);
 } catch (error) {
