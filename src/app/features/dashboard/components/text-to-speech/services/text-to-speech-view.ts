@@ -18,16 +18,14 @@ export class TextToSpeechViewService {
   #destroyRef$ = inject(DestroyRef);
   #audioUrl = signal<string | undefined>(undefined);
   #loadingMode = signal<GenerateSpeechMode | 'idle'>('idle');
+  #playbackRate = signal(DEFAULT_PLAYBACK_RATE);
 
   audioUrl = this.#audioUrl.asReadonly();
-  playbackRate = signal(DEFAULT_PLAYBACK_RATE);
+  playbackRate = this.#playbackRate.asReadonly();
   loadingMode = this.#loadingMode.asReadonly();
 
   constructor() {
-    this.#destroyRef$.onDestroy(() => {
-      console.log('TextToSpeechView destroyed');
-      revokeBlobURL(this.#audioUrl());
-    });
+    this.#destroyRef$.onDestroy(() => revokeBlobURL(this.#audioUrl()));
   }
 
   private async handlePlaybackError(e: unknown, createdUrl: string | undefined) {
@@ -76,14 +74,14 @@ export class TextToSpeechViewService {
     try {
       const { prompt, voice, shouldWait = false } = promptArgs;
       const streamPlaybackRate = shouldWait ? 1 : this.calculateRandomPlaybackRate();
-      this.playbackRate.set(streamPlaybackRate);
+      this.#playbackRate.set(streamPlaybackRate);
 
       const speechService = await this.#asyncSpeechService();
       for await (const chunk of speechService.synthesizeStream(prompt, voice, shouldWait)) {
         if (chunk instanceof Blob) {
           finalBlob = chunk;
         } else if (chunk) {
-          isInitialized = await this.processStreamChunk(isInitialized, this.playbackRate(), chunk);
+          isInitialized = await this.processStreamChunk(isInitialized, this.#playbackRate(), chunk);
         }
       }
       if (shouldWait) {
@@ -107,7 +105,7 @@ export class TextToSpeechViewService {
   }
 
   async generateSpeech(mode: GenerateSpeechMode, promptArgs: FactConfig) {
-    if (!promptArgs.fact) {
+    if (!promptArgs.fact || this.#loadingMode() !== 'idle') {
       return;
     }
 
@@ -122,10 +120,8 @@ export class TextToSpeechViewService {
           await this.handleSync(promptArgs);
           break;
         case 'stream':
-          await this.handleStream({ ...promptArgs, shouldWait: true });
-          break;
         case 'web_audio_api':
-          await this.handleStream(promptArgs);
+          await this.handleStream({ ...promptArgs, shouldWait: mode === 'stream' });
           break;
         default:
           throw new Error(`Unsupported mode: ${mode}`);

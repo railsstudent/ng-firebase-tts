@@ -177,6 +177,26 @@ describe('TextToSpeechViewService', () => {
       expect(service.loadingMode()).toBe('idle');
     });
 
+    it('should return early and not trigger generation if loadingMode is not idle', async () => {
+      mockSpeechService.synthesizeStream.mockReturnValue(
+        createStreamGenerator([{ decodedData: new Uint8Array([1]), sampleRate: 24000 }]),
+      );
+
+      const config1 = { prompt: 'Prompt 1', voice: 'Aoede', fact: 'Fact 1' };
+      const config2 = { prompt: 'Prompt 2', voice: 'Kore', fact: 'Fact 2' };
+
+      const firstCallPromise = service.generateSpeech('stream', config1);
+      expect(service.loadingMode()).toBe('stream');
+
+      await service.generateSpeech('stream', config2);
+
+      await firstCallPromise;
+
+      expect(mockSpeechService.synthesizeStream).toHaveBeenCalledTimes(1);
+      expect(mockSpeechService.synthesizeStream).toHaveBeenCalledWith('Prompt 1', 'Aoede', true);
+      expect(service.loadingMode()).toBe('idle');
+    });
+
     it('should throw error if an unsupported generation mode is provided', async () => {
       const config = { prompt: 'Prompt', voice: 'Aoede', fact: 'Fact' };
       const invalidMode = 'invalid_mode' as unknown as Parameters<typeof service.generateSpeech>[0];
