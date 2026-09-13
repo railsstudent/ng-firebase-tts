@@ -13,7 +13,7 @@
     "lint": "ng lint",
     "prepare": "husky",
     "format": "prettier --write \"**/*.{ts,js,mjs,json,html}\"",
-    "cspell": "cspell --config cspell.config.mjs .",
+    "cspell": "cspell --no-must-find-files --config cspell.config.mjs .",
     "preview": "npx serve dist/ng-firebase-tts/browser -p 5005 -s",
     "preview:emulator": "npx serve dist/ng-firebase-tts/browser --listen $PORT",
     "firebase:emulate": "cd firebase; firebase emulators:start --project default",
