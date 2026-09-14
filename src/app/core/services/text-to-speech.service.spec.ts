@@ -97,8 +97,8 @@ describe('TextToSpeechService', () => {
       });
 
       // Call public methods multiple times
-      await testService.synthesize('Test 1', 'Kore');
-      await testService.synthesize('Test 2', 'Puck');
+      await testService.synthesize({ text: 'Test 1', voice: 'Kore' });
+      await testService.synthesize({ text: 'Test 2', voice: 'Puck' });
 
       // The count of appConfig signal reads should STILL be exactly 1!
       expect(appConfigSpy).toHaveBeenCalledTimes(1);
@@ -126,7 +126,7 @@ describe('TextToSpeechService', () => {
           ],
         },
       });
-      const blob = await service.synthesize('Hello Fact', 'Kore');
+      const blob = await service.synthesize({ text: 'Hello Fact', voice: 'Kore' });
 
       expect(mockModel.generateContent).toHaveBeenCalledWith(['Hello Fact']);
       expect(blob).toBeInstanceOf(Blob);
@@ -138,7 +138,9 @@ describe('TextToSpeechService', () => {
         response: {},
       });
 
-      await expect(service.synthesize('Empty Fact', 'Puck')).rejects.toThrow('No audio data received in response.');
+      await expect(service.synthesize({ text: 'Empty Fact', voice: 'Puck' })).rejects.toThrow(
+        'No audio data received in response.',
+      );
     });
   });
 
@@ -185,7 +187,7 @@ describe('TextToSpeechService', () => {
         stream: mockStreamIterator,
       });
 
-      const generator = service.synthesizeStream('Dynamic Stream', 'Kore', true);
+      const generator = service.synthesizeStream({ text: 'Dynamic Stream', voice: 'Kore', shouldWait: true });
       const emissions = [];
       for await (const chunk of generator) {
         emissions.push(chunk);
@@ -228,7 +230,11 @@ describe('TextToSpeechService', () => {
         stream: mockStreamIterator,
       });
 
-      const generator = service.synthesizeStream('Hello interactive player', 'Puck', false);
+      const generator = service.synthesizeStream({
+        text: 'Hello interactive player',
+        voice: 'Puck',
+        shouldWait: false,
+      });
       const emissions = [];
       for await (const chunk of generator) {
         emissions.push(chunk);
@@ -245,7 +251,7 @@ describe('TextToSpeechService', () => {
     it('should rethrow on stream errors', async () => {
       mockModel.generateContentStream.mockRejectedValue(new Error('Vertex AI stream error'));
 
-      const generator = service.synthesizeStream('Failing stream', 'Puck');
+      const generator = service.synthesizeStream({ text: 'Failing stream', voice: 'Puck' });
       await expect(generator.next()).rejects.toThrow('Vertex AI stream error');
     });
   });

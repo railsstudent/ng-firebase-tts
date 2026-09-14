@@ -75,7 +75,7 @@ describe('TextToSpeechViewService', () => {
       const config = { prompt: 'Sync prompt', voice: 'Kore', fact: 'Interesting fact' };
       await service.generateSpeech('sync', config);
 
-      expect(mockSpeechService.synthesize).toHaveBeenCalledWith('Sync prompt', 'Kore');
+      expect(mockSpeechService.synthesize).toHaveBeenCalledWith({ text: 'Sync prompt', voice: 'Kore' });
       expect(service.audioUrl()).toBe('blob:sync-url');
       expect(service.loadingMode()).toBe('idle');
     });
@@ -103,7 +103,11 @@ describe('TextToSpeechViewService', () => {
       const config = { prompt: 'Stream prompt', voice: 'Kore', fact: 'Interesting fact' };
       await service.generateSpeech('stream', config);
 
-      expect(mockSpeechService.synthesizeStream).toHaveBeenCalledWith('Stream prompt', 'Kore', true);
+      expect(mockSpeechService.synthesizeStream).toHaveBeenCalledWith({
+        text: 'Stream prompt',
+        voice: 'Kore',
+        shouldWait: true,
+      });
       expect(mockAudioPlayerService.initialize).toHaveBeenCalledWith(24000, 1);
       expect(mockAudioPlayerService.processChunk).toHaveBeenCalledWith(new Uint8Array([1, 2]));
       expect(mockAudioPlayerService.awaitPlaybackComplete).toHaveBeenCalled();
@@ -147,7 +151,11 @@ describe('TextToSpeechViewService', () => {
       const config = { prompt: 'WebAudio prompt', voice: 'Puck', fact: 'Interesting fact' };
       await service.generateSpeech('web_audio_api', config);
 
-      expect(mockSpeechService.synthesizeStream).toHaveBeenCalledWith('WebAudio prompt', 'Puck', false);
+      expect(mockSpeechService.synthesizeStream).toHaveBeenCalledWith({
+        text: 'WebAudio prompt',
+        voice: 'Puck',
+        shouldWait: false,
+      });
       expect(mockAudioPlayerService.initialize).toHaveBeenCalledWith(16000, expect.any(Number));
       expect(mockAudioPlayerService.processChunk).toHaveBeenCalledWith(new Uint8Array([3, 4]));
       expect(mockAudioPlayerService.awaitPlaybackComplete).not.toHaveBeenCalled();
@@ -193,7 +201,11 @@ describe('TextToSpeechViewService', () => {
       await firstCallPromise;
 
       expect(mockSpeechService.synthesizeStream).toHaveBeenCalledTimes(1);
-      expect(mockSpeechService.synthesizeStream).toHaveBeenCalledWith('Prompt 1', 'Aoede', true);
+      expect(mockSpeechService.synthesizeStream).toHaveBeenCalledWith({
+        text: 'Prompt 1',
+        voice: 'Aoede',
+        shouldWait: true,
+      });
       expect(service.loadingMode()).toBe('idle');
     });
 

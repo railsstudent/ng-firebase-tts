@@ -7,3 +7,9 @@ export interface RawAudioBinary {
   decodedData: Uint8Array;
   sampleRate: number;
 }
+
+export interface TextVoiceInput {
+  text: string;
+  voice: string;
+  shouldWait?: boolean;
+}

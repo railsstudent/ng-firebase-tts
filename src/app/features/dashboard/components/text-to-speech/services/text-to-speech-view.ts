@@ -53,7 +53,7 @@ export class TextToSpeechViewService {
     let createdUrl: string | undefined = undefined;
     try {
       const speechService = await this.#asyncSpeechService();
-      const blob = await speechService.synthesize(promptArgs.prompt, promptArgs.voice);
+      const blob = await speechService.synthesize({ text: promptArgs.prompt, voice: promptArgs.voice });
       createdUrl = this.setAudioUrl(blob);
     } catch (e) {
       this.handlePlaybackError(e, createdUrl);
@@ -77,7 +77,7 @@ export class TextToSpeechViewService {
       this.#playbackRate.set(streamPlaybackRate);
 
       const speechService = await this.#asyncSpeechService();
-      for await (const chunk of speechService.synthesizeStream(prompt, voice, shouldWait)) {
+      for await (const chunk of speechService.synthesizeStream({ text: prompt, voice: voice, shouldWait })) {
         if (chunk instanceof Blob) {
           finalBlob = chunk;
         } else if (chunk) {

@@ -2,7 +2,7 @@ import { WINDOW } from '@/core/constants/navigator.const';
 import { PWA_CHECK_INTERVAL } from '@/core/constants/pwa.constant';
 import { ApplicationRef, DestroyRef, inject, Service } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
+import { SwUpdate } from '@angular/service-worker';
 import { concat, EMPTY, from, interval } from 'rxjs';
 import { catchError, exhaustMap, filter, map, take } from 'rxjs/operators';
 
@@ -18,7 +18,7 @@ export class PwaUpdateService {
   readonly updateAvailable = toSignal(
     this.#window && this.#swUpdate.isEnabled
       ? this.#swUpdate.versionUpdates.pipe(
-          filter((evt): evt is VersionReadyEvent => evt.type === 'VERSION_READY'),
+          filter((evt) => evt.type === 'VERSION_READY'),
           map(() => true),
         )
       : EMPTY,

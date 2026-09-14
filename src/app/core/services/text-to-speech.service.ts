@@ -1,6 +1,6 @@
 import { AI_BACKEND } from '@/core/constants/firebase.constant';
 import { DEFAULT_SAMPLE_RATE } from '@/core/constants/text-to-speech.constant';
-import { RawAudioBinary, SpeechChunkData } from '@/core/interfaces/text-to-speech.interface';
+import { RawAudioBinary, SpeechChunkData, TextVoiceInput } from '@/core/interfaces/text-to-speech.interface';
 import { decodeBase64 } from '@/core/utils/base64.util';
 import { convertToWav, extractInlineData, parseMimeType } from '@/core/utils/mime-type.util';
 import { inject, Service } from '@angular/core';
@@ -21,16 +21,13 @@ export class TextToSpeechService {
     return { data, mimeType };
   }
 
-  async *synthesizeStream(
-    text: string,
-    voiceName: string,
-    shouldWait = true,
-  ): AsyncGenerator<RawAudioBinary | Blob | undefined> {
-    const model = this.createModel(voiceName);
+  async *synthesizeStream(textVoiceInput: TextVoiceInput): AsyncGenerator<RawAudioBinary | Blob | undefined> {
+    const { text, voice, shouldWait = true } = textVoiceInput;
     let chunks: Uint8Array = new Uint8Array(0);
     let firstMimeType = '';
     let sampleRate = DEFAULT_SAMPLE_RATE;
 
+    const model = this.createModel(voice);
     const responseStream = await model.generateContentStream([text]);
     for await (const chunk of responseStream.stream) {
       const chunkData = this.extractValidChunkData(chunk);
@@ -61,8 +58,8 @@ export class TextToSpeechService {
    * USE CASE 1 (Ad-hoc Single-shot):
    * Fetches the entire audio content at once, constructs a Blob, and returns it.
    */
-  async synthesize(text: string, voiceName: string): Promise<Blob> {
-    const model = this.createModel(voiceName);
+  async synthesize({ text, voice }: TextVoiceInput): Promise<Blob> {
+    const model = this.createModel(voice);
 
     try {
       const result = await model.generateContent([text]);
