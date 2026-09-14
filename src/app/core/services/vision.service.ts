@@ -2,11 +2,11 @@ import { VISION_AI_MODEL } from '@/core/constants/firebase.constant';
 import { ImageAnalysis, ImageAnalysisResponse } from '@/core/interfaces/image-analysis.interface';
 import { fileToGenerativePart } from '@/core/utils/fileToPart.util';
 import { inject, Service } from '@angular/core';
-import { GenerativeModel, GroundingMetadata, UsageMetadata, WebGroundingChunk } from 'firebase/ai';
+import { GroundingMetadata, UsageMetadata, WebGroundingChunk } from 'firebase/ai';
 
 @Service()
 export class VisionService {
-  private aiModel: GenerativeModel = inject(VISION_AI_MODEL);
+  #aiModel = inject(VISION_AI_MODEL);
 
   async generateAltText(image: File): Promise<ImageAnalysisResponse> {
     if (!image) {
@@ -21,7 +21,7 @@ Task 2: Generate at least 3 tags to describe the image.
 Task 3: Based on the alternative text and tags, provide some suggestions to make the image more interesting and the reason to support them.
 Task 4: Search for a surprising or obscure fact that interconnects the following tags. If a direct link doesn't exist, find a conceptual link between them.
 `;
-    const result = await this.aiModel.generateContent([altTextPrompt, imagePart]);
+    const result = await this.#aiModel.generateContent([altTextPrompt, imagePart]);
 
     if (result?.response) {
       const response = result.response;
