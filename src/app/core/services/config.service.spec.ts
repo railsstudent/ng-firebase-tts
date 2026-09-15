@@ -99,8 +99,11 @@ describe('ConfigService', () => {
 
     await service.initialize();
 
+    await vi.waitFor(() => {
+      expect(initializeAppCheck).toHaveBeenCalled();
+    });
+
     expect(initializeApp).toHaveBeenCalledWith(firebaseConfig.app);
-    expect(initializeAppCheck).toHaveBeenCalled();
     expect(getRemoteConfig).toHaveBeenCalled();
     expect(fetchAndActivate).toHaveBeenCalled();
 

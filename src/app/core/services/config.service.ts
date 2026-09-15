@@ -6,7 +6,6 @@ import remoteConfigDefaults from '@/public/remote-config-defaults.json';
 import { isDevMode, Service } from '@angular/core';
 import { AgentPlatformBackend, AI, getAI, ThinkingLevel } from 'firebase/ai';
 import { FirebaseApp, initializeApp } from 'firebase/app';
-import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 import { fetchAndActivate, getRemoteConfig, getValue, RemoteConfig } from 'firebase/remote-config';
 
 const SECONDS = 60;
@@ -49,11 +48,7 @@ export class ConfigService {
     const key = firebaseConfig.recaptchaEnterpriseKey;
 
     if (isOnline && key) {
-      configureAppCheckDebugToken(firebaseConfig.appCheckDebugToken, isLocalhost);
-      initializeAppCheck(this.#app, {
-        provider: new ReCaptchaEnterpriseProvider(key),
-        isTokenAutoRefreshEnabled: true,
-      });
+      this.loadAppCheck(isLocalhost, key);
     }
 
     this.#remoteConfig = getRemoteConfig(this.#app);
@@ -86,6 +81,17 @@ export class ConfigService {
     this.#aiBackend = getAI(this.#app, {
       backend: new AgentPlatformBackend(this.#appConfig.vertexAILocation),
       useLimitedUseAppCheckTokens: this.#appConfig.useLimitedUseAppCheckTokens,
+    });
+  }
+
+  private loadAppCheck(isLocalhost: boolean, key: string): Promise<void> {
+    const appCheck = import('firebase/app-check');
+    return appCheck.then((m) => {
+      configureAppCheckDebugToken(firebaseConfig.appCheckDebugToken, isLocalhost);
+      m.initializeAppCheck(this.#app, {
+        provider: new m.ReCaptchaEnterpriseProvider(key),
+        isTokenAutoRefreshEnabled: true,
+      });
     });
   }
 }
