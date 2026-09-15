@@ -39,3 +39,7 @@
 .form-field-label {
   @apply text-xs font-bold text-slate-400 uppercase tracking-wider ml-1;
 }
+
+@utility text-muted {
+  @apply text-slate-400;
+}

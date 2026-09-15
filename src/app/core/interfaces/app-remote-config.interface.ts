@@ -1,4 +1,4 @@
-import { ThinkingLevel } from 'firebase/ai';
+import type { ThinkingLevel } from 'firebase/ai';
 
 export interface AppRemoteConfig {
   vertexAILocation: string;

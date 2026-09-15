@@ -1,4 +1,3 @@
-import { AI_BACKEND } from '@/core/constants/firebase.constant';
 import { TestBed } from '@angular/core/testing';
 import { ConfigService } from './config.service';
 import { TextToSpeechService } from './text-to-speech.service';
@@ -27,6 +26,7 @@ describe('TextToSpeechService', () => {
   let mockConfigService: {
     readonly appConfig: Record<string, unknown>;
     remoteConfig: Record<string, unknown>;
+    getAiBackend: ReturnType<typeof vi.fn>;
   };
   let appConfigSpy: ReturnType<typeof vi.fn> & (() => Record<string, unknown>);
 
@@ -49,14 +49,11 @@ describe('TextToSpeechService', () => {
         return appConfigSpy();
       },
       remoteConfig: {},
+      getAiBackend: vi.fn().mockResolvedValue(mockAI),
     };
 
     TestBed.configureTestingModule({
-      providers: [
-        TextToSpeechService,
-        { provide: AI_BACKEND, useValue: mockAI },
-        { provide: ConfigService, useValue: mockConfigService },
-      ],
+      providers: [TextToSpeechService, { provide: ConfigService, useValue: mockConfigService }],
     });
 
     service = TestBed.inject(TextToSpeechService);
@@ -67,8 +64,8 @@ describe('TextToSpeechService', () => {
     vi.restoreAllMocks();
   });
 
-  describe('Model Caching', () => {
-    it('should read modelName from ConfigService appConfig exactly once during initialization', async () => {
+  describe('On-demand Model Construction', () => {
+    it('should read modelName from ConfigService appConfig dynamically on demand during synthesis', async () => {
       appConfigSpy.mockClear();
 
       let testService!: TextToSpeechService;
@@ -76,8 +73,8 @@ describe('TextToSpeechService', () => {
         testService = new TextToSpeechService();
       });
 
-      // Verify it accessed the appConfig signal exactly once on instantiation
-      expect(appConfigSpy).toHaveBeenCalledTimes(1);
+      // Does not access appConfig during constructor instantiation
+      expect(appConfigSpy).not.toHaveBeenCalled();
 
       // Mock generative response
       mockModel.generateContent.mockResolvedValue({
@@ -96,12 +93,12 @@ describe('TextToSpeechService', () => {
         },
       });
 
-      // Call public methods multiple times
+      // Call public methods
       await testService.synthesize({ text: 'Test 1', voice: 'Kore' });
-      await testService.synthesize({ text: 'Test 2', voice: 'Puck' });
-
-      // The count of appConfig signal reads should STILL be exactly 1!
       expect(appConfigSpy).toHaveBeenCalledTimes(1);
+
+      await testService.synthesize({ text: 'Test 2', voice: 'Puck' });
+      expect(appConfigSpy).toHaveBeenCalledTimes(2);
     });
   });
 

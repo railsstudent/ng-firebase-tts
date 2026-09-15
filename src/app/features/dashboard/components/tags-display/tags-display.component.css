@@ -17,7 +17,7 @@
 }
 
 .no-tags-message {
-  @apply text-slate-500 italic;
+  @apply text-muted italic;
 }
 
 /* Active Highlight when selected */

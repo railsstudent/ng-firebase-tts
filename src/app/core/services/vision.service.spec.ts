@@ -1,18 +1,40 @@
-import { VISION_AI_MODEL } from '@/core/constants/firebase.constant';
+import { ConfigService } from '@/core/services/config.service';
 import { TestBed } from '@angular/core/testing';
+import { ThinkingLevel } from 'firebase/ai';
 import { VisionService } from './vision.service';
+
+const mockAiModel = {
+  generateContent: vi.fn().mockResolvedValue({ response: undefined }),
+};
+
+vi.mock('firebase/ai', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('firebase/ai')>();
+  return Object.assign({}, actual, {
+    getGenerativeModel: vi.fn(() => mockAiModel),
+  });
+});
 
 describe('VisionService', () => {
   let service: VisionService;
-  let aiModelMock: { generateContent: (args: unknown) => Promise<unknown> };
 
   beforeEach(() => {
-    aiModelMock = {
-      generateContent: () => Promise.resolve({ response: undefined }),
-    };
+    vi.clearAllMocks();
+    mockAiModel.generateContent.mockResolvedValue({ response: undefined });
 
     TestBed.configureTestingModule({
-      providers: [VisionService, { provide: VISION_AI_MODEL, useValue: aiModelMock }],
+      providers: [
+        VisionService,
+        {
+          provide: ConfigService,
+          useValue: {
+            appConfig: {
+              geminiModelName: 'gemini-2.5-flash',
+              thinkingLevel: ThinkingLevel.LOW,
+            },
+            getAiBackend: vi.fn().mockResolvedValue({}),
+          },
+        },
+      ],
     });
 
     service = TestBed.inject(VisionService);
@@ -69,11 +91,11 @@ describe('VisionService', () => {
     let generateContentCalled = false;
     let generateContentArgs: unknown = null;
 
-    aiModelMock.generateContent = (args: unknown) => {
+    mockAiModel.generateContent.mockImplementation((args: unknown) => {
       generateContentCalled = true;
       generateContentArgs = args;
       return Promise.resolve({ response: mockResponse });
-    };
+    });
 
     const fakeFile = new File([''], 'test-image.png', { type: 'image/png' });
     const result = await service.generateAltText(fakeFile);
@@ -99,7 +121,7 @@ describe('VisionService', () => {
   });
 
   it('should throw an error if generateContent returns an invalid or empty response', async () => {
-    aiModelMock.generateContent = () => Promise.resolve(null);
+    mockAiModel.generateContent.mockResolvedValue(null);
 
     const fakeFile = new File([''], 'test-image.png', { type: 'image/png' });
     await expect(service.generateAltText(fakeFile)).rejects.toThrow('No text generated.');

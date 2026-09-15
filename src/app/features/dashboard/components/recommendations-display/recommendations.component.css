@@ -33,7 +33,7 @@
 }
 
 .no-recommendations {
-  @apply text-slate-500 italic;
+  @apply text-muted italic;
 }
 
 [ngAccordionTrigger] {

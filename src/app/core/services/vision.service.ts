@@ -1,18 +1,42 @@
-import { VISION_AI_MODEL } from '@/core/constants/firebase.constant';
+import { SAFETY_SETTINGS } from '@/core/constants/firebase.constant';
+import { AppRemoteConfig } from '@/core/interfaces/app-remote-config.interface';
 import { ImageAnalysis, ImageAnalysisResponse } from '@/core/interfaces/image-analysis.interface';
+import { ImageAnalysisSchema } from '@/core/schemas/image-analysis.schema';
 import { fileToGenerativePart } from '@/core/utils/fileToPart.util';
 import { inject, Service } from '@angular/core';
-import { GroundingMetadata, UsageMetadata, WebGroundingChunk } from 'firebase/ai';
+import { AI, getGenerativeModel, GroundingMetadata, UsageMetadata, WebGroundingChunk } from 'firebase/ai';
+import { ConfigService } from './config.service';
+
+function getGenerativeAIModel(backend: AI, appConfig: AppRemoteConfig) {
+  return getGenerativeModel(backend, {
+    model: appConfig.geminiModelName,
+    generationConfig: {
+      responseMimeType: 'application/json',
+      responseSchema: ImageAnalysisSchema,
+      thinkingConfig: {
+        thinkingLevel: appConfig.thinkingLevel,
+        includeThoughts: true,
+      },
+    },
+    safetySettings: SAFETY_SETTINGS,
+    tools: [
+      {
+        googleSearch: {},
+      },
+    ],
+  });
+}
 
 @Service()
 export class VisionService {
-  #aiModel = inject(VISION_AI_MODEL);
+  readonly #configService = inject(ConfigService);
 
   async generateAltText(image: File): Promise<ImageAnalysisResponse> {
     if (!image) {
       throw Error('image is required to generate texts.');
     }
 
+    const aiBackend = await this.#configService.getAiBackend();
     const imagePart = await fileToGenerativePart(image);
     const altTextPrompt = `
 You are asked to perform four tasks:
@@ -21,7 +45,8 @@ Task 2: Generate at least 3 tags to describe the image.
 Task 3: Based on the alternative text and tags, provide some suggestions to make the image more interesting and the reason to support them.
 Task 4: Search for a surprising or obscure fact that interconnects the following tags. If a direct link doesn't exist, find a conceptual link between them.
 `;
-    const result = await this.#aiModel.generateContent([altTextPrompt, imagePart]);
+    const aiModel = getGenerativeAIModel(aiBackend, this.#configService.appConfig);
+    const result = await aiModel.generateContent([altTextPrompt, imagePart]);
 
     if (result?.response) {
       const response = result.response;

@@ -1,11 +1,6 @@
-import { InjectionToken } from '@angular/core';
-import { AI, GenerativeModel, HarmBlockThreshold, HarmCategory } from 'firebase/ai';
+import { HarmBlockThreshold, HarmCategory, type SafetySetting } from 'firebase/ai';
 
-export const VISION_AI_MODEL = new InjectionToken<GenerativeModel>('VISION_AI_MODEL');
-
-export const AI_BACKEND = new InjectionToken<AI>('AI_BACKEND');
-
-export const SAFETY_SETTINGS = [
+export const SAFETY_SETTINGS: SafetySetting[] = [
   {
     category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
     threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,

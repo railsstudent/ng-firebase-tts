@@ -9,5 +9,5 @@
 }
 
 .empty-state {
-  @apply text-center text-slate-500;
+  @apply text-center text-muted;
 }

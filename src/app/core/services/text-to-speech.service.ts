@@ -1,17 +1,14 @@
-import { AI_BACKEND } from '@/core/constants/firebase.constant';
 import { DEFAULT_SAMPLE_RATE } from '@/core/constants/text-to-speech.constant';
 import { RawAudioBinary, SpeechChunkData, TextVoiceInput } from '@/core/interfaces/text-to-speech.interface';
 import { decodeBase64 } from '@/core/utils/base64.util';
 import { convertToWav, extractInlineData, parseMimeType } from '@/core/utils/mime-type.util';
 import { inject, Service } from '@angular/core';
-import { GenerateContentResponse, getGenerativeModel, ResponseModality } from 'firebase/ai';
+import { AI, GenerateContentResponse, getGenerativeModel, ResponseModality } from 'firebase/ai';
 import { ConfigService } from './config.service';
 
 @Service()
 export class TextToSpeechService {
-  readonly #aiBackend = inject(AI_BACKEND);
   readonly #configService = inject(ConfigService);
-  readonly #modelName = this.#configService.appConfig.geminiTTSModelName;
 
   private extractValidChunkData(chunk: GenerateContentResponse): SpeechChunkData | null {
     const { data, mimeType } = extractInlineData(chunk);
@@ -27,7 +24,8 @@ export class TextToSpeechService {
     let firstMimeType = '';
     let sampleRate = DEFAULT_SAMPLE_RATE;
 
-    const model = this.createModel(voice);
+    const aiBackend = await this.#configService.getAiBackend();
+    const model = this.createModel(aiBackend, voice);
     const responseStream = await model.generateContentStream([text]);
     for await (const chunk of responseStream.stream) {
       const chunkData = this.extractValidChunkData(chunk);
@@ -59,7 +57,8 @@ export class TextToSpeechService {
    * Fetches the entire audio content at once, constructs a Blob, and returns it.
    */
   async synthesize({ text, voice }: TextVoiceInput): Promise<Blob> {
-    const model = this.createModel(voice);
+    const aiBackend = await this.#configService.getAiBackend();
+    const model = this.createModel(aiBackend, voice);
 
     try {
       const result = await model.generateContent([text]);
@@ -75,9 +74,9 @@ export class TextToSpeechService {
     }
   }
 
-  private createModel(voiceName: string) {
-    return getGenerativeModel(this.#aiBackend, {
-      model: this.#modelName,
+  private createModel(aiBackend: AI, voiceName: string) {
+    return getGenerativeModel(aiBackend, {
+      model: this.#configService.appConfig.geminiTTSModelName,
       generationConfig: {
         responseModalities: [ResponseModality.AUDIO],
         speechConfig: {

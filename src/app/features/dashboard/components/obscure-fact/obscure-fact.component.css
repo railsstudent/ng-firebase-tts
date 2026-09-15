@@ -13,5 +13,5 @@
 }
 
 .obscure-fact-empty {
-  @apply text-slate-500 italic mb-2;
+  @apply text-muted italic mb-2;
 }

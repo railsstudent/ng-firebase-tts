@@ -1,4 +1,3 @@
-import { AI_BACKEND } from '@/core/constants/firebase.constant';
 import { DEFAULT_PLAYBACK_RATE } from '@/core/constants/text-to-speech.constant';
 import { RawAudioBinary } from '@/core/interfaces/text-to-speech.interface';
 import { AudioPlayerService } from '@/core/services/audio-player.service';
@@ -46,7 +45,6 @@ describe('TextToSpeechViewService', () => {
     TestBed.configureTestingModule({
       providers: [
         TextToSpeechViewService,
-        { provide: AI_BACKEND, useValue: {} },
         {
           provide: ConfigService,
           useValue: {
