@@ -73,11 +73,7 @@ export function createWavHeader(dataLength: number, options: WavConversionOption
 export function convertToWav(rawData: Uint8Array, mimeType: string): Blob {
   console.debug('[MimeType] Converting raw audio data to WAV format...', { mimeType });
   const options = parseMimeType(mimeType);
-  const wavHeader = createWavHeader(rawData.length, {
-    sampleRate: options.sampleRate,
-    numChannels: options.numChannels,
-    bitsPerSample: options.bitsPerSample,
-  });
+  const wavHeader = createWavHeader(rawData.length, options);
 
   if (!isBlobPart(wavHeader) || !isBlobPart(rawData)) {
     throw new Error('Header or raw data is not a valid BlobPart.');

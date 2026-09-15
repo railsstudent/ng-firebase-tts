@@ -1,8 +1,10 @@
 <div class="min-h-screen bg-slate-900 text-brand-text flex flex-col items-center p-4 sm:p-6 lg:p-8">
-  <div class="w-full max-w-6xl mx-auto">
+  <div class="w-full max-w-6xl mx-auto flex-1 flex flex-col">
     <app-header />
-    <router-outlet />
-    <app-footer />
+    <main class="flex-1 w-full min-h-[85vh] flex flex-col">
+      <router-outlet />
+    </main>
+    <app-footer class="mt-auto pt-8 sm:pt-12 block" />
   </div>
 </div>
 
