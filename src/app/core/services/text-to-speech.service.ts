@@ -11,7 +11,6 @@ import { ConfigService } from './config.service';
 export class TextToSpeechService {
   readonly #aiBackend = inject(AI_BACKEND);
   readonly #configService = inject(ConfigService);
-  readonly #modelName = this.#configService.appConfig.geminiTTSModelName;
 
   private extractValidChunkData(chunk: GenerateContentResponse): SpeechChunkData | null {
     const { data, mimeType } = extractInlineData(chunk);
@@ -77,7 +76,7 @@ export class TextToSpeechService {
 
   private createModel(voiceName: string) {
     return getGenerativeModel(this.#aiBackend, {
-      model: this.#modelName,
+      model: this.#configService.appConfig.geminiTTSModelName,
       generationConfig: {
         responseModalities: [ResponseModality.AUDIO],
         speechConfig: {

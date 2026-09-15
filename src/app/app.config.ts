@@ -15,7 +15,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes, withComponentInputBinding(), withExperimentalAutoCleanupInjectors()),
-    provideAppInitializer(async () => await inject(ConfigService).initialize()),
+    provideAppInitializer(() => inject(ConfigService).initialize()),
     provideFirebase(),
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),

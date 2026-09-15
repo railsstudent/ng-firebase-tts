@@ -93,46 +93,51 @@ describe('ConfigService', () => {
     return TestBed.inject(ConfigService);
   }
 
-  it('should initialize app, setup remote-config, and fetch when online', async () => {
+  it('should initialize app, setup remote-config, and fetch in background when online', async () => {
     const service = configureTestBed();
     navigatorMock.onLine = true;
 
-    await service.initialize();
-
-    await vi.waitFor(() => {
-      expect(initializeAppCheck).toHaveBeenCalled();
-    });
+    // initialize() is non-blocking (returns void immediately)
+    const result = service.initialize();
+    expect(result).toBeUndefined();
 
     expect(initializeApp).toHaveBeenCalledWith(firebaseConfig.app);
     expect(getRemoteConfig).toHaveBeenCalled();
     expect(fetchAndActivate).toHaveBeenCalled();
 
-    // Verify global debug token gets configured (called 1 time)
+    // Verify dynamic import of AppCheck finishes asynchronously
+    await vi.waitFor(() => {
+      expect(initializeAppCheck).toHaveBeenCalled();
+    });
+
+    // Verify global debug token gets configured
     const globalObj = globalThis as Record<string, unknown>;
     expect(globalObj['FIREBASE_APPCHECK_DEBUG_TOKEN']).toBeDefined();
 
-    // Verify that values fetched online are correctly stored in the appConfig signal
-    expect(service.appConfig).toEqual({
-      vertexAILocation: 'us-central1',
-      useLimitedUseAppCheckTokens: true,
-      geminiModelName: 'gemini-1.5-flash',
-      thinkingLevel: 'LOW',
-      geminiTTSModelName: 'gemini-1.5-flash-tts',
+    // Verify that background fetched values are updated in appConfig
+    await vi.waitFor(() => {
+      expect(service.appConfig).toEqual({
+        vertexAILocation: 'us-central1',
+        useLimitedUseAppCheckTokens: true,
+        geminiModelName: 'gemini-1.5-flash',
+        thinkingLevel: 'LOW',
+        geminiTTSModelName: 'gemini-1.5-flash-tts',
+      });
     });
   });
 
-  it('should skip App Check and dynamic remote-config fetching when offline', async () => {
+  it('should skip App Check and dynamic remote-config fetching when offline', () => {
     const service = configureTestBed();
     navigatorMock.onLine = false;
 
-    await service.initialize();
+    service.initialize();
 
     expect(initializeApp).toHaveBeenCalledWith(firebaseConfig.app);
     expect(initializeAppCheck).not.toHaveBeenCalled();
     expect(getRemoteConfig).toHaveBeenCalled();
     expect(fetchAndActivate).not.toHaveBeenCalled();
 
-    // Verify global debug token remains unconfigured (called 0 times)
+    // Verify global debug token remains unconfigured
     const globalObj = globalThis as Record<string, unknown>;
     expect(globalObj['FIREBASE_APPCHECK_DEBUG_TOKEN']).toBeUndefined();
 
@@ -161,7 +166,7 @@ describe('ConfigService', () => {
       const service = configureTestBed();
       navigatorMock.onLine = true;
 
-      await service.initialize();
+      service.initialize();
 
       expect(initializeAppCheck).not.toHaveBeenCalled();
       expect(getRemoteConfig).toHaveBeenCalled();
@@ -171,19 +176,43 @@ describe('ConfigService', () => {
     }
   });
 
-  it('should catch remote config fetch errors and use defaults gracefully', async () => {
+  it('should catch remote config fetch errors and retain defaults gracefully', async () => {
     const service = configureTestBed();
     navigatorMock.onLine = true;
     vi.mocked(fetchAndActivate).mockRejectedValueOnce(new Error('Fetch timed out'));
 
-    // This should resolve cleanly and print a warning rather than crashing
-    await expect(service.initialize()).resolves.toBeUndefined();
+    // Non-blocking call should not throw or reject
+    expect(() => service.initialize()).not.toThrow();
 
     expect(initializeApp).toHaveBeenCalledWith(firebaseConfig.app);
     expect(getRemoteConfig).toHaveBeenCalled();
     expect(fetchAndActivate).toHaveBeenCalled();
 
-    // When fetch fails, signal remains on default values
+    // When fetch fails in the background, signal retains default values
+    await vi.waitFor(() => {
+      expect(service.appConfig).toEqual({
+        useLimitedUseAppCheckTokens: false,
+        vertexAILocation: 'global',
+        geminiModelName: 'gemini-3.8-flash',
+        geminiTTSModelName: 'gemini-3.1-flash-tts-preview',
+        thinkingLevel: 'LOW',
+      });
+    });
+  });
+
+  it('should throw an error if aiBackend is accessed before initialize() is called', () => {
+    const service = configureTestBed();
+    expect(() => service.aiBackend).toThrow('AI backend has not been initialized yet.');
+  });
+
+  it('should return valid aiBackend after initialize() is called', () => {
+    const service = configureTestBed();
+    service.initialize();
+    expect(service.aiBackend).toBeDefined();
+  });
+
+  it('should expose bundled defaults in appConfig even before initialize() is executed', () => {
+    const service = configureTestBed();
     expect(service.appConfig).toEqual({
       useLimitedUseAppCheckTokens: false,
       vertexAILocation: 'global',
@@ -191,5 +220,33 @@ describe('ConfigService', () => {
       geminiTTSModelName: 'gemini-3.1-flash-tts-preview',
       thinkingLevel: 'LOW',
     });
+  });
+
+  it('should re-instantiate aiBackend when remote config activates new values', async () => {
+    const service = configureTestBed();
+    navigatorMock.onLine = true;
+
+    service.initialize();
+
+    await vi.waitFor(() => {
+      expect(service.appConfig.vertexAILocation).toBe('us-central1');
+    });
+
+    expect(service.aiBackend).toBeDefined();
+  });
+
+  it('should not configure debug token when online on a production host', async () => {
+    windowMock.location.hostname = 'tts-demo.web.app';
+    const service = configureTestBed();
+    navigatorMock.onLine = true;
+
+    service.initialize();
+
+    await vi.waitFor(() => {
+      expect(initializeAppCheck).toHaveBeenCalled();
+    });
+
+    const globalObj = globalThis as Record<string, unknown>;
+    expect(globalObj['FIREBASE_APPCHECK_DEBUG_TOKEN']).toBe(false);
   });
 });

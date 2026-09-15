@@ -67,8 +67,8 @@ describe('TextToSpeechService', () => {
     vi.restoreAllMocks();
   });
 
-  describe('Model Caching', () => {
-    it('should read modelName from ConfigService appConfig exactly once during initialization', async () => {
+  describe('On-demand Model Construction', () => {
+    it('should read modelName from ConfigService appConfig dynamically on demand during synthesis', async () => {
       appConfigSpy.mockClear();
 
       let testService!: TextToSpeechService;
@@ -76,8 +76,8 @@ describe('TextToSpeechService', () => {
         testService = new TextToSpeechService();
       });
 
-      // Verify it accessed the appConfig signal exactly once on instantiation
-      expect(appConfigSpy).toHaveBeenCalledTimes(1);
+      // Does not access appConfig during constructor instantiation
+      expect(appConfigSpy).not.toHaveBeenCalled();
 
       // Mock generative response
       mockModel.generateContent.mockResolvedValue({
@@ -96,12 +96,12 @@ describe('TextToSpeechService', () => {
         },
       });
 
-      // Call public methods multiple times
+      // Call public methods
       await testService.synthesize({ text: 'Test 1', voice: 'Kore' });
-      await testService.synthesize({ text: 'Test 2', voice: 'Puck' });
-
-      // The count of appConfig signal reads should STILL be exactly 1!
       expect(appConfigSpy).toHaveBeenCalledTimes(1);
+
+      await testService.synthesize({ text: 'Test 2', voice: 'Puck' });
+      expect(appConfigSpy).toHaveBeenCalledTimes(2);
     });
   });
 

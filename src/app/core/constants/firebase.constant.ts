@@ -1,7 +1,5 @@
 import { InjectionToken } from '@angular/core';
-import { AI, GenerativeModel, HarmBlockThreshold, HarmCategory } from 'firebase/ai';
-
-export const VISION_AI_MODEL = new InjectionToken<GenerativeModel>('VISION_AI_MODEL');
+import { AI, HarmBlockThreshold, HarmCategory } from 'firebase/ai';
 
 export const AI_BACKEND = new InjectionToken<AI>('AI_BACKEND');
 

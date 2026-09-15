@@ -17,7 +17,6 @@ const PROD_TIMEOUT = 2000;
 @Service()
 export class ConfigService {
   #app: FirebaseApp | undefined = undefined;
-  #remoteConfig: RemoteConfig | undefined = undefined;
   #isOnline = injectOnlineStatus();
   #isLocalhost = injectIsLocalhost();
 
@@ -41,7 +40,7 @@ export class ConfigService {
     return this.#aiBackend;
   }
 
-  async initialize(): Promise<void> {
+  initialize() {
     this.#app = initializeApp(firebaseConfig.app);
     const isOnline = this.#isOnline();
     const isLocalhost = this.#isLocalhost();
@@ -51,32 +50,40 @@ export class ConfigService {
       this.loadAppCheck(isLocalhost, key);
     }
 
-    this.#remoteConfig = getRemoteConfig(this.#app);
-    this.#remoteConfig.defaultConfig = remoteConfigDefaults;
+    const rc = getRemoteConfig(this.#app);
+    rc.defaultConfig = remoteConfigDefaults;
     const dev = isDevMode();
-    this.#remoteConfig.settings.minimumFetchIntervalMillis = dev ? 0 : ONE_HOUR_IN_MILLISECONDS;
-    this.#remoteConfig.settings.fetchTimeoutMillis = dev ? DEV_TIMEOUT : PROD_TIMEOUT;
+    rc.settings.minimumFetchIntervalMillis = dev ? 0 : ONE_HOUR_IN_MILLISECONDS;
+    rc.settings.fetchTimeoutMillis = dev ? DEV_TIMEOUT : PROD_TIMEOUT;
+
+    this.#aiBackend = getAI(this.#app, {
+      backend: new AgentPlatformBackend(this.#appConfig.vertexAILocation),
+      useLimitedUseAppCheckTokens: this.#appConfig.useLimitedUseAppCheckTokens,
+    });
 
     if (isOnline) {
-      try {
-        const activated = await fetchAndActivate(this.#remoteConfig);
-        console.log('Remote Config initialized. Activated new values:', activated);
-
-        const rc = this.#remoteConfig;
-        const rawThinkingLevel = getValue(rc, 'thinkingLevel').asString();
-        const thinkingLevel = ThinkingLevel[rawThinkingLevel as keyof typeof ThinkingLevel];
-
-        this.#appConfig = {
-          vertexAILocation: getValue(rc, 'vertexAILocation').asString(),
-          useLimitedUseAppCheckTokens: getValue(rc, 'useLimitedUseAppCheckTokens').asBoolean(),
-          geminiModelName: getValue(rc, 'geminiModelName').asString(),
-          thinkingLevel,
-          geminiTTSModelName: getValue(rc, 'geminiTTSModelName').asString(),
-        };
-      } catch (error) {
-        console.warn('Remote Config fetch timed out or failed. Using defaults:', error);
-      }
+      fetchAndActivate(rc)
+        .then((activated) => {
+          console.log('Remote Config initialized. Activated new values:', activated);
+          this.applyRemoteConfigValues(rc);
+        })
+        .catch((error) => {
+          console.warn('Remote Config fetch timed out or failed. Using defaults:', error);
+        });
     }
+  }
+
+  private applyRemoteConfigValues(rc: RemoteConfig): void {
+    const rawThinkingLevel = getValue(rc, 'thinkingLevel').asString();
+    const thinkingLevel = ThinkingLevel[rawThinkingLevel as keyof typeof ThinkingLevel];
+
+    this.#appConfig = {
+      vertexAILocation: getValue(rc, 'vertexAILocation').asString(),
+      useLimitedUseAppCheckTokens: getValue(rc, 'useLimitedUseAppCheckTokens').asBoolean(),
+      geminiModelName: getValue(rc, 'geminiModelName').asString(),
+      thinkingLevel,
+      geminiTTSModelName: getValue(rc, 'geminiTTSModelName').asString(),
+    };
 
     this.#aiBackend = getAI(this.#app, {
       backend: new AgentPlatformBackend(this.#appConfig.vertexAILocation),
@@ -87,7 +94,7 @@ export class ConfigService {
   private loadAppCheck(isLocalhost: boolean, key: string): Promise<void> {
     const appCheck = import('firebase/app-check');
     return appCheck.then((m) => {
-      configureAppCheckDebugToken(firebaseConfig.appCheckDebugToken, isLocalhost);
+      configureAppCheckDebugToken(firebaseConfig.appCheckDebugToken, isLocalhost, isDevMode() && isLocalhost);
       m.initializeAppCheck(this.#app, {
         provider: new m.ReCaptchaEnterpriseProvider(key),
         isTokenAutoRefreshEnabled: true,
