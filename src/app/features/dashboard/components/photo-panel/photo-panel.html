@@ -9,6 +9,16 @@
     (generate)="handleGenerateClick()"
     (removeFile)="handleFileChange(undefined)"
   />
-  <app-tags-display [tags]="parsed?.tags || []" />
+
+  @let tags = parsed?.tags || [];
+  @let hasTags = tags.length > 0;
+  @defer (when hasTags) {
+    <app-tags-display [tags]="tags" />
+  } @placeholder {
+    <div class="tags-wrapper">
+      <h3 class="tags-title">Suggested Tags</h3>
+      <p class="no-tags-message">No tags were generated for this image.</p>
+    </div>
+  }
   <app-obscure-fact [interestingFact]="parsed?.fact" />
 </div>

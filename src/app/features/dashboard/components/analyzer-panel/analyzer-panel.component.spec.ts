@@ -2,7 +2,7 @@ import { VISION_AI_MODEL } from '@/core/constants/firebase.constant';
 import { ImageAnalysisResponse } from '@/core/interfaces/image-analysis.interface';
 import { VisionService } from '@/core/services/vision.service';
 import { AnalyzerPanelComponent } from '@/features/dashboard/components/analyzer-panel/analyzer-panel.component';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, DeferBlockBehavior, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { GenerativeModel } from 'firebase/ai';
 
@@ -29,6 +29,7 @@ describe('AnalyzerPanelComponent', () => {
     await TestBed.configureTestingModule({
       imports: [AnalyzerPanelComponent],
       providers: [{ provide: VISION_AI_MODEL, useFactory: aiModelFactory }],
+      deferBlockBehavior: DeferBlockBehavior.Playthrough,
     }).compileComponents();
 
     fixture = TestBed.createComponent(AnalyzerPanelComponent);
@@ -42,14 +43,17 @@ describe('AnalyzerPanelComponent', () => {
   });
 
   // TEST CASE 1: Render child elements
-  it('should render app-photo-panel and app-alt-text-panel side-by-side without loading VisionService', () => {
+  it('should render app-photo-panel and defer placeholder initially without loading VisionService', () => {
     expect(aiModelFactory).not.toHaveBeenCalled();
 
     const photoPanel = fixture.debugElement.query(By.css('app-photo-panel'));
     const altTextPanel = fixture.debugElement.query(By.css('app-alt-text-panel'));
+    const emptyState = fixture.debugElement.query(By.css('.empty-state'));
 
     expect(photoPanel).toBeTruthy();
-    expect(altTextPanel).toBeTruthy();
+    expect(altTextPanel).toBeNull();
+    expect(emptyState).toBeTruthy();
+    expect(emptyState.nativeElement.textContent).toContain('Upload an image and click "Generate" to see the results.');
   });
 
   // TEST CASE 2: Successful generate flow

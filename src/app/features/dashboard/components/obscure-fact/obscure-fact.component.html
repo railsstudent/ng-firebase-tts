@@ -5,14 +5,15 @@
     <p class="obscure-fact-text">{{ interestingFact() }}</p>
 
     <app-error-display [error]="ttsError()" />
-
-    @let voice = audioTags.audioPromptModel().voiceOption;
-    <app-text-to-speech
-      [voice]="voice"
-      [interestingFact]="interestingFact()"
-      [audioPrompt]="audioPrompt()"
-      [(ttsError)]="ttsError"
-    />
+    @defer (when interestingFact()) {
+      @let voice = audioTags.audioPromptModel().voiceOption;
+      <app-text-to-speech
+        [voice]="voice"
+        [interestingFact]="interestingFact()"
+        [audioPrompt]="audioPrompt()"
+        [(ttsError)]="ttsError"
+      />
+    }
   } @else {
     <p class="obscure-fact-empty">The tag(s) does not have any interesting or obscure fact.</p>
   }

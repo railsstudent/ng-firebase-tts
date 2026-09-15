@@ -1,0 +1,13 @@
+@reference "../../../../../styles.css";
+
+.tags-wrapper {
+  @apply w-full mt-6;
+}
+
+.tags-title {
+  @apply text-lg font-semibold text-slate-300 mb-3;
+}
+
+.no-tags-message {
+  @apply text-slate-500 italic;
+}

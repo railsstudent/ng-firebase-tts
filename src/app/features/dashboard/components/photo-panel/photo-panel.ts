@@ -12,6 +12,7 @@ const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/jpg', 'image/web
   imports: [PhotoUploadComponent, TagsDisplayComponent, ObscureFactComponent],
   providers: [AssetRegistry],
   templateUrl: './photo-panel.html',
+  styleUrl: './photo-panel.css',
 })
 export class PhotoPanel {
   readonly #assetRegistry = inject(AssetRegistry);
