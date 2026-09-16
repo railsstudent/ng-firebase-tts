@@ -25,7 +25,7 @@ export class TextToSpeechViewService {
   loadingMode = this.#loadingMode.asReadonly();
 
   constructor() {
-    this.#destroyRef$.onDestroy(() => revokeBlobURL(this.#audioUrl()));
+    this.#destroyRef$.onDestroy(async () => revokeBlobURL(this.#audioUrl()));
   }
 
   private async handlePlaybackError(e: unknown, createdUrl: string | undefined) {
@@ -67,31 +67,53 @@ export class TextToSpeechViewService {
     return Math.round(rawRate * percent) / percent;
   }
 
-  private async handleStream(promptArgs: FactConfig) {
-    let createdUrl: string | undefined = undefined;
+  private async consumeStream(stream: AsyncGenerator<RawAudioBinary | Blob | undefined>, abortSignal: AbortSignal) {
     let finalBlob: Blob | undefined = undefined;
     let isInitialized = false;
+
+    for await (const chunk of stream) {
+      if (abortSignal.aborted) {
+        break;
+      }
+
+      if (chunk instanceof Blob) {
+        finalBlob = chunk;
+      } else if (chunk) {
+        isInitialized = await this.processStreamChunk(isInitialized, this.#playbackRate(), chunk);
+      }
+    }
+
+    return finalBlob;
+  }
+
+  private async handleStream(promptArgs: FactConfig) {
+    let createdUrl: string | undefined = undefined;
+
+    const abortController = new AbortController();
+    const { signal: abortSignal } = abortController;
+    const unregisteredFn = this.#destroyRef$.onDestroy(() => abortController.abort());
+
     try {
       const { prompt, voice, shouldWait = false } = promptArgs;
       const streamPlaybackRate = shouldWait ? 1 : this.calculateRandomPlaybackRate();
       this.#playbackRate.set(streamPlaybackRate);
 
       const speechService = await this.#asyncSpeechService();
-      for await (const chunk of speechService.synthesizeStream({ text: prompt, voice: voice, shouldWait })) {
-        if (chunk instanceof Blob) {
-          finalBlob = chunk;
-        } else if (chunk) {
-          isInitialized = await this.processStreamChunk(isInitialized, this.#playbackRate(), chunk);
-        }
-      }
-      if (shouldWait) {
+      const stream = speechService.synthesizeStream({ text: prompt, voice: voice, shouldWait });
+      const finalBlob = await this.consumeStream(stream, abortSignal);
+
+      if (shouldWait && !abortSignal.aborted) {
         const audioPlayerService = await this.#asyncAudioPlayerService();
         await audioPlayerService.awaitPlaybackComplete();
         createdUrl = this.setAudioUrl(finalBlob);
       }
     } catch (e) {
-      this.handlePlaybackError(e, createdUrl);
-      throw e;
+      if (!abortSignal.aborted) {
+        this.handlePlaybackError(e, createdUrl);
+        throw e;
+      }
+    } finally {
+      unregisteredFn();
     }
   }
 

@@ -83,7 +83,7 @@ describe('AudioPlayerService', () => {
     it('should instantiate safely and no-op without crashing when AudioContext is undefined in global scope', () => {
       vi.stubGlobal('AudioContext', undefined);
 
-      const ssrService = new AudioPlayerService();
+      const ssrService = TestBed.runInInjectionContext(() => new AudioPlayerService());
       expect(ssrService).toBeDefined();
       expect(() => ssrService.stopAll()).not.toThrow();
     });
@@ -153,7 +153,7 @@ describe('AudioPlayerService', () => {
     beforeEach(() => {
       vi.useFakeTimers();
       vi.spyOn(Math, 'random').mockReturnValue(1 / 3);
-      testService = new AudioPlayerService();
+      testService = TestBed.runInInjectionContext(() => new AudioPlayerService());
     });
 
     afterEach(() => {

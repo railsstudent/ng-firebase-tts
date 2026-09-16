@@ -4,14 +4,15 @@ import {
   PLAYBACK_POLL_INTERVAL,
 } from '@/core/constants/text-to-speech.constant';
 import { normalizePcmSamples } from '@/core/utils/pcm.util';
-import { OnDestroy, Service, signal } from '@angular/core';
+import { DestroyRef, inject, Service, signal } from '@angular/core';
 import { EmptyError, interval, lastValueFrom, map, takeWhile } from 'rxjs';
 
 @Service()
-export class AudioPlayerService implements OnDestroy {
+export class AudioPlayerService {
   #audioCtx: AudioContext | undefined = undefined;
   #nextStartTime = 0;
   #activeSources: AudioBufferSourceNode[] = [];
+  readonly #destroyRef$ = inject(DestroyRef);
 
   readonly #playbackCheck$ = interval(PLAYBACK_POLL_INTERVAL).pipe(
     map(() => (this.#audioCtx ? this.#nextStartTime - this.#audioCtx.currentTime : 0)),
@@ -20,6 +21,10 @@ export class AudioPlayerService implements OnDestroy {
 
   #playbackRate = signal(DEFAULT_PLAYBACK_RATE);
   playbackRate = this.#playbackRate.asReadonly();
+
+  constructor() {
+    this.#destroyRef$.onDestroy(() => this.stopAll());
+  }
 
   initialize(sampleRate = DEFAULT_SAMPLE_RATE, playbackRate = DEFAULT_PLAYBACK_RATE): void {
     this.stopAll();
@@ -93,9 +98,5 @@ export class AudioPlayerService implements OnDestroy {
       }
       throw e;
     }
-  }
-
-  ngOnDestroy(): void {
-    this.stopAll();
   }
 }
