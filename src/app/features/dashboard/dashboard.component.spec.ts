@@ -1,8 +1,9 @@
-import { VisionService } from '@/core/services/vision.service';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { DeferBlockState, ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { VisionService } from '@/core/services/vision.service';
 import { TextToSpeechService } from '@/core/services/text-to-speech.service';
 import { AudioPlayerService } from '@/core/services/audio-player.service';
+import { ImageAnalysisResponse } from '@/core/interfaces/image-analysis.interface';
 import { signal } from '@angular/core';
 import DashboardComponent from './dashboard.component';
 
@@ -57,8 +58,8 @@ describe('DashboardComponent', () => {
     expect(thoughtSummary).toBeNull(); // Empty by default since analysis is undefined
   });
 
-  // TEST CASE 2: Model Sync Propagating
-  it('should pass analysis data down to app-thought-summary when analysis is set', () => {
+  // TEST CASE 2: Deferral Resolution & Model Propagation
+  it('should resolve deferred thought summary and propagate analysis inputs when analysis is set', async () => {
     component.analysis.set({
       parsed: {
         alternativeText: 'A blue sky.',
@@ -72,7 +73,48 @@ describe('DashboardComponent', () => {
     });
     fixture.detectChanges();
 
+    const deferBlocks = await fixture.getDeferBlocks();
+    expect(deferBlocks.length).toBeGreaterThanOrEqual(1);
+
+    for (const block of deferBlocks) {
+      await block.render(DeferBlockState.Complete);
+    }
+    fixture.detectChanges();
+
     const thoughtSummary = fixture.debugElement.query(By.css('app-thought-summary'));
     expect(thoughtSummary).toBeTruthy();
+
+    const thoughtComponent = thoughtSummary.componentInstance as { thought: () => string; tokenUsage: () => unknown };
+    expect(thoughtComponent.thought()).toBe('Thinking...');
+    expect(thoughtComponent.tokenUsage()).toEqual({ input: 10, output: 20, thought: 5, total: 35 });
+  });
+
+  // TEST CASE 3: Fallback Defaults when thought and tokenUsage are undefined
+  it('should fallback to default thought string and zeroed token usage when not provided in analysis', async () => {
+    component.analysis.set({
+      parsed: {
+        alternativeText: 'Sample image.',
+        recommendations: [],
+        tags: [],
+        fact: 'Sample fact.',
+      },
+      thought: undefined,
+      tokenUsage: undefined,
+      metadata: { citations: [], renderedContent: '', searchQueries: [] },
+    } as unknown as ImageAnalysisResponse);
+    fixture.detectChanges();
+
+    const deferBlocks = await fixture.getDeferBlocks();
+    for (const block of deferBlocks) {
+      await block.render(DeferBlockState.Complete);
+    }
+    fixture.detectChanges();
+
+    const thoughtSummary = fixture.debugElement.query(By.css('app-thought-summary'));
+    expect(thoughtSummary).toBeTruthy();
+
+    const thoughtComponent = thoughtSummary.componentInstance as { thought: () => string; tokenUsage: () => unknown };
+    expect(thoughtComponent.thought()).toBe('');
+    expect(thoughtComponent.tokenUsage()).toEqual({ input: 0, output: 0, thought: 0, total: 0 });
   });
 });

@@ -37,6 +37,7 @@ export default defineConfig({
     'gaplessly',
     'toggleable',
     'sdkconfig',
+    'autoplay',
   ],
   ignorePaths: [
     'node_modules',
