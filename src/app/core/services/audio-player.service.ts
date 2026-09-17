@@ -59,9 +59,7 @@ export class AudioPlayerService {
     const duration = buffer.duration / this.#playbackRate();
     this.#nextStartTime = playTime + duration;
 
-    sourceNode.onended = () => {
-      this.#activeSources = this.#activeSources.filter((s) => s !== sourceNode);
-    };
+    sourceNode.onended = () => (this.#activeSources = this.#activeSources.filter((s) => s !== sourceNode));
   }
 
   stopAll(): void {
@@ -73,6 +71,7 @@ export class AudioPlayerService {
         // Safe swallow for nodes already stopped
       }
     });
+
     this.#activeSources = [];
     this.#nextStartTime = 0;
     if (this.#audioCtx) {

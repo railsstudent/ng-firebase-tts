@@ -3,13 +3,14 @@ import { Component, computed } from '@angular/core';
 @Component({
   selector: 'app-footer',
   template: `
-    <footer class="bg-slate-800/50 border border-slate-700 rounded-2xl w-full">
-      <div class="container mx-auto px-6 py-4 text-center text-gray-400">
+    <footer class="app-footer">
+      <div class="footer-content">
         <p>&copy; {{ copyrightYear() }} Image Analysis and Text-to-Speech Application.</p>
         <p>Built with Angular, Firebase AI Logic, and TailwindCSS 4.</p>
       </div>
     </footer>
   `,
+  styleUrl: './footer.component.css',
 })
 export class FooterComponent {
   copyrightYear = computed(() => new Date(Date.now()).getFullYear());
