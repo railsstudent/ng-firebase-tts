@@ -3,18 +3,15 @@
   <h3 class="obscure-fact-title">A surprising or obscure fact about the tags</h3>
   @if (interestingFact()) {
     <p class="obscure-fact-text">{{ interestingFact() }}</p>
-
     <app-error-display [error]="ttsError()" />
-    @defer (when interestingFact()) {
-      @let voice = audioTags.audioPromptModel().voiceOption;
-      <app-text-to-speech
-        [voice]="voice"
-        [interestingFact]="interestingFact()"
-        [audioPrompt]="audioPrompt()"
-        [(ttsError)]="ttsError"
-      />
-    }
+    @let voice = audioTags.audioPromptModel().voiceOption;
+    <app-text-to-speech
+      [voice]="voice"
+      [interestingFact]="interestingFact()"
+      [audioPrompt]="audioPrompt()"
+      [(ttsError)]="ttsError"
+    />
   } @else {
-    <p class="obscure-fact-empty">The tag(s) does not have any interesting or obscure fact.</p>
+    <p class="obscure-fact-empty">Upload an image to discover an obscure fact and generate speech.</p>
   }
 </div>

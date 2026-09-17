@@ -38,7 +38,6 @@
     "@angular/platform-browser": "^22.0.0",
     "@angular/router": "^22.0.0",
     "@angular/service-worker": "22.1.4",
-    "@fontsource/material-symbols-outlined": "5.3.4",
     "firebase": "12.18.0",
     "rxjs": "~7.8.2",
     "tslib": "^2.3.0"
@@ -50,6 +49,7 @@
     "@commitlint/cli": "21.2.2",
     "@commitlint/config-conventional": "21.2.2",
     "@eslint/js": "^10.0.1",
+    "@fontsource/material-symbols-outlined": "5.3.6",
     "@tailwindcss/postcss": "4.3.3",
     "@vitest/coverage-v8": "^4.1.11",
     "angular-eslint": "22.1.0",

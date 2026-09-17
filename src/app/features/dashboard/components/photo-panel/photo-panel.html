@@ -20,5 +20,14 @@
       <p class="no-tags-message">No tags were generated for this image.</p>
     </div>
   }
-  <app-obscure-fact [interestingFact]="parsed?.fact" />
+
+  @let fact = parsed?.fact;
+  @defer (when fact) {
+    <app-obscure-fact [interestingFact]="fact" />
+  } @placeholder {
+    <div class="obscure-fact-placeholder">
+      <h3 class="obscure-fact-title">A surprising or obscure fact about the tags</h3>
+      <p class="obscure-fact-empty">Upload an image to discover an obscure fact and generate speech.</p>
+    </div>
+  }
 </div>
