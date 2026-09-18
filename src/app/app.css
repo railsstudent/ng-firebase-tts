@@ -9,7 +9,7 @@
 }
 
 .app-main {
-  @apply flex-1 w-full min-h-[85vh] flex flex-col;
+  @apply flex-1 w-full flex flex-col;
 }
 
 .app-footer {
