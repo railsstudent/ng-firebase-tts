@@ -1,11 +1,7 @@
 <div class="panel-container">
   @let imageAnalysis = analysis();
-  @if (error()) {
-    <div class="error-card">
-      <h3 class="error-title">Error</h3>
-      <p>{{ error() }}</p>
-    </div>
-  }
+  @let errorMessage = error() || '';
+  <app-error-display [error]="errorMessage" />
   @if (!isLoading() && !error() && !imageAnalysis) {
     <div class="empty-state">
       <p>Upload an image and click "Generate" to see the results.</p>

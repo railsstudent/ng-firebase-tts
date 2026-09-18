@@ -57,11 +57,13 @@ describe('AltTextPanel', () => {
     fixture.detectChanges();
 
     const emptyState = fixture.debugElement.query(By.css('.empty-state'));
-    const errorCard = fixture.debugElement.query(By.css('.error-card'));
+    const errorDisplay = fixture.debugElement.query(By.css('app-error-display'));
+    const errorBlock = fixture.debugElement.query(By.css('.error-block'));
 
     expect(emptyState).toBeNull();
-    expect(errorCard).toBeTruthy();
-    expect(errorCard.nativeElement.textContent).toContain('Failed to contact Vertex AI backend');
+    expect(errorDisplay).toBeTruthy();
+    expect(errorBlock).toBeTruthy();
+    expect(errorBlock.nativeElement.textContent).toContain('Failed to contact Vertex AI backend');
   });
 
   // TEST CASE 4: Analysis Results Rendering
