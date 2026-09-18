@@ -1,6 +1,6 @@
 import { ImageAnalysisResponse } from '@/core/interfaces/image-analysis.interface';
 import { ObscureFactComponent } from '@/features/dashboard/components/obscure-fact/obscure-fact.component';
-import { PhotoUploadComponent } from '@/features/dashboard/components/photo-upload/photo-upload.component';
+import { PhotoPickerComponent } from '@/features/dashboard/components/photo-upload/photo-picker.component';
 import { TagsDisplayComponent } from '@/features/dashboard/components/tags-display/tags-display.component';
 import { Component, inject, input, model, output } from '@angular/core';
 import { AssetRegistry } from './services/asset-registry.service';
@@ -9,7 +9,7 @@ const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/jpg', 'image/web
 
 @Component({
   selector: 'app-photo-panel',
-  imports: [PhotoUploadComponent, TagsDisplayComponent, ObscureFactComponent],
+  imports: [PhotoPickerComponent, TagsDisplayComponent, ObscureFactComponent],
   providers: [AssetRegistry],
   templateUrl: './photo-panel.html',
   styleUrl: './photo-panel.css',

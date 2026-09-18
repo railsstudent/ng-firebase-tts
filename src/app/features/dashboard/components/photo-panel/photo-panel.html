@@ -1,7 +1,7 @@
 <div>
   @let imageAnalysis = analysis();
   @let parsed = imageAnalysis?.parsed;
-  <app-photo-upload
+  <app-photo-picker
     [previewUrl]="previewUrl()"
     [isLoading]="isLoading()"
     [acceptedFileTypes]="acceptedTypes"

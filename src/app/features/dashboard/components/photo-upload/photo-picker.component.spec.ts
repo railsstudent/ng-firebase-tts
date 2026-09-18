@@ -1,19 +1,19 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { PhotoUploadComponent } from './photo-upload.component';
+import { PhotoPickerComponent } from './photo-picker.component';
 import { PhotoIconComponent } from '@/shared/ui/icons/photo-icon.component';
 import { SpinnerIconComponent } from '@/shared/ui/icons/spinner-icon.component';
 import { By } from '@angular/platform-browser';
 
-describe('PhotoUploadComponent', () => {
-  let component: PhotoUploadComponent;
-  let fixture: ComponentFixture<PhotoUploadComponent>;
+describe('PhotoPickerComponent', () => {
+  let component: PhotoPickerComponent;
+  let fixture: ComponentFixture<PhotoPickerComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PhotoUploadComponent, PhotoIconComponent, SpinnerIconComponent],
+      imports: [PhotoPickerComponent, PhotoIconComponent, SpinnerIconComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(PhotoUploadComponent);
+    fixture = TestBed.createComponent(PhotoPickerComponent);
     component = fixture.componentInstance;
 
     // Provide default inputs

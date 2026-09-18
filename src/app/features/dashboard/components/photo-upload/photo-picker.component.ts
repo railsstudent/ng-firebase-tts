@@ -3,12 +3,12 @@ import { SpinnerIconComponent } from '@/shared/ui/icons/spinner-icon.component';
 import { Component, computed, ElementRef, input, output, signal, viewChild } from '@angular/core';
 
 @Component({
-  selector: 'app-photo-upload',
+  selector: 'app-photo-picker',
   imports: [PhotoIconComponent, SpinnerIconComponent],
-  templateUrl: './photo-upload.component.html',
-  styleUrl: './photo-upload.component.css',
+  templateUrl: './photo-picker.component.html',
+  styleUrl: './photo-picker.component.css',
 })
-export class PhotoUploadComponent {
+export class PhotoPickerComponent {
   previewUrl = input<string | undefined>(undefined);
   isLoading = input(false);
   acceptedFileTypes = input.required<string[]>();
