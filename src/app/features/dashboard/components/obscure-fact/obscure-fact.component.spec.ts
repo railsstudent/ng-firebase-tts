@@ -53,14 +53,6 @@ describe('ObscureFactComponent', () => {
     fixture.componentRef.setInput('interestingFact', 'Did you know that honey never spoils?');
     fixture.detectChanges();
 
-    expect(component.audioTagsModel()).toEqual({
-      scene: 'A news anchor reading the news in a busy newsroom',
-      emotion: 'professional, slightly serious',
-      pace: 'moderate, clear enunciation',
-      voiceOption: 'Kore',
-    });
-
-    expect(component.voice()).toBe('Kore');
     expect(component.audioPrompt()).toContain('Did you know that honey never spoils?');
   });
 

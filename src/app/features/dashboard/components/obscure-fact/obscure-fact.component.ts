@@ -17,13 +17,10 @@ export class ObscureFactComponent {
 
   ttsError = signal<string>('');
 
-  audioTagsModel = computed(() => this.audioTags().audioPromptModel());
   audioPrompt = computed(() =>
     buildAudioPrompt({
-      ...this.audioTagsModel(),
+      ...this.audioTags().audioPromptModel(),
       transcript: this.interestingFact() || '',
     }),
   );
-
-  voice = computed(() => this.audioTagsModel().voiceOption);
 }
