@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { PwaUpdateService } from './core/services/pwa-update.service';
 import { PwaUpdateBanner } from './pwa-update-banner';
 import { FooterComponent } from './shared/ui/layout/footer/footer.component';
 import { HeaderComponent } from './shared/ui/layout/header/header.component';
@@ -10,4 +11,7 @@ import { HeaderComponent } from './shared/ui/layout/header/header.component';
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
-export class App {}
+export class App {
+  readonly #pwaService = inject(PwaUpdateService);
+  readonly updateAvailable = this.#pwaService.updateAvailable;
+}

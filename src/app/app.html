@@ -8,6 +8,6 @@
   </div>
 </div>
 
-@defer (on idle) {
+@defer (when updateAvailable()) {
   <app-pwa-update-banner />
 }
