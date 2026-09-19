@@ -1,0 +1,20 @@
+# ng-firebase-tts
+
+> A client-side Angular application demonstrating real-time streaming text-to-speech (TTS) and multimodal image analysis powered directly by Firebase AI Logic (Vertex AI for Firebase) and Gemini models with zero server-side orchestration.
+
+## Core Documentation
+
+- [Full Documentation](/llms-full.txt): Complete in-depth architectural and technical specification for AI agents.
+- [Interactive Application](/): Web application interface for multimodal vision analysis and real-time text-to-speech streaming.
+
+## Features & Modules
+
+- [Real-Time Speech Synthesis](/): Zero-latency streaming text-to-speech with Gemini Voice Models (`Aoede`, `Charon`, `Fenrir`, `Kore`, `Puck`, `Zephyr`) and Web Audio API gapless scheduling.
+- [Multimodal Image Comprehension](/): Automated extraction of descriptive tags, accessibility alt-text, image suggestions, and Google Search grounded trivia.
+- [Vocal Customization](/): Contextual parameters for Scene Description, Vocal Emotion, and Speaking Pace.
+- [PWA & Offline Caching](/manifest.webmanifest): Service Worker caching manifest for full offline shell capability.
+
+## Optional & Configuration
+
+- [Firebase SDK Config](/firebase.config.json): Client-side Firebase initialization configuration.
+- [Remote Config Defaults](/remote-config-defaults.json): Default parameters for Gemini models, thinking levels, and locations.

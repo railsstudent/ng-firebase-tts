@@ -1,0 +1,62 @@
+# ng-firebase-tts — Full Technical Documentation
+
+> A client-side Angular application demonstrating real-time streaming text-to-speech (TTS) and multimodal image analysis powered directly by Firebase AI Logic (Vertex AI for Firebase) and Gemini models with zero server-side orchestration.
+
+## 1. Executive Summary
+
+ng-firebase-tts demonstrates client-side AI integration using Angular 22, Tailwind CSS v4, and the Firebase Web SDK (v12). It directly connects the browser to Google Gemini models running on Vertex AI via Firebase AI Logic (`firebase/ai`), enabling low-latency image analysis and gapless text-to-speech streaming without intermediary backend servers or proxy functions.
+
+---
+
+## 2. Technical Architecture & Technology Stack
+
+- **Framework**: Angular 22 with modern Zoneless change detection, Signal-first reactivity, `@angular/aria` accessibility primitives, and `@angular/forms/signals`.
+- **Styling**: Tailwind CSS v4 with component-scoped `@reference` styling and CSS custom properties.
+- **AI & Cloud Backend**: Firebase Web SDK 12.x (`firebase/app`, `firebase/ai`, `firebase/remote-config`), Google Cloud Vertex AI.
+- **Audio Engine**: Web Audio API `AudioContext` timeline scheduler for streaming Float32/Linear PCM sample buffers (`audio/l16`) and dynamic client-side RIFF/WAV header construction.
+- **Offline / PWA**: Angular Service Worker (`@angular/service-worker`) with offline asset manifests, lazy prefetching, and automated update notifications.
+
+---
+
+## 3. Core Modules & Capabilities
+
+### 3.1. Real-Time Text-To-Speech (TTS)
+- **Model**: `gemini-2.5-flash` or configurable Gemini TTS endpoint.
+- **Voice Profiles**: `Aoede`, `Charon`, `Fenrir`, `Kore`, `Puck`, `Zephyr`.
+- **Audio Decoding**: Uncompressed 16-bit Linear PCM (`audio/l16; rate=24000; channels=1`) received as binary chunks or base64 streams.
+- **Gapless Playback**: Employs Web Audio API timestamp-scheduled buffer nodes to deliver continuous, stutter-free playback while chunks are streaming.
+- **Ad-Hoc Playback**: Prepends a 44-byte RIFF/WAV header to raw PCM arrays to instantiate playable `audio/wav` Blobs for standard `<audio>` controls.
+
+### 3.2. Multimodal Vision Analysis
+- **Model**: `gemini-2.5-flash` with Google Search Grounding.
+- **Capabilities**:
+  - **Descriptive Alt-Text**: Accessibility-focused image description.
+  - **Descriptive Tags**: Visual entity classification.
+  - **Obscure Fact**: Cross-domain trivia interconnected with image tags, verified via Google Search citation metadata.
+  - **Recommendations**: Practical compositional suggestions to enhance image quality.
+  - **Thought Summary**: Transparency into model reasoning when a thinking budget is enabled.
+
+### 3.3. Vocal Customization Engine
+- Injects contextual metadata into TTS prompts:
+  - **Scene Description**: Narrative environment context (e.g. "A busy train station", "A calm quiet library").
+  - **Vocal Emotion**: Emotional delivery modifier (`[excited]`, `[calm]`, `[professional]`, etc.).
+  - **Speaking Pace**: Delivery speed modifier (`[fast]`, `[moderate]`, `[slow]`).
+
+---
+
+## 4. Domain Vocabulary
+
+- **Linear PCM (L16)**: The raw, uncompressed 16-bit Pulse-Code Modulation audio data format returned by Gemini TTS.
+- **WAV Conversion**: Client-side byte manipulation adding a RIFF/WAVE header to PCM buffers.
+- **Gapless Timeline Playback**: Scheduling Float32 sample buffers on the Web Audio API timeline at future timestamps to eliminate gaps between streamed chunks.
+- **Voice Profile**: Prebuilt Gemini speech persona configured in synthesis parameters.
+- **Firebase AI Logic**: The client SDK (`firebase/ai`) authenticating and routing generative AI calls directly to Vertex AI without intermediary servers.
+- **Search Grounding**: Google Search citation metadata attached to Gemini vision responses.
+- **Remote Config Defaults**: Static local fallback parameters injected prior to dynamic Firebase Remote Config activation.
+
+---
+
+## 5. Security & Client Privacy
+
+- Direct client-to-Vertex AI communication is authenticated using Firebase API keys restricted to authorized domain referrers and App Check tokens.
+- No user-uploaded image files or synthesized audio streams are permanently stored on application servers; all buffer transformations execute locally in browser memory.

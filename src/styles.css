@@ -1,6 +1,11 @@
-/* You can add global styles to this file, and also import other style files */
+@font-face {
+  font-family: 'Material Symbols Outlined';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/material-symbols-outlined-latin-400-normal.woff2') format('woff2');
+}
 
-@import '@fontsource/material-symbols-outlined/400.css';
 @import 'tailwindcss';
 
 .material-symbols-outlined {
