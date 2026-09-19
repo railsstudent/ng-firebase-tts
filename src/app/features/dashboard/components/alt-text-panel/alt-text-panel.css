@@ -1,7 +1,7 @@
 @reference "../../../../../styles.css";
 
 .panel-container {
-  @apply flex flex-col justify-center min-h-[20rem];
+  @apply flex flex-col justify-center min-h-auto md:min-h-[20rem];
 }
 
 .empty-state {
