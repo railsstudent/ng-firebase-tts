@@ -38,6 +38,7 @@ export default defineConfig({
     'toggleable',
     'sdkconfig',
     'autoplay',
+    'llms',
   ],
   ignorePaths: [
     'node_modules',

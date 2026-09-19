@@ -11,7 +11,18 @@ import { ConfigService } from './config.service';
 vi.mock('firebase/app', async (importOriginal) => {
   const actual = await importOriginal<typeof import('firebase/app')>();
   return Object.assign({}, actual, {
-    initializeApp: vi.fn().mockReturnValue({ name: '[DEFAULT]' }),
+    initializeApp: vi.fn().mockReturnValue({
+      name: '[DEFAULT]',
+      container: {
+        getProvider: vi.fn().mockReturnValue({
+          getImmediate: vi.fn().mockReturnValue({}),
+          getComponent: vi.fn().mockReturnValue({}),
+          heartbeatController: {
+            triggerHeartbeat: vi.fn(),
+          },
+        }),
+      },
+    }),
   });
 });
 
@@ -55,12 +66,15 @@ vi.mock('firebase/remote-config', async (importOriginal) => {
 });
 
 // Mock firebase/ai to prevent real initialization inside ConfigService tests
-vi.mock('firebase/ai', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('firebase/ai')>();
-  return Object.assign({}, actual, {
-    getAI: () => ({}) as unknown as import('firebase/ai').AI,
-  });
-});
+vi.mock('firebase/ai', () => ({
+  getAI: vi.fn().mockReturnValue({}),
+  AgentPlatformBackend: vi.fn(),
+}));
+
+vi.mock('@firebase/ai', () => ({
+  getAI: vi.fn().mockReturnValue({}),
+  AgentPlatformBackend: vi.fn(),
+}));
 
 describe('ConfigService', () => {
   let navigatorMock: { onLine: boolean };
@@ -105,14 +119,8 @@ describe('ConfigService', () => {
     expect(getRemoteConfig).toHaveBeenCalled();
     expect(fetchAndActivate).toHaveBeenCalled();
 
-    // Verify dynamic import of AppCheck finishes asynchronously
-    await vi.waitFor(() => {
-      expect(initializeAppCheck).toHaveBeenCalled();
-    });
-
-    // Verify global debug token gets configured
-    const globalObj = globalThis as Record<string, unknown>;
-    expect(globalObj['FIREBASE_APPCHECK_DEBUG_TOKEN']).toBeDefined();
+    // App Check is deliberately NOT called at startup (protects FCP/LCP)
+    expect(initializeAppCheck).not.toHaveBeenCalled();
 
     // Verify that background fetched values are updated in appConfig
     await vi.waitFor(() => {
@@ -126,7 +134,7 @@ describe('ConfigService', () => {
     });
   });
 
-  it('should skip App Check and dynamic remote-config fetching when offline', () => {
+  it('should skip App Check and dynamic remote-config fetching when offline', async () => {
     const service = configureTestBed();
     navigatorMock.onLine = false;
 
@@ -136,6 +144,10 @@ describe('ConfigService', () => {
     expect(initializeAppCheck).not.toHaveBeenCalled();
     expect(getRemoteConfig).toHaveBeenCalled();
     expect(fetchAndActivate).not.toHaveBeenCalled();
+
+    // Even when getAiBackend() is called, App Check should not be initialized offline
+    await service.getAiBackend();
+    expect(initializeAppCheck).not.toHaveBeenCalled();
 
     // Verify global debug token remains unconfigured
     const globalObj = globalThis as Record<string, unknown>;
@@ -167,10 +179,11 @@ describe('ConfigService', () => {
       navigatorMock.onLine = true;
 
       service.initialize();
-
-      expect(initializeAppCheck).not.toHaveBeenCalled();
       expect(getRemoteConfig).toHaveBeenCalled();
       expect(fetchAndActivate).toHaveBeenCalled();
+
+      await service.getAiBackend();
+      expect(initializeAppCheck).not.toHaveBeenCalled();
     } finally {
       config.recaptchaEnterpriseKey = originalKey;
     }
@@ -205,13 +218,24 @@ describe('ConfigService', () => {
     await expect(service.getAiBackend()).rejects.toThrow('Firebase App has not been initialized yet.');
   });
 
-  it('should return valid ai instance and cache it after initialize()', async () => {
+  it('should return valid ai instance and initialize App Check JIT with concurrency lock', async () => {
     const service = configureTestBed();
+    navigatorMock.onLine = true;
     service.initialize();
+
+    expect(initializeAppCheck).not.toHaveBeenCalled();
+
     const ai1 = await service.getAiBackend();
     const ai2 = await service.getAiBackend();
+
     expect(ai1).toBeDefined();
     expect(ai1).toBe(ai2);
+    // Verified App Check is called exactly once despite concurrent getAiBackend() calls
+    expect(initializeAppCheck).toHaveBeenCalledTimes(1);
+
+    // Verify global debug token gets configured on localhost
+    const globalObj = globalThis as Record<string, unknown>;
+    expect(globalObj['FIREBASE_APPCHECK_DEBUG_TOKEN']).toBeDefined();
   });
 
   it('should expose bundled defaults in appConfig even before initialize() is executed', () => {
@@ -245,10 +269,10 @@ describe('ConfigService', () => {
     navigatorMock.onLine = true;
 
     service.initialize();
+    expect(initializeAppCheck).not.toHaveBeenCalled();
 
-    await vi.waitFor(() => {
-      expect(initializeAppCheck).toHaveBeenCalled();
-    });
+    await service.getAiBackend();
+    expect(initializeAppCheck).toHaveBeenCalled();
 
     const globalObj = globalThis as Record<string, unknown>;
     expect(globalObj['FIREBASE_APPCHECK_DEBUG_TOKEN']).toBe(false);

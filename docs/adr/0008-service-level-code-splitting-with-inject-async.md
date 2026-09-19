@@ -30,9 +30,9 @@ We adopt a tiered code-splitting and lazy-loading architecture utilizing Angular
 - **Text-To-Speech (`TextToSpeechService` & `AudioPlayerService`) — Pure On-Demand**:
   - Injected asynchronously in presentation view helpers (`TextToSpeechViewService`) using `injectAsync(() => import(...).then(m => m.TextToSpeechService))` **without prefetching**.
   - **Rationale**: Audio generation is an optional, secondary feature. TTS and Web Audio chunk bytes are only downloaded over the network if the user explicitly triggers audio playback.
-- **Image Analysis (`VisionService`) — Idle Prefetched**:
-  - Injected asynchronously in `AnalyzerPanelComponent` using `injectAsync(() => import(...).then(m => m.VisionService), { prefetch: onIdle })`.
-  - **Rationale**: Image analysis is the primary user goal. Using `prefetch: onIdle` prevents initial render blocking (LCP protection) while eliminating click latency by fetching the chunk during the user's natural 2–5 second file-selection dwell time.
+- **Image Analysis (`VisionService`) — Pure On-Demand**:
+  - Injected asynchronously in `AnalyzerPanelComponent` using `injectAsync(() => import(...).then(m => m.VisionService))` **without prefetching**.
+  - **Rationale**: Eliminates network contention and heavy SDK parsing (`firebase/ai`) from the initial critical rendering path, protecting mobile FCP and LCP. Chunk is downloaded on demand when the user initiates analysis.
 
 ### 3. Web Audio & SSR Safe Initialization (`AudioPlayerService`)
 

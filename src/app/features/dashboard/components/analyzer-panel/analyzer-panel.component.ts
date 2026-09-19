@@ -1,7 +1,7 @@
 import { ImageAnalysisResponse } from '@/core/interfaces/image-analysis.interface';
 import { AltTextPanel } from '@/features/dashboard/components/alt-text-panel/alt-text-panel';
 import { PhotoPanel } from '@/features/dashboard/components/photo-panel/photo-panel';
-import { Component, injectAsync, model, onIdle, signal } from '@angular/core';
+import { Component, injectAsync, model, signal } from '@angular/core';
 
 @Component({
   selector: 'app-analyzer-panel',
@@ -10,9 +10,7 @@ import { Component, injectAsync, model, onIdle, signal } from '@angular/core';
   styleUrl: './analyzer-panel.component.css',
 })
 export class AnalyzerPanelComponent {
-  #asyncVisionService = injectAsync(() => import('@/core/services/vision.service').then((m) => m.VisionService), {
-    prefetch: onIdle,
-  });
+  #asyncVisionService = injectAsync(() => import('@/core/services/vision.service').then((m) => m.VisionService));
 
   analysis = model<ImageAnalysisResponse | undefined>(undefined);
   error = signal<string | undefined>(undefined);

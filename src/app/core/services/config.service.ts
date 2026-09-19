@@ -33,6 +33,14 @@ export class ConfigService {
   }
 
   #ai: AI | null = null;
+  #appCheck: Promise<void> | null = null;
+
+  private ensureAppCheck(isLocalhost: boolean, key: string): Promise<void> {
+    if (!this.#appCheck) {
+      this.#appCheck = this.loadAppCheck(isLocalhost, key);
+    }
+    return this.#appCheck;
+  }
 
   async getAiBackend(): Promise<AI> {
     if (!this.#app) {
@@ -41,6 +49,13 @@ export class ConfigService {
 
     if (this.#ai) {
       return this.#ai;
+    }
+
+    const isOnline = this.#isOnline();
+    const isLocalhost = this.#isLocalhost();
+    const key = firebaseConfig.recaptchaEnterpriseKey;
+    if (isOnline && key) {
+      await this.ensureAppCheck(isLocalhost, key);
     }
 
     const { getAI, AgentPlatformBackend } = await import('firebase/ai');
@@ -55,12 +70,6 @@ export class ConfigService {
   initialize() {
     this.#app = initializeApp(firebaseConfig.app);
     const isOnline = this.#isOnline();
-    const isLocalhost = this.#isLocalhost();
-    const key = firebaseConfig.recaptchaEnterpriseKey;
-
-    if (isOnline && key) {
-      this.loadAppCheck(isLocalhost, key);
-    }
 
     const rc = getRemoteConfig(this.#app);
     rc.defaultConfig = remoteConfigDefaults;
