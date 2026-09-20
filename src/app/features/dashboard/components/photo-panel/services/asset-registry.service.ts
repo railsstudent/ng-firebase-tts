@@ -1,3 +1,4 @@
+import { revokeBlobURL } from '@/core/utils/blob.util';
 import { DestroyRef, inject, Injectable, linkedSignal, signal } from '@angular/core';
 
 @Injectable()
@@ -11,7 +12,7 @@ export class AssetRegistry {
     source: this.#file,
     computation: (currentFile, previous) => {
       if (previous?.value) {
-        URL.revokeObjectURL(previous.value);
+        revokeBlobURL(previous.value);
       }
       return currentFile ? URL.createObjectURL(currentFile) : undefined;
     },
@@ -21,7 +22,7 @@ export class AssetRegistry {
     this.#destroyRef.onDestroy(() => {
       const finalUrl = this.previewUrl();
       if (finalUrl) {
-        URL.revokeObjectURL(finalUrl);
+        revokeBlobURL(finalUrl);
       }
     });
   }

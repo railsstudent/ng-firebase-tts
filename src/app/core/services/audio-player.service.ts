@@ -3,7 +3,7 @@ import {
   DEFAULT_SAMPLE_RATE,
   PLAYBACK_POLL_INTERVAL,
 } from '@/core/constants/text-to-speech.constant';
-import { normalizePcmSamples } from '@/core/utils/pcm.util';
+import { normalizePcmSamples } from '@/core/utils/audio.util';
 import { DestroyRef, inject, Service, signal } from '@angular/core';
 import { EmptyError, interval, lastValueFrom, map, takeWhile } from 'rxjs';
 
