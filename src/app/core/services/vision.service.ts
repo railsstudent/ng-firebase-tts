@@ -1,31 +1,12 @@
 import { SAFETY_SETTINGS } from '@/core/constants/firebase.constant';
-import { AppRemoteConfig } from '@/core/interfaces/app-remote-config.interface';
 import { ImageAnalysis, ImageAnalysisResponse } from '@/core/interfaces/image-analysis.interface';
 import { ImageAnalysisSchema } from '@/core/schemas/image-analysis.schema';
-import { fileToGenerativePart } from '@/core/utils/fileToPart.util';
+import { ConfigService } from '@/core/services/config.service';
 import { inject, Service } from '@angular/core';
 import { AI, getGenerativeModel, GroundingMetadata, UsageMetadata, WebGroundingChunk } from 'firebase/ai';
-import { ConfigService } from './config.service';
 
-function getGenerativeAIModel(backend: AI, appConfig: AppRemoteConfig) {
-  return getGenerativeModel(backend, {
-    model: appConfig.geminiModelName,
-    generationConfig: {
-      responseMimeType: 'application/json',
-      responseSchema: ImageAnalysisSchema,
-      thinkingConfig: {
-        thinkingLevel: appConfig.thinkingLevel,
-        includeThoughts: true,
-      },
-    },
-    safetySettings: SAFETY_SETTINGS,
-    tools: [
-      {
-        googleSearch: {},
-      },
-    ],
-  });
-}
+const NOT_FOUND_INDEX = -1;
+const PAYLOAD_OFFSET = 1;
 
 @Service()
 export class VisionService {
@@ -37,7 +18,7 @@ export class VisionService {
     }
 
     const aiBackend = await this.#configService.getAiBackend();
-    const imagePart = await fileToGenerativePart(image);
+    const imagePart = await this.fileToGenerativePart(image);
     const altTextPrompt = `
 You are asked to perform four tasks:
 Task 1: Generate 1 - 3 sentences of alternative texts for the image provided, max 300 words.
@@ -45,7 +26,7 @@ Task 2: Generate at least 3 tags to describe the image.
 Task 3: Based on the alternative text and tags, provide some suggestions to make the image more interesting and the reason to support them.
 Task 4: Search for a surprising or obscure fact that interconnects the following tags. If a direct link doesn't exist, find a conceptual link between them.
 `;
-    const aiModel = getGenerativeAIModel(aiBackend, this.#configService.appConfig);
+    const aiModel = this.getGenerativeAIModel(aiBackend);
     const result = await aiModel.generateContent([altTextPrompt, imagePart]);
 
     if (result?.response) {
@@ -64,6 +45,51 @@ Task 4: Search for a surprising or obscure fact that interconnects the following
       };
     }
     throw Error('No text generated.');
+  }
+
+  private async fileToGenerativePart(file: File): Promise<{ inlineData: { data: string; mimeType: string } }> {
+    const data = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result !== 'string') {
+          reject(new Error('FileReader returned null result'));
+          return;
+        }
+        const commaIndex = reader.result.indexOf(',');
+        if (commaIndex === NOT_FOUND_INDEX) {
+          reject(new Error('FileReader result is not in expected format'));
+          return;
+        }
+        resolve(reader.result.slice(commaIndex + PAYLOAD_OFFSET));
+      };
+      reader.onerror = () => reject(reader.error ?? new Error('Disk read failure'));
+      reader.readAsDataURL(file);
+    });
+
+    return {
+      inlineData: { data, mimeType: file.type },
+    };
+  }
+
+  private getGenerativeAIModel(backend: AI) {
+    const appConfig = this.#configService.appConfig;
+    return getGenerativeModel(backend, {
+      model: appConfig.geminiModelName,
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: ImageAnalysisSchema,
+        thinkingConfig: {
+          thinkingLevel: appConfig.thinkingLevel,
+          includeThoughts: true,
+        },
+      },
+      safetySettings: SAFETY_SETTINGS,
+      tools: [
+        {
+          googleSearch: {},
+        },
+      ],
+    });
   }
 
   private constructCitations(groundingMetadata?: GroundingMetadata) {
@@ -94,12 +120,11 @@ Task 4: Search for a surprising or obscure fact that interconnects the following
   }
 
   private getTokenUsage(usageMetadata?: UsageMetadata) {
-    const tokenUsage = {
+    return {
       input: usageMetadata?.promptTokenCount || 0,
       output: usageMetadata?.candidatesTokenCount || 0,
       thought: usageMetadata?.thoughtsTokenCount || 0,
       total: usageMetadata?.totalTokenCount || 0,
     };
-    return tokenUsage;
   }
 }
