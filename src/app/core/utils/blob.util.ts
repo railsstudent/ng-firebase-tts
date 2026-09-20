@@ -14,7 +14,3 @@ export function revokeBlobURL(blobUrl: string | undefined) {
     URL.revokeObjectURL(blobUrl);
   }
 }
-
-export function constructBlobURL(parts: BlobPart[]) {
-  return URL.createObjectURL(new Blob(parts, { type: 'audio/wav' }));
-}

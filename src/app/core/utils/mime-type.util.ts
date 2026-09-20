@@ -38,7 +38,7 @@ export function parseMimeType(mimeType: string): ParsedMimeType {
   return { baseType, sampleRate, numChannels, bitsPerSample };
 }
 
-export function createWavHeader(dataLength: number, options: WavConversionOptions): Uint8Array {
+function createWavHeader(dataLength: number, options: WavConversionOptions): Uint8Array {
   const { numChannels, sampleRate, bitsPerSample } = options;
 
   const byteRate = (sampleRate * numChannels * bitsPerSample) / 8;

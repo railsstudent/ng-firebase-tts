@@ -29,7 +29,7 @@
       "source": "firebase/agent-skills",
       "sourceType": "github",
       "skillPath": "skills/firebase-ai-logic-basics/SKILL.md",
-      "computedHash": "2af723026c6cb09aeedd6d0578421b5f25cd410c72a4e5135b4b174451a5eee9"
+      "computedHash": "9fb678d0c441ab8b2b5820816b726b5a40a26c6f81f7f46e5570ca31e6c84052"
     },
     "firebase-app-hosting-basics": {
       "source": "firebase/agent-skills",
@@ -41,7 +41,7 @@
       "source": "firebase/agent-skills",
       "sourceType": "github",
       "skillPath": "skills/firebase-auth-basics/SKILL.md",
-      "computedHash": "25070123c29d59098ac817dee0eee36a73b4a822e6bb925a0ebccab0c78cf1e9"
+      "computedHash": "50ea643133c98c22dc784912625e002b181e227579dd90ae56ec9447ff80f439"
     },
     "firebase-basics": {
       "source": "firebase/agent-skills",
