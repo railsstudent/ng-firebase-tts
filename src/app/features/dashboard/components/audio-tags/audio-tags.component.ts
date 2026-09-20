@@ -1,7 +1,7 @@
 import { VoiceSelectorComponent } from '@/features/dashboard/components/voice-selector/voice-selector.component';
 import { DEFAULT_VOICE } from '@/features/dashboard/constants/voice-name.const';
 import { AudioPromptData } from '@/features/dashboard/interfaces/audio-prompt-data.interface';
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, model } from '@angular/core';
 import { form, FormField } from '@angular/forms/signals';
 
 @Component({
@@ -11,22 +11,15 @@ import { form, FormField } from '@angular/forms/signals';
   styleUrl: './audio-tags.component.css',
 })
 export class AudioTagsComponent {
-  #audioPromptModel = signal<AudioPromptData>({
-    scene: 'A news anchor reading the news in a busy newsroom',
-    emotion: 'professional, slightly serious',
-    pace: 'moderate, clear enunciation',
-    voiceOption: DEFAULT_VOICE,
-  });
+  audioPromptModel = model.required<AudioPromptData>();
 
-  audioPromptModel = this.#audioPromptModel.asReadonly();
+  audioPromptForm = form(this.audioPromptModel);
 
-  audioPromptForm = form(this.#audioPromptModel);
-
-  selectedValue = computed(() => this.#audioPromptModel().voiceOption);
+  selectedValue = computed(() => this.audioPromptModel().voiceOption);
 
   onValueChange(newValues: string) {
     const voiceOption = newValues ?? DEFAULT_VOICE;
-    this.#audioPromptModel.update((model) => ({
+    this.audioPromptModel.update((model) => ({
       ...model,
       voiceOption,
     }));

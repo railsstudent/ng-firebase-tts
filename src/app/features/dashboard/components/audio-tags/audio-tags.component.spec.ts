@@ -1,7 +1,15 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
 import { AudioTagsComponent } from '@/features/dashboard/components/audio-tags/audio-tags.component';
 import { DEFAULT_VOICE } from '@/features/dashboard/constants/voice-name.const';
+import { AudioPromptData } from '@/features/dashboard/interfaces/audio-prompt-data.interface';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+
+const mockDefaultAudioPrompt: AudioPromptData = {
+  scene: 'A news anchor reading the news in a busy newsroom',
+  emotion: 'professional, slightly serious',
+  pace: 'moderate, clear enunciation',
+  voiceOption: DEFAULT_VOICE,
+};
 
 describe('AudioTagsComponent', () => {
   let component: AudioTagsComponent;
@@ -14,6 +22,7 @@ describe('AudioTagsComponent', () => {
 
     fixture = TestBed.createComponent(AudioTagsComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('audioPromptModel', mockDefaultAudioPrompt);
     fixture.detectChanges();
   });
 
