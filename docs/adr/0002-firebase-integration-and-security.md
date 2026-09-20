@@ -15,7 +15,7 @@ We will establish a secure, SSR-safe Firebase core architecture using runtime co
 2. **App Check Protection**:
    - Initialize App Check using the **reCAPTCHA Enterprise** provider for web clients.
    - Support zero-friction developer testing by loading pre-registered App Check debug tokens from `.env` (packaged into `firebase.config.json`) and assigning the explicit string directly to `self.FIREBASE_APPCHECK_DEBUG_TOKEN`. This avoids the manual console-registration overhead that setting the value to `true` (auto-generating fresh tokens) would require on every developer session.
-   - Defer App Check initialization entirely if `IS_BROWSER` is false (during SSR/compile) to prevent server-side failures.
+   - Defer App Check initialization entirely in non-browser execution contexts (e.g., SSR or build-time compilation) to prevent server-side failures.
 3. **Resilient Remote Config**:
    - Register a local fallback configuration `public/remote-config-defaults.json` checked into Git.
    - If `fetchAndActivate()` fails during build prerendering or due to user offline states, the app catches the error and utilizes the local fallback file gracefully.

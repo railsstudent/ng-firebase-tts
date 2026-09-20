@@ -1,4 +1,4 @@
-import { NAVIGATOR, WINDOW } from '@/core/constants/navigator.const';
+import { WINDOW } from '@/core/constants/navigator.const';
 import firebaseConfig from '@/public/firebase.config.json';
 import '@angular/compiler';
 import { TestBed } from '@angular/core/testing';
@@ -77,17 +77,18 @@ vi.mock('@firebase/ai', () => ({
 }));
 
 describe('ConfigService', () => {
-  let navigatorMock: { onLine: boolean };
-  let windowMock: { location: { hostname: string } };
+  let windowMock: { location: { hostname: string }; navigator: { onLine: boolean } } | null;
 
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(fetchAndActivate).mockResolvedValue(true);
 
-    navigatorMock = { onLine: true };
     windowMock = {
       location: {
         hostname: 'localhost',
+      },
+      navigator: {
+        onLine: true,
       },
     };
     // Cleanly reset global token before each test
@@ -98,18 +99,16 @@ describe('ConfigService', () => {
   function configureTestBed(): ConfigService {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
-      providers: [
-        ConfigService,
-        { provide: NAVIGATOR, useValue: navigatorMock },
-        { provide: WINDOW, useValue: windowMock },
-      ],
+      providers: [ConfigService, { provide: WINDOW, useValue: windowMock }],
     });
     return TestBed.inject(ConfigService);
   }
 
   it('should initialize app, setup remote-config, and fetch in background when online', async () => {
     const service = configureTestBed();
-    navigatorMock.onLine = true;
+    if (windowMock) {
+      windowMock.navigator.onLine = true;
+    }
 
     // initialize() is non-blocking (returns void immediately)
     const result = service.initialize();
@@ -135,8 +134,10 @@ describe('ConfigService', () => {
   });
 
   it('should skip App Check and dynamic remote-config fetching when offline', async () => {
+    if (windowMock) {
+      windowMock.navigator.onLine = false;
+    }
     const service = configureTestBed();
-    navigatorMock.onLine = false;
 
     service.initialize();
 
@@ -176,7 +177,9 @@ describe('ConfigService', () => {
 
     try {
       const service = configureTestBed();
-      navigatorMock.onLine = true;
+      if (windowMock) {
+        windowMock.navigator.onLine = true;
+      }
 
       service.initialize();
       expect(getRemoteConfig).toHaveBeenCalled();
@@ -191,7 +194,9 @@ describe('ConfigService', () => {
 
   it('should catch remote config fetch errors and retain defaults gracefully', async () => {
     const service = configureTestBed();
-    navigatorMock.onLine = true;
+    if (windowMock) {
+      windowMock.navigator.onLine = true;
+    }
     vi.mocked(fetchAndActivate).mockRejectedValueOnce(new Error('Fetch timed out'));
 
     // Non-blocking call should not throw or reject
@@ -220,7 +225,9 @@ describe('ConfigService', () => {
 
   it('should return valid ai instance and initialize App Check JIT with concurrency lock', async () => {
     const service = configureTestBed();
-    navigatorMock.onLine = true;
+    if (windowMock) {
+      windowMock.navigator.onLine = true;
+    }
     service.initialize();
 
     expect(initializeAppCheck).not.toHaveBeenCalled();
@@ -251,7 +258,9 @@ describe('ConfigService', () => {
 
   it('should invalidate cached aiBackend when remote config activates new values', async () => {
     const service = configureTestBed();
-    navigatorMock.onLine = true;
+    if (windowMock) {
+      windowMock.navigator.onLine = true;
+    }
 
     service.initialize();
 
@@ -264,9 +273,11 @@ describe('ConfigService', () => {
   });
 
   it('should not configure debug token when online on a production host', async () => {
-    windowMock.location.hostname = 'tts-demo.web.app';
+    if (windowMock) {
+      windowMock.location.hostname = 'tts-demo.web.app';
+      windowMock.navigator.onLine = true;
+    }
     const service = configureTestBed();
-    navigatorMock.onLine = true;
 
     service.initialize();
     expect(initializeAppCheck).not.toHaveBeenCalled();
@@ -276,5 +287,11 @@ describe('ConfigService', () => {
 
     const globalObj = globalThis as Record<string, unknown>;
     expect(globalObj['FIREBASE_APPCHECK_DEBUG_TOKEN']).toBe(false);
+  });
+
+  it('should handle SSR gracefully when WINDOW is null', () => {
+    windowMock = null;
+    const service = configureTestBed();
+    expect(() => service.initialize()).not.toThrow();
   });
 });

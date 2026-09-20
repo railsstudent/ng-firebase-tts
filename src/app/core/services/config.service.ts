@@ -1,9 +1,8 @@
+import { WINDOW } from '@/core/constants/navigator.const';
 import { AppRemoteConfig } from '@/core/interfaces/app-remote-config.interface';
-import { injectOnlineStatus } from '@/core/utils/connection.util';
-import { configureAppCheckDebugToken, injectIsLocalhost } from '@/core/utils/platform.util';
 import firebaseConfig from '@/public/firebase.config.json';
 import remoteConfigDefaults from '@/public/remote-config-defaults.json';
-import { isDevMode, Service } from '@angular/core';
+import { inject, isDevMode, Service } from '@angular/core';
 import type { AI, ThinkingLevel } from 'firebase/ai';
 import { FirebaseApp, initializeApp } from 'firebase/app';
 import { fetchAndActivate, getRemoteConfig, getValue, RemoteConfig } from 'firebase/remote-config';
@@ -14,11 +13,12 @@ const ONE_HOUR_IN_MILLISECONDS = SECONDS * SECONDS * MILLISECONDS;
 const DEV_TIMEOUT = 1000;
 const PROD_TIMEOUT = 2000;
 
+const LOCAL_DOMAINS = ['localhost', '127.0.0.1', '::1', '[::1]'];
+
 @Service()
 export class ConfigService {
+  readonly #window = inject(WINDOW);
   #app: FirebaseApp | undefined = undefined;
-  #isOnline = injectOnlineStatus();
-  #isLocalhost = injectIsLocalhost();
 
   #appConfig: AppRemoteConfig = {
     useLimitedUseAppCheckTokens: remoteConfigDefaults.useLimitedUseAppCheckTokens === 'true',
@@ -34,6 +34,20 @@ export class ConfigService {
 
   #ai: AI | null = null;
   #appCheck: Promise<void> | null = null;
+
+  #isOnline(): boolean {
+    return this.#window?.navigator?.onLine ?? true;
+  }
+
+  #isLocalhost(): boolean {
+    return !!this.#window && LOCAL_DOMAINS.includes(this.#window.location.hostname);
+  }
+
+  #configureAppCheckDebugToken(isLocalhost: boolean): void {
+    (globalThis as Record<string, unknown>)['FIREBASE_APPCHECK_DEBUG_TOKEN'] = isLocalhost
+      ? firebaseConfig.appCheckDebugToken || true
+      : false;
+  }
 
   private ensureAppCheck(isLocalhost: boolean, key: string): Promise<void> {
     if (!this.#appCheck) {
@@ -107,7 +121,7 @@ export class ConfigService {
   private loadAppCheck(isLocalhost: boolean, key: string): Promise<void> {
     const appCheck = import('firebase/app-check');
     return appCheck.then((m) => {
-      configureAppCheckDebugToken(firebaseConfig.appCheckDebugToken, isLocalhost, isDevMode() && isLocalhost);
+      this.#configureAppCheckDebugToken(isLocalhost);
       m.initializeAppCheck(this.#app, {
         provider: new m.ReCaptchaEnterpriseProvider(key),
         isTokenAutoRefreshEnabled: true,

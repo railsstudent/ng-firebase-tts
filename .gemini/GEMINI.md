@@ -73,26 +73,20 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 
 - **Inject `DOCUMENT`**: Always inject Angular's built-in `DOCUMENT` token from `@angular/common` instead of referencing the global `document` keyword.
 
-- **Composed Browser-Global Injection Tokens**: To safely reference browser-only global objects (such as `window`, `localStorage`, `sessionStorage`, `navigator`, etc.) without crashing during SSR:
-  1. Define a global cached `IS_BROWSER` token to identify the platform context.
-  2. **Compose other global tokens** by injecting `IS_BROWSER` into their factory callbacks.
-  3. Explicitly type these composed tokens as `<Type> | null` so that TypeScript natively compile-checks and forces developers to verify existence before accessing them:
+- **SSR-Safe Browser Global Injection Tokens**: To safely reference browser-only global objects (such as `window`, `localStorage`, `sessionStorage`, etc.) without crashing during SSR:
+  1. Check `isPlatformBrowser(inject(PLATFORM_ID))` directly inside the token's factory callback.
+  2. Explicitly type tokens as `<Type> | null` so that TypeScript natively compile-checks and enforces existence verification before access:
 
   ```typescript
-  import { InjectionToken, inject, PLATFORM_ID } from '@angular/core';
   import { isPlatformBrowser } from '@angular/common';
-
-  export const IS_BROWSER = new InjectionToken<boolean>('GlobalIsBrowserToken', {
-    providedIn: 'root',
-    factory: () => isPlatformBrowser(inject(PLATFORM_ID)),
-  });
+  import { inject, InjectionToken, PLATFORM_ID } from '@angular/core';
 
   /**
    * WINDOW: Returns the browser window object, or null in SSR
    */
   export const WINDOW = new InjectionToken<Window | null>('GlobalWindowToken', {
     providedIn: 'root',
-    factory: () => (inject(IS_BROWSER) ? window : null),
+    factory: () => (isPlatformBrowser(inject(PLATFORM_ID)) ? window : null),
   });
 
   /**
@@ -100,7 +94,7 @@ You are an expert in TypeScript, Angular, and scalable web application developme
    */
   export const LOCAL_STORAGE = new InjectionToken<Storage | null>('GlobalLocalStorageToken', {
     providedIn: 'root',
-    factory: () => (inject(IS_BROWSER) ? window.localStorage : null),
+    factory: () => inject(WINDOW)?.localStorage ?? null,
   });
   ```
 

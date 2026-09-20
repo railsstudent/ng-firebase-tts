@@ -2,7 +2,7 @@ import { DeferBlockState, TestBed } from '@angular/core/testing';
 import { App } from './app';
 
 import { SwUpdate } from '@angular/service-worker';
-import { IS_BROWSER, WINDOW } from '@/core/constants/navigator.const';
+import { WINDOW } from '@/core/constants/navigator.const';
 import { EMPTY } from 'rxjs';
 
 describe('App', () => {
@@ -16,10 +16,6 @@ describe('App', () => {
             isEnabled: false,
             versionUpdates: EMPTY,
           },
-        },
-        {
-          provide: IS_BROWSER,
-          useValue: true,
         },
         {
           provide: WINDOW,
