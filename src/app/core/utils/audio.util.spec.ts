@@ -119,6 +119,16 @@ describe('audio.util', () => {
       expect(viewNonNumeric.getUint16(34, true)).toBe(16);
     });
 
+    it('should accept an array of Uint8Array chunks and merge them into a valid audio/wav Blob', () => {
+      const chunk1 = new Uint8Array([1, 2]);
+      const chunk2 = new Uint8Array([3, 4, 5]);
+      const blob = toWavBlob([chunk1, chunk2], 'audio/l16; rate=16000; channels=1');
+
+      expect(blob).toBeInstanceOf(Blob);
+      expect(blob.type).toBe('audio/wav');
+      expect(blob.size).toBe(44 + 5);
+    });
+
     it('should accept a base64 encoded string directly and produce a valid audio/wav Blob', () => {
       const base64Data = 'SGVsbG8=';
       const blob = toWavBlob(base64Data, 'audio/l16; rate=24000; channels=1');

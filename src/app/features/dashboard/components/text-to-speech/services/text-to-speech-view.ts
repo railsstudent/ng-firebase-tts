@@ -1,5 +1,6 @@
 import { DEFAULT_PLAYBACK_RATE, MAX_PLAYBACK_RATE, MIN_PLAYBACK_RATE } from '@/core/constants/text-to-speech.constant';
-import { RawAudioBinary } from '@/core/interfaces/text-to-speech.interface';
+import { AudioStreamChunk } from '@/core/interfaces/text-to-speech.interface';
+import { toWavBlob } from '@/core/utils/audio.util';
 import { revokeBlobURL } from '@/core/utils/blob.util';
 import { FactConfig } from '@/features/dashboard/interfaces/fact-config.interface';
 import { GenerateSpeechMode } from '@/features/dashboard/types/generate-speech-mode.type';
@@ -7,18 +8,18 @@ import { DestroyRef, inject, Injectable, injectAsync, signal } from '@angular/co
 
 @Injectable()
 export class TextToSpeechViewService {
-  #asyncSpeechService = injectAsync(() =>
+  readonly #asyncSpeechService = injectAsync(() =>
     import('@/core/services/text-to-speech.service').then((m) => m.TextToSpeechService),
   );
 
-  #asyncAudioPlayerService = injectAsync(() =>
+  readonly #asyncAudioPlayerService = injectAsync(() =>
     import('@/core/services/audio-player.service').then((m) => m.AudioPlayerService),
   );
 
-  #destroyRef$ = inject(DestroyRef);
-  #audioUrl = signal<string | undefined>(undefined);
-  #loadingMode = signal<GenerateSpeechMode | 'idle'>('idle');
-  #playbackRate = signal(DEFAULT_PLAYBACK_RATE);
+  readonly #destroyRef$ = inject(DestroyRef);
+  readonly #audioUrl = signal<string | undefined>(undefined);
+  readonly #loadingMode = signal<GenerateSpeechMode | 'idle'>('idle');
+  readonly #playbackRate = signal(DEFAULT_PLAYBACK_RATE);
 
   audioUrl = this.#audioUrl.asReadonly();
   playbackRate = this.#playbackRate.asReadonly();
@@ -28,35 +29,20 @@ export class TextToSpeechViewService {
     this.#destroyRef$.onDestroy(async () => revokeBlobURL(this.#audioUrl()));
   }
 
-  private async handlePlaybackError(e: unknown, createdUrl: string | undefined) {
+  private async handlePlaybackError(e: unknown) {
     console.error('Streaming playback failed:', e);
     const audioPlayerService = await this.#asyncAudioPlayerService();
     audioPlayerService.stopAll();
-    revokeBlobURL(createdUrl);
-  }
-
-  private async processStreamChunk(
-    isInitialized: boolean,
-    playbackRate: number,
-    chunk: RawAudioBinary,
-  ): Promise<boolean> {
-    const audioPlayerService = await this.#asyncAudioPlayerService();
-    if (!isInitialized) {
-      audioPlayerService.initialize(chunk.sampleRate, playbackRate);
-      isInitialized = true;
-    }
-    audioPlayerService.processChunk(chunk.decodedData);
-    return isInitialized;
+    revokeBlobURL(this.#audioUrl());
   }
 
   private async handleSync(promptArgs: FactConfig) {
-    let createdUrl: string | undefined = undefined;
     try {
       const speechService = await this.#asyncSpeechService();
       const blob = await speechService.synthesize({ text: promptArgs.prompt, voice: promptArgs.voice });
-      createdUrl = this.setAudioUrl(blob);
+      this.setAudioUrl(blob);
     } catch (e) {
-      this.handlePlaybackError(e, createdUrl);
+      this.handlePlaybackError(e);
       throw e;
     }
   }
@@ -67,49 +53,57 @@ export class TextToSpeechViewService {
     return Math.round(rawRate * percent) / percent;
   }
 
-  private async consumeStream(stream: AsyncGenerator<RawAudioBinary | Blob | undefined>, abortSignal: AbortSignal) {
-    let finalBlob: Blob | undefined = undefined;
+  private async consumeStream(
+    stream: AsyncGenerator<AudioStreamChunk>,
+    collectBlob: boolean,
+    abortSignal: AbortSignal,
+  ): Promise<Blob | undefined> {
+    const audioPlayer = await this.#asyncAudioPlayerService();
+    const pcmChunks: Uint8Array[] = [];
+    let mimeType = '';
     let isInitialized = false;
 
     for await (const chunk of stream) {
       if (abortSignal.aborted) {
-        break;
+        return undefined;
       }
 
-      if (chunk instanceof Blob) {
-        finalBlob = chunk;
-      } else if (chunk) {
-        isInitialized = await this.processStreamChunk(isInitialized, this.#playbackRate(), chunk);
+      if (!isInitialized) {
+        audioPlayer.initialize(chunk.sampleRate, this.#playbackRate());
+        isInitialized = true;
+      }
+      audioPlayer.processChunk(chunk.decodedData);
+
+      if (collectBlob) {
+        pcmChunks.push(chunk.decodedData);
+        if (!mimeType) {
+          mimeType = chunk.mimeType;
+        }
       }
     }
 
-    return finalBlob;
+    return collectBlob && pcmChunks.length > 0 ? toWavBlob(pcmChunks, mimeType) : undefined;
   }
 
-  private async handleStream(promptArgs: FactConfig) {
-    let createdUrl: string | undefined = undefined;
-
+  private async handleStream({ prompt, voice, shouldWait = false }: FactConfig) {
     const abortController = new AbortController();
-    const { signal: abortSignal } = abortController;
     const unregisteredFn = this.#destroyRef$.onDestroy(() => abortController.abort());
 
     try {
-      const { prompt, voice, shouldWait = false } = promptArgs;
-      const streamPlaybackRate = shouldWait ? 1 : this.calculateRandomPlaybackRate();
-      this.#playbackRate.set(streamPlaybackRate);
+      this.#playbackRate.set(shouldWait ? 1 : this.calculateRandomPlaybackRate());
 
       const speechService = await this.#asyncSpeechService();
-      const stream = speechService.synthesizeStream({ text: prompt, voice: voice, shouldWait });
-      const finalBlob = await this.consumeStream(stream, abortSignal);
+      const stream = speechService.synthesizeStream({ text: prompt, voice });
+      const finalBlob = await this.consumeStream(stream, shouldWait, abortController.signal);
 
-      if (shouldWait && !abortSignal.aborted) {
+      if (shouldWait && !abortController.signal.aborted) {
         const audioPlayerService = await this.#asyncAudioPlayerService();
         await audioPlayerService.awaitPlaybackComplete();
-        createdUrl = this.setAudioUrl(finalBlob);
+        this.setAudioUrl(finalBlob);
       }
     } catch (e) {
-      if (!abortSignal.aborted) {
-        this.handlePlaybackError(e, createdUrl);
+      if (!abortController.signal.aborted) {
+        this.handlePlaybackError(e);
         throw e;
       }
     } finally {

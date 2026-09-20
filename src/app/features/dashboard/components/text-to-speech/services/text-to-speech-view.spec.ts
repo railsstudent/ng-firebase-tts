@@ -1,5 +1,5 @@
 import { DEFAULT_PLAYBACK_RATE } from '@/core/constants/text-to-speech.constant';
-import { RawAudioBinary } from '@/core/interfaces/text-to-speech.interface';
+import { AudioStreamChunk } from '@/core/interfaces/text-to-speech.interface';
 import { AudioPlayerService } from '@/core/services/audio-player.service';
 import { ConfigService } from '@/core/services/config.service';
 import { TextToSpeechService } from '@/core/services/text-to-speech.service';
@@ -7,18 +7,16 @@ import { TextToSpeechViewService } from '@/features/dashboard/components/text-to
 import { Injector } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
-async function* createStreamGenerator(
-  items: (Blob | RawAudioBinary | undefined)[],
-): AsyncGenerator<Blob | RawAudioBinary | undefined, void, unknown> {
+async function* createStreamGenerator(items: AudioStreamChunk[]): AsyncGenerator<AudioStreamChunk, void, unknown> {
   for (const item of items) {
     yield item;
   }
 }
 
 async function* createErrorStreamGenerator(
-  chunk: RawAudioBinary,
+  chunk: AudioStreamChunk,
   error: Error,
-): AsyncGenerator<Blob | RawAudioBinary | undefined, void, unknown> {
+): AsyncGenerator<AudioStreamChunk, void, unknown> {
   yield chunk;
   throw error;
 }
@@ -91,10 +89,15 @@ describe('TextToSpeechViewService', () => {
   });
 
   describe('generateSpeech - Stream Mode', () => {
-    it('should generate speech in stream mode and set the audio URL from final Blob', async () => {
-      const mockBlob = new Blob(['streamed pcm'], { type: 'audio/pcm' });
+    it('should generate speech in stream mode and set the audio URL from accumulated chunks', async () => {
       mockSpeechService.synthesizeStream.mockReturnValue(
-        createStreamGenerator([{ decodedData: new Uint8Array([1, 2]), sampleRate: 24000 }, mockBlob]),
+        createStreamGenerator([
+          {
+            decodedData: new Uint8Array([1, 2]),
+            sampleRate: 24000,
+            mimeType: 'audio/l16; rate=24000; channels=1',
+          },
+        ]),
       );
       vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:stream-url');
 
@@ -104,7 +107,6 @@ describe('TextToSpeechViewService', () => {
       expect(mockSpeechService.synthesizeStream).toHaveBeenCalledWith({
         text: 'Stream prompt',
         voice: 'Kore',
-        shouldWait: true,
       });
       expect(mockAudioPlayerService.initialize).toHaveBeenCalledWith(24000, 1);
       expect(mockAudioPlayerService.processChunk).toHaveBeenCalledWith(new Uint8Array([1, 2]));
@@ -112,10 +114,8 @@ describe('TextToSpeechViewService', () => {
       expect(service.audioUrl()).toBe('blob:stream-url');
     });
 
-    it('should handle stream ending without a Blob payload gracefully without setting audioUrl', async () => {
-      mockSpeechService.synthesizeStream.mockReturnValue(
-        createStreamGenerator([{ decodedData: new Uint8Array([1, 2]), sampleRate: 24000 }]),
-      );
+    it('should handle empty stream gracefully without setting audioUrl', async () => {
+      mockSpeechService.synthesizeStream.mockReturnValue(createStreamGenerator([]));
 
       const config = { prompt: 'Stream prompt', voice: 'Aoede', fact: 'Interesting fact' };
       await service.generateSpeech('stream', config);
@@ -127,7 +127,11 @@ describe('TextToSpeechViewService', () => {
     it('should handle streaming exceptions, clean up, and throw error', async () => {
       mockSpeechService.synthesizeStream.mockReturnValue(
         createErrorStreamGenerator(
-          { decodedData: new Uint8Array([1, 2]), sampleRate: 24000 },
+          {
+            decodedData: new Uint8Array([1, 2]),
+            sampleRate: 24000,
+            mimeType: 'audio/l16; rate=24000; channels=1',
+          },
           new Error('Stream interrupted'),
         ),
       );
@@ -141,9 +145,15 @@ describe('TextToSpeechViewService', () => {
   });
 
   describe('generateSpeech - Web Audio API Mode', () => {
-    it('should stream zero-latency speaker chunks with shouldWait: false', async () => {
+    it('should stream zero-latency speaker chunks without collecting Blob', async () => {
       mockSpeechService.synthesizeStream.mockReturnValue(
-        createStreamGenerator([{ decodedData: new Uint8Array([3, 4]), sampleRate: 16000 }, undefined]),
+        createStreamGenerator([
+          {
+            decodedData: new Uint8Array([3, 4]),
+            sampleRate: 16000,
+            mimeType: 'audio/l16; rate=16000; channels=1',
+          },
+        ]),
       );
 
       const config = { prompt: 'WebAudio prompt', voice: 'Puck', fact: 'Interesting fact' };
@@ -152,7 +162,6 @@ describe('TextToSpeechViewService', () => {
       expect(mockSpeechService.synthesizeStream).toHaveBeenCalledWith({
         text: 'WebAudio prompt',
         voice: 'Puck',
-        shouldWait: false,
       });
       expect(mockAudioPlayerService.initialize).toHaveBeenCalledWith(16000, expect.any(Number));
       expect(mockAudioPlayerService.processChunk).toHaveBeenCalledWith(new Uint8Array([3, 4]));
@@ -185,7 +194,13 @@ describe('TextToSpeechViewService', () => {
 
     it('should return early and not trigger generation if loadingMode is not idle', async () => {
       mockSpeechService.synthesizeStream.mockReturnValue(
-        createStreamGenerator([{ decodedData: new Uint8Array([1]), sampleRate: 24000 }]),
+        createStreamGenerator([
+          {
+            decodedData: new Uint8Array([1]),
+            sampleRate: 24000,
+            mimeType: 'audio/l16; rate=24000; channels=1',
+          },
+        ]),
       );
 
       const config1 = { prompt: 'Prompt 1', voice: 'Aoede', fact: 'Fact 1' };
@@ -202,7 +217,6 @@ describe('TextToSpeechViewService', () => {
       expect(mockSpeechService.synthesizeStream).toHaveBeenCalledWith({
         text: 'Prompt 1',
         voice: 'Aoede',
-        shouldWait: true,
       });
       expect(service.loadingMode()).toBe('idle');
     });

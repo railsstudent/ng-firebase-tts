@@ -1,15 +1,15 @@
-export interface SpeechChunkData {
-  data: string;
+export interface SpeechPrompt {
+  text: string;
+  voice: string;
+}
+
+export interface AudioStreamChunk {
+  decodedData: Uint8Array;
+  sampleRate: number;
   mimeType: string;
 }
 
-export interface RawAudioBinary {
-  decodedData: Uint8Array;
-  sampleRate: number;
-}
-
-export interface TextVoiceInput {
-  text: string;
-  voice: string;
-  shouldWait?: boolean;
+export interface SpeechChunkData {
+  data: string;
+  mimeType: string;
 }

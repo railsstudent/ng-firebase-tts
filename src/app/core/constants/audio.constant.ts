@@ -1,0 +1,31 @@
+export const RADIX_DECIMAL = 10;
+
+export const PCM_SPEC = {
+  NORMALIZATION_BASE: 32768.0,
+  BYTES_PER_INT16: 2,
+  MIN_CLAMP: -1.0,
+  MAX_CLAMP: 1.0,
+} as const;
+
+export const WAV_SPEC = {
+  HEADER_SIZE: 44,
+  PAYLOAD_OFFSET: 36,
+  BITS_PER_BYTE: 8,
+  FMT_SUBCHUNK_SIZE: 16,
+  DEFAULT_BITS_PER_SAMPLE: 16,
+  OFFSET: {
+    CHUNK_ID: 0,
+    CHUNK_SIZE: 4,
+    FORMAT: 8,
+    FMT_ID: 12,
+    FMT_SIZE: 16,
+    AUDIO_FORMAT: 20,
+    NUM_CHANNELS: 22,
+    SAMPLE_RATE: 24,
+    BYTE_RATE: 28,
+    BLOCK_ALIGN: 32,
+    BITS_PER_SAMPLE: 34,
+    DATA_ID: 36,
+    DATA_SIZE: 40,
+  },
+} as const;

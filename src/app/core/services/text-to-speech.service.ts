@@ -1,4 +1,4 @@
-import { RawAudioBinary, SpeechChunkData, TextVoiceInput } from '@/core/interfaces/text-to-speech.interface';
+import { AudioStreamChunk, SpeechChunkData, SpeechPrompt } from '@/core/interfaces/text-to-speech.interface';
 import { ConfigService } from '@/core/services/config.service';
 import { decodeAudioChunk, toWavBlob } from '@/core/utils/audio.util';
 import { inject, Service } from '@angular/core';
@@ -17,15 +17,10 @@ export class TextToSpeechService {
   }
 
   /**
-   * USE CASE 2 (Hybrid Stream-and-Play & Zero-Latency Stream):
-   * Yields decoded audio chunks as they arrive from the Gemini model, and yields
-   * the completed WAV Blob at the end when `shouldWait` is true.
+   * USE CASE 2 (Streamed Synthesis):
+   * Yields decoded audio chunks as they arrive from the Gemini model.
    */
-  async *synthesizeStream(textVoiceInput: TextVoiceInput): AsyncGenerator<RawAudioBinary | Blob | undefined> {
-    const { text, voice, shouldWait = true } = textVoiceInput;
-    let chunks: Uint8Array = new Uint8Array(0);
-    let firstMimeType = '';
-
+  async *synthesizeStream({ text, voice }: SpeechPrompt): AsyncGenerator<AudioStreamChunk> {
     const aiBackend = await this.#configService.getAiBackend();
     const model = this.createModel(aiBackend, voice);
     const responseStream = await model.generateContentStream([text]);
@@ -34,32 +29,16 @@ export class TextToSpeechService {
       const chunkData = this.extractValidChunkData(chunk);
       if (chunkData) {
         const { data, mimeType } = chunkData;
-        const decoded = decodeAudioChunk(data, mimeType);
-
-        if (!firstMimeType && mimeType) {
-          firstMimeType = mimeType;
-        }
-
-        if (shouldWait) {
-          const mergedChunk = new Uint8Array(chunks.length + decoded.decodedData.length);
-          mergedChunk.set(chunks);
-          mergedChunk.set(decoded.decodedData, chunks.length);
-          chunks = mergedChunk;
-        }
-
-        yield decoded;
+        yield decodeAudioChunk(data, mimeType);
       }
     }
-
-    const finalBlob = shouldWait ? toWavBlob(chunks, firstMimeType) : undefined;
-    yield finalBlob;
   }
 
   /**
    * USE CASE 1 (Ad-hoc Single-shot):
    * Fetches the entire audio content at once, constructs a Blob, and returns it.
    */
-  async synthesize({ text, voice }: TextVoiceInput): Promise<Blob> {
+  async synthesize({ text, voice }: SpeechPrompt): Promise<Blob> {
     const aiBackend = await this.#configService.getAiBackend();
     const model = this.createModel(aiBackend, voice);
 
