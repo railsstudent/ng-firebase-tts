@@ -1,11 +1,8 @@
 import { PCM_SPEC, RADIX_DECIMAL, WAV_SPEC } from '@/core/constants/audio.constant';
 import { DEFAULT_AUDIO_TYPE, DEFAULT_SAMPLE_RATE } from '@/core/constants/text-to-speech.constant';
 import { AudioStreamChunk } from '@/core/interfaces/text-to-speech.interface';
+import { ParsedMimeType } from '@/shared/interfaces/parsed-mime-type.interface';
 import { WavConversionOptions } from '@/shared/interfaces/wav-conversion-options.interface';
-
-interface ParsedMimeType extends WavConversionOptions {
-  baseType: string;
-}
 
 function isBlobPart(value: unknown): value is BlobPart {
   return (
@@ -119,6 +116,20 @@ export function decodeAudioChunk(base64Data: string, mimeType = DEFAULT_AUDIO_TY
   const decodedData = decodeBase64(base64Data);
   const sampleRate = mimeType ? parseMimeType(mimeType).sampleRate : DEFAULT_SAMPLE_RATE;
   return { decodedData, sampleRate, mimeType };
+}
+
+/**
+ * Taps an asynchronous audio chunk stream, pushing each decoded chunk into a buffer array
+ * while yielding the chunk concurrently for real-time playback.
+ */
+export async function* recordStreamChunks(
+  stream: AsyncIterable<AudioStreamChunk>,
+  buffer: Uint8Array[],
+): AsyncGenerator<AudioStreamChunk, void, unknown> {
+  for await (const chunk of stream) {
+    buffer.push(chunk.decodedData);
+    yield chunk;
+  }
 }
 
 /**

@@ -1,10 +1,7 @@
-import { DeferBlockState, ComponentFixture, TestBed } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
-import { VisionService } from '@/core/services/vision.service';
-import { TextToSpeechService } from '@/core/services/text-to-speech.service';
-import { AudioPlayerService } from '@/core/services/audio-player.service';
 import { ImageAnalysisResponse } from '@/core/interfaces/image-analysis.interface';
-import { signal } from '@angular/core';
+import { VisionService } from '@/core/services/vision.service';
+import { ComponentFixture, DeferBlockState, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import DashboardComponent from './dashboard.component';
 
 describe('DashboardComponent', () => {
@@ -19,23 +16,7 @@ describe('DashboardComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [DashboardComponent],
-      providers: [
-        { provide: VisionService, useValue: mockVisionService },
-        {
-          provide: TextToSpeechService,
-          useValue: {
-            synthesize: vi.fn(),
-            synthesizeStream: vi.fn(),
-            speak: vi.fn(),
-          },
-        },
-        {
-          provide: AudioPlayerService,
-          useValue: {
-            playbackRate: signal(1).asReadonly(),
-          },
-        },
-      ],
+      providers: [{ provide: VisionService, useValue: mockVisionService }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(DashboardComponent);

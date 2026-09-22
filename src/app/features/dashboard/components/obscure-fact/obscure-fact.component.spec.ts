@@ -1,43 +1,13 @@
-import { AudioPlayerService } from '@/core/services/audio-player.service';
-import { TextToSpeechService } from '@/core/services/text-to-speech.service';
-import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ObscureFactComponent } from './obscure-fact.component';
 
 describe('ObscureFactComponent', () => {
   let component: ObscureFactComponent;
   let fixture: ComponentFixture<ObscureFactComponent>;
-  let mockSpeechService: {
-    synthesize: ReturnType<typeof vi.fn>;
-    synthesizeStream: ReturnType<typeof vi.fn>;
-    speak: ReturnType<typeof vi.fn>;
-  };
-  let mockAudioPlayerService: {
-    playbackRate: ReturnType<typeof vi.fn>;
-  };
 
   beforeEach(async () => {
-    mockSpeechService = {
-      synthesize: vi.fn(),
-      synthesizeStream: vi.fn(),
-      speak: vi.fn(),
-    };
-    mockAudioPlayerService = {
-      playbackRate: vi.fn(),
-    };
-
-    const pbRateSignal = signal(1);
-    Object.defineProperty(mockAudioPlayerService, 'playbackRate', {
-      value: pbRateSignal.asReadonly(),
-      writable: true,
-    });
-
     await TestBed.configureTestingModule({
       imports: [ObscureFactComponent],
-      providers: [
-        { provide: TextToSpeechService, useValue: mockSpeechService },
-        { provide: AudioPlayerService, useValue: mockAudioPlayerService },
-      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ObscureFactComponent);

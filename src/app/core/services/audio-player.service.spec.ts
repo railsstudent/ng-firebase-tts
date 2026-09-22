@@ -1,5 +1,7 @@
+import { DEFAULT_PLAYBACK_RATE } from '@/core/constants/text-to-speech.constant';
+import { AudioStreamChunk } from '@/core/interfaces/text-to-speech.interface';
+import { AudioPlayerService } from '@/core/services/audio-player.service';
 import { TestBed } from '@angular/core/testing';
-import { AudioPlayerService } from './audio-player.service';
 
 interface MockSourceNode {
   buffer: unknown;
@@ -225,6 +227,103 @@ describe('AudioPlayerService', () => {
       await vi.advanceTimersByTimeAsync(100);
       await promise;
       expect(resolved).toBe(true);
+    });
+  });
+
+  describe('playStream', () => {
+    async function* createMockStream(chunks: AudioStreamChunk[]): AsyncGenerator<AudioStreamChunk, void, unknown> {
+      for (const chunk of chunks) {
+        yield chunk;
+      }
+    }
+
+    it('should consume chunks, initialize audio context on first chunk, and await completion', async () => {
+      const chunk1: AudioStreamChunk = {
+        decodedData: new Uint8Array([0, 100]),
+        sampleRate: 16000,
+        mimeType: 'audio/l16; rate=16000',
+      };
+      const chunk2: AudioStreamChunk = {
+        decodedData: new Uint8Array([0, 200]),
+        sampleRate: 16000,
+        mimeType: 'audio/l16; rate=16000',
+      };
+
+      const stream = createMockStream([chunk1, chunk2]);
+      const awaitSpy = vi.spyOn(service, 'awaitPlaybackComplete').mockResolvedValue(undefined);
+
+      await service.playStream(stream, { playbackRate: 1.25 });
+
+      expect(globalThis.AudioContext).toHaveBeenCalledWith({ sampleRate: 16000 });
+      expect(mockAudioContext.createBuffer).toHaveBeenCalledTimes(2);
+      expect(mockSourceNode.playbackRate.value).toBe(1.25);
+      expect(awaitSpy).toHaveBeenCalled();
+    });
+
+    it('should abort immediately and stopAll when signal is already aborted', async () => {
+      const abortController = new AbortController();
+      abortController.abort();
+
+      const stopSpy = vi.spyOn(service, 'stopAll');
+      const stream = createMockStream([
+        {
+          decodedData: new Uint8Array([1, 2]),
+          sampleRate: 24000,
+          mimeType: 'audio/l16',
+        },
+      ]);
+
+      await service.playStream(stream, { signal: abortController.signal });
+
+      expect(stopSpy).toHaveBeenCalled();
+      expect(mockAudioContext.createBuffer).not.toHaveBeenCalled();
+    });
+
+    it('should stopAll and return early if signal aborts mid-stream', async () => {
+      const abortController = new AbortController();
+
+      async function* createAbortableStream(): AsyncGenerator<AudioStreamChunk, void, unknown> {
+        yield {
+          decodedData: new Uint8Array([1, 2]),
+          sampleRate: 24000,
+          mimeType: 'audio/l16',
+        };
+        abortController.abort();
+        yield {
+          decodedData: new Uint8Array([3, 4]),
+          sampleRate: 24000,
+          mimeType: 'audio/l16',
+        };
+      }
+
+      const stopSpy = vi.spyOn(service, 'stopAll');
+      await service.playStream(createAbortableStream(), { signal: abortController.signal });
+
+      expect(stopSpy).toHaveBeenCalled();
+    });
+
+    it('should handle an empty stream gracefully without initializing AudioContext or failing', async () => {
+      const stream = createMockStream([]);
+      const awaitSpy = vi.spyOn(service, 'awaitPlaybackComplete');
+
+      await expect(service.playStream(stream)).resolves.toBeUndefined();
+
+      expect(globalThis.AudioContext).not.toHaveBeenCalled();
+      expect(awaitSpy).toHaveBeenCalled();
+    });
+
+    it('should use DEFAULT_PLAYBACK_RATE when options are omitted', async () => {
+      const chunk: AudioStreamChunk = {
+        decodedData: new Uint8Array([0, 100]),
+        sampleRate: 16000,
+        mimeType: 'audio/l16; rate=16000',
+      };
+      const stream = createMockStream([chunk]);
+      vi.spyOn(service, 'awaitPlaybackComplete').mockResolvedValue(undefined);
+
+      await service.playStream(stream);
+
+      expect(mockSourceNode.playbackRate.value).toBe(DEFAULT_PLAYBACK_RATE);
     });
   });
 });

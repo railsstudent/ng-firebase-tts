@@ -3,14 +3,17 @@ import {
   DEFAULT_SAMPLE_RATE,
   PLAYBACK_POLL_INTERVAL,
 } from '@/core/constants/text-to-speech.constant';
+import { AudioStreamChunk } from '@/core/interfaces/text-to-speech.interface';
 import { normalizePcmSamples } from '@/core/utils/audio.util';
-import { DestroyRef, inject, Service, signal } from '@angular/core';
+import { AudioPlaybackOptions } from '@/shared/interfaces/audio-playback-options.interface';
+import { DestroyRef, inject, Service } from '@angular/core';
 import { EmptyError, interval, lastValueFrom, map, takeWhile } from 'rxjs';
 
 @Service()
 export class AudioPlayerService {
   #audioCtx: AudioContext | undefined = undefined;
   #nextStartTime = 0;
+  #playbackRate = DEFAULT_PLAYBACK_RATE;
   #activeSources: AudioBufferSourceNode[] = [];
   readonly #destroyRef$ = inject(DestroyRef);
 
@@ -19,18 +22,58 @@ export class AudioPlayerService {
     takeWhile((remainingTime) => remainingTime > 0),
   );
 
-  #playbackRate = signal(DEFAULT_PLAYBACK_RATE);
-  playbackRate = this.#playbackRate.asReadonly();
-
   constructor() {
     this.#destroyRef$.onDestroy(() => this.stopAll());
+  }
+
+  private initializeContext(sampleRate: number): void {
+    this.#audioCtx = new AudioContext({ sampleRate });
+    this.#nextStartTime = this.#audioCtx.currentTime;
+  }
+
+  private isAborted(signal: AbortSignal | undefined): boolean {
+    return signal ? signal.aborted : false;
+  }
+
+  private async consumeStreamChunks(
+    stream: AsyncIterable<AudioStreamChunk>,
+    signal: AbortSignal | undefined,
+  ): Promise<void> {
+    for await (const chunk of stream) {
+      if (this.isAborted(signal)) {
+        this.stopAll();
+        return;
+      }
+
+      if (!this.#audioCtx) {
+        this.initializeContext(chunk.sampleRate);
+      }
+
+      this.processChunk(chunk.decodedData);
+    }
+  }
+
+  async playStream(stream: AsyncIterable<AudioStreamChunk>, options: AudioPlaybackOptions = {}): Promise<void> {
+    const signal = options.signal;
+    this.stopAll();
+    this.#playbackRate = options.playbackRate || DEFAULT_PLAYBACK_RATE;
+
+    if (this.isAborted(signal)) {
+      return;
+    }
+
+    await this.consumeStreamChunks(stream, signal);
+
+    if (!this.isAborted(signal)) {
+      await this.awaitPlaybackComplete();
+    }
   }
 
   initialize(sampleRate = DEFAULT_SAMPLE_RATE, playbackRate = DEFAULT_PLAYBACK_RATE): void {
     this.stopAll();
     this.#audioCtx = new AudioContext({ sampleRate });
     this.#nextStartTime = this.#audioCtx.currentTime;
-    this.#playbackRate.set(playbackRate);
+    this.#playbackRate = playbackRate;
   }
 
   processChunk(rawBytes: Uint8Array): void {
@@ -48,7 +91,7 @@ export class AudioPlayerService {
 
     const sourceNode = this.#audioCtx.createBufferSource();
     sourceNode.buffer = buffer;
-    sourceNode.playbackRate.value = this.#playbackRate();
+    sourceNode.playbackRate.value = this.#playbackRate;
     sourceNode.connect(this.#audioCtx.destination);
 
     this.#activeSources.push(sourceNode);
@@ -56,7 +99,7 @@ export class AudioPlayerService {
     const playTime = Math.max(this.#nextStartTime, this.#audioCtx.currentTime);
     sourceNode.start(playTime);
 
-    const duration = buffer.duration / this.#playbackRate();
+    const duration = buffer.duration / this.#playbackRate;
     this.#nextStartTime = playTime + duration;
 
     sourceNode.onended = () => (this.#activeSources = this.#activeSources.filter((s) => s !== sourceNode));

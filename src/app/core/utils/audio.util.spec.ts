@@ -1,4 +1,5 @@
-import { decodeAudioChunk, normalizePcmSamples, toWavBlob } from '@/core/utils/audio.util';
+import { decodeAudioChunk, normalizePcmSamples, recordStreamChunks, toWavBlob } from '@/core/utils/audio.util';
+import { AudioStreamChunk } from '@/core/interfaces/text-to-speech.interface';
 
 describe('audio.util', () => {
   describe('normalizePcmSamples', () => {
@@ -136,6 +137,78 @@ describe('audio.util', () => {
       expect(blob).toBeInstanceOf(Blob);
       expect(blob.type).toBe('audio/wav');
       expect(blob.size).toBe(44 + 5);
+    });
+  });
+
+  describe('recordStreamChunks', () => {
+    async function* createMockStream(chunks: AudioStreamChunk[]): AsyncGenerator<AudioStreamChunk, void, unknown> {
+      for (const chunk of chunks) {
+        yield chunk;
+      }
+    }
+
+    it('should push decoded chunk bytes into the buffer while yielding the chunks', async () => {
+      const chunk1: AudioStreamChunk = {
+        decodedData: new Uint8Array([1, 2]),
+        sampleRate: 24000,
+        mimeType: 'audio/l16',
+      };
+      const chunk2: AudioStreamChunk = {
+        decodedData: new Uint8Array([3, 4, 5]),
+        sampleRate: 24000,
+        mimeType: 'audio/l16',
+      };
+
+      const buffer: Uint8Array[] = [];
+      const yieldedChunks: AudioStreamChunk[] = [];
+
+      for await (const chunk of recordStreamChunks(createMockStream([chunk1, chunk2]), buffer)) {
+        yieldedChunks.push(chunk);
+      }
+
+      expect(yieldedChunks).toEqual([chunk1, chunk2]);
+      expect(buffer).toEqual([new Uint8Array([1, 2]), new Uint8Array([3, 4, 5])]);
+    });
+
+    it('should handle an empty stream by keeping buffer empty and yielding nothing', async () => {
+      const buffer: Uint8Array[] = [];
+      const yieldedChunks: AudioStreamChunk[] = [];
+
+      for await (const chunk of recordStreamChunks(createMockStream([]), buffer)) {
+        yieldedChunks.push(chunk);
+      }
+
+      expect(yieldedChunks).toEqual([]);
+      expect(buffer).toEqual([]);
+    });
+
+    it('should push received chunks to buffer before propagating mid-stream error', async () => {
+      async function* createErrorStream(): AsyncGenerator<AudioStreamChunk, void, unknown> {
+        yield {
+          decodedData: new Uint8Array([10, 20]),
+          sampleRate: 24000,
+          mimeType: 'audio/l16',
+        };
+        throw new Error('Network stream interrupted');
+      }
+
+      const buffer: Uint8Array[] = [];
+      const yieldedChunks: AudioStreamChunk[] = [];
+
+      await expect(async () => {
+        for await (const chunk of recordStreamChunks(createErrorStream(), buffer)) {
+          yieldedChunks.push(chunk);
+        }
+      }).rejects.toThrow('Network stream interrupted');
+
+      expect(yieldedChunks).toEqual([
+        {
+          decodedData: new Uint8Array([10, 20]),
+          sampleRate: 24000,
+          mimeType: 'audio/l16',
+        },
+      ]);
+      expect(buffer).toEqual([new Uint8Array([10, 20])]);
     });
   });
 });

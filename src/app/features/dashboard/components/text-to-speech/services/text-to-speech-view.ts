@@ -1,6 +1,10 @@
-import { DEFAULT_PLAYBACK_RATE, MAX_PLAYBACK_RATE, MIN_PLAYBACK_RATE } from '@/core/constants/text-to-speech.constant';
-import { AudioStreamChunk } from '@/core/interfaces/text-to-speech.interface';
-import { toWavBlob } from '@/core/utils/audio.util';
+import {
+  DEFAULT_AUDIO_TYPE,
+  DEFAULT_PLAYBACK_RATE,
+  MAX_PLAYBACK_RATE,
+  MIN_PLAYBACK_RATE,
+} from '@/core/constants/text-to-speech.constant';
+import { recordStreamChunks, toWavBlob } from '@/core/utils/audio.util';
 import { revokeBlobURL } from '@/core/utils/blob.util';
 import { FactConfig } from '@/features/dashboard/interfaces/fact-config.interface';
 import { GenerateSpeechMode } from '@/features/dashboard/types/generate-speech-mode.type';
@@ -53,53 +57,28 @@ export class TextToSpeechViewService {
     return Math.round(rawRate * percent) / percent;
   }
 
-  private async consumeStream(
-    stream: AsyncGenerator<AudioStreamChunk>,
-    collectBlob: boolean,
-    abortSignal: AbortSignal,
-  ): Promise<Blob | undefined> {
-    const audioPlayer = await this.#asyncAudioPlayerService();
-    const pcmChunks: Uint8Array[] = [];
-    let mimeType = '';
-    let isInitialized = false;
-
-    for await (const chunk of stream) {
-      if (abortSignal.aborted) {
-        return undefined;
-      }
-
-      if (!isInitialized) {
-        audioPlayer.initialize(chunk.sampleRate, this.#playbackRate());
-        isInitialized = true;
-      }
-      audioPlayer.processChunk(chunk.decodedData);
-
-      if (collectBlob) {
-        pcmChunks.push(chunk.decodedData);
-        if (!mimeType) {
-          mimeType = chunk.mimeType;
-        }
-      }
-    }
-
-    return collectBlob && pcmChunks.length > 0 ? toWavBlob(pcmChunks, mimeType) : undefined;
-  }
-
   private async handleStream({ prompt, voice, shouldWait = false }: FactConfig) {
     const abortController = new AbortController();
     const unregisteredFn = this.#destroyRef$.onDestroy(() => abortController.abort());
 
     try {
-      this.#playbackRate.set(shouldWait ? 1 : this.calculateRandomPlaybackRate());
+      const rate = shouldWait ? 1 : this.calculateRandomPlaybackRate();
+      this.#playbackRate.set(rate);
 
       const speechService = await this.#asyncSpeechService();
       const stream = speechService.synthesizeStream({ text: prompt, voice });
-      const finalBlob = await this.consumeStream(stream, shouldWait, abortController.signal);
 
-      if (shouldWait && !abortController.signal.aborted) {
-        const audioPlayerService = await this.#asyncAudioPlayerService();
-        await audioPlayerService.awaitPlaybackComplete();
-        this.setAudioUrl(finalBlob);
+      const rawChunks: Uint8Array[] = [];
+      const activeStream = shouldWait ? recordStreamChunks(stream, rawChunks) : stream;
+
+      const audioPlayerService = await this.#asyncAudioPlayerService();
+      await audioPlayerService.playStream(activeStream, {
+        playbackRate: rate,
+        signal: abortController.signal,
+      });
+
+      if (shouldWait && !abortController.signal.aborted && rawChunks.length > 0) {
+        this.setAudioUrl(toWavBlob(rawChunks, DEFAULT_AUDIO_TYPE));
       }
     } catch (e) {
       if (!abortController.signal.aborted) {

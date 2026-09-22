@@ -27,6 +27,7 @@ const mockSpeechService = {
 };
 
 const mockAudioPlayerService = {
+  playStream: vi.spyOn(AudioPlayerService.prototype, 'playStream').mockResolvedValue(undefined),
   initialize: vi.spyOn(AudioPlayerService.prototype, 'initialize').mockImplementation(() => undefined),
   processChunk: vi.spyOn(AudioPlayerService.prototype, 'processChunk').mockImplementation(() => undefined),
   stopAll: vi.spyOn(AudioPlayerService.prototype, 'stopAll').mockImplementation(() => undefined),
@@ -38,6 +39,7 @@ describe('TextToSpeechViewService', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockAudioPlayerService.playStream.mockResolvedValue(undefined);
     mockAudioPlayerService.awaitPlaybackComplete.mockResolvedValue(undefined);
 
     TestBed.configureTestingModule({
@@ -99,6 +101,12 @@ describe('TextToSpeechViewService', () => {
           },
         ]),
       );
+      mockAudioPlayerService.playStream.mockImplementation(async (stream) => {
+        // Iterate to consume generator in test
+        for await (const chunk of stream) {
+          void chunk;
+        }
+      });
       vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:stream-url');
 
       const config = { prompt: 'Stream prompt', voice: 'Kore', fact: 'Interesting fact' };
@@ -108,9 +116,10 @@ describe('TextToSpeechViewService', () => {
         text: 'Stream prompt',
         voice: 'Kore',
       });
-      expect(mockAudioPlayerService.initialize).toHaveBeenCalledWith(24000, 1);
-      expect(mockAudioPlayerService.processChunk).toHaveBeenCalledWith(new Uint8Array([1, 2]));
-      expect(mockAudioPlayerService.awaitPlaybackComplete).toHaveBeenCalled();
+      expect(mockAudioPlayerService.playStream).toHaveBeenCalledWith(expect.anything(), {
+        playbackRate: 1,
+        signal: expect.any(AbortSignal),
+      });
       expect(service.audioUrl()).toBe('blob:stream-url');
     });
 
@@ -120,7 +129,7 @@ describe('TextToSpeechViewService', () => {
       const config = { prompt: 'Stream prompt', voice: 'Aoede', fact: 'Interesting fact' };
       await service.generateSpeech('stream', config);
 
-      expect(mockAudioPlayerService.awaitPlaybackComplete).toHaveBeenCalled();
+      expect(mockAudioPlayerService.playStream).toHaveBeenCalled();
       expect(service.audioUrl()).toBeUndefined();
     });
 
@@ -135,6 +144,11 @@ describe('TextToSpeechViewService', () => {
           new Error('Stream interrupted'),
         ),
       );
+      mockAudioPlayerService.playStream.mockImplementation(async (stream) => {
+        for await (const chunk of stream) {
+          void chunk;
+        }
+      });
 
       const config = { prompt: 'Stream prompt', voice: 'Kore', fact: 'Interesting fact' };
       await expect(service.generateSpeech('stream', config)).rejects.toThrow('Error generating speech (Stream).');
@@ -163,9 +177,10 @@ describe('TextToSpeechViewService', () => {
         text: 'WebAudio prompt',
         voice: 'Puck',
       });
-      expect(mockAudioPlayerService.initialize).toHaveBeenCalledWith(16000, expect.any(Number));
-      expect(mockAudioPlayerService.processChunk).toHaveBeenCalledWith(new Uint8Array([3, 4]));
-      expect(mockAudioPlayerService.awaitPlaybackComplete).not.toHaveBeenCalled();
+      expect(mockAudioPlayerService.playStream).toHaveBeenCalledWith(expect.anything(), {
+        playbackRate: expect.any(Number),
+        signal: expect.any(AbortSignal),
+      });
       expect(service.audioUrl()).toBeUndefined();
     });
 
