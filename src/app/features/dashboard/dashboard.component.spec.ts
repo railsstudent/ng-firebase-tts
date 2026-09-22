@@ -29,18 +29,20 @@ describe('DashboardComponent', () => {
   });
 
   // TEST CASE 1: Render structural elements
-  it('should render main dashboard wrapper, analyzer panel, and thought summary', () => {
+  it('should render main dashboard wrapper, analyzer panel, and no token usage or thought summary by default', () => {
     const mainEl = fixture.debugElement.query(By.css('.dashboard-main'));
     const analyzerPanel = fixture.debugElement.query(By.css('app-analyzer-panel'));
+    const tokenUsage = fixture.debugElement.query(By.css('.usage-section'));
     const thoughtSummary = fixture.debugElement.query(By.css('app-thought-summary'));
 
     expect(mainEl).toBeTruthy();
     expect(analyzerPanel).toBeTruthy();
-    expect(thoughtSummary).toBeNull(); // Empty by default since analysis is undefined
+    expect(tokenUsage).toBeNull();
+    expect(thoughtSummary).toBeNull();
   });
 
   // TEST CASE 2: Deferral Resolution & Model Propagation
-  it('should resolve deferred thought summary and propagate analysis inputs when analysis is set', async () => {
+  it('should render token usage and resolve deferred thought summary when analysis has thought and tokenUsage', async () => {
     component.analysis.set({
       parsed: {
         alternativeText: 'A blue sky.',
@@ -54,6 +56,11 @@ describe('DashboardComponent', () => {
     });
     fixture.detectChanges();
 
+    const tokenUsage = fixture.debugElement.query(By.css('.usage-section'));
+    expect(tokenUsage).toBeTruthy();
+    expect(tokenUsage.nativeElement.textContent).toContain('Input: 10');
+    expect(tokenUsage.nativeElement.textContent).toContain('Total: 35');
+
     const deferBlocks = await fixture.getDeferBlocks();
     expect(deferBlocks.length).toBeGreaterThanOrEqual(1);
 
@@ -65,13 +72,12 @@ describe('DashboardComponent', () => {
     const thoughtSummary = fixture.debugElement.query(By.css('app-thought-summary'));
     expect(thoughtSummary).toBeTruthy();
 
-    const thoughtComponent = thoughtSummary.componentInstance as { thought: () => string; tokenUsage: () => unknown };
+    const thoughtComponent = thoughtSummary.componentInstance as { thought: () => string };
     expect(thoughtComponent.thought()).toBe('Thinking...');
-    expect(thoughtComponent.tokenUsage()).toEqual({ input: 10, output: 20, thought: 5, total: 35 });
   });
 
-  // TEST CASE 3: Fallback Defaults when thought and tokenUsage are undefined
-  it('should fallback to default thought string and zeroed token usage when not provided in analysis', async () => {
+  // TEST CASE 3: Only Token Usage (No Thought)
+  it('should render token usage and not trigger thought summary when thought is undefined', async () => {
     component.analysis.set({
       parsed: {
         alternativeText: 'Sample image.',
@@ -80,22 +86,16 @@ describe('DashboardComponent', () => {
         fact: 'Sample fact.',
       },
       thought: undefined,
-      tokenUsage: undefined,
+      tokenUsage: { input: 5, output: 10, thought: 0, total: 15 },
       metadata: { citations: [], renderedContent: '', searchQueries: [] },
     } as unknown as ImageAnalysisResponse);
     fixture.detectChanges();
 
-    const deferBlocks = await fixture.getDeferBlocks();
-    for (const block of deferBlocks) {
-      await block.render(DeferBlockState.Complete);
-    }
-    fixture.detectChanges();
+    const tokenUsage = fixture.debugElement.query(By.css('.usage-section'));
+    expect(tokenUsage).toBeTruthy();
+    expect(tokenUsage.nativeElement.textContent).toContain('Input: 5');
 
     const thoughtSummary = fixture.debugElement.query(By.css('app-thought-summary'));
-    expect(thoughtSummary).toBeTruthy();
-
-    const thoughtComponent = thoughtSummary.componentInstance as { thought: () => string; tokenUsage: () => unknown };
-    expect(thoughtComponent.thought()).toBe('');
-    expect(thoughtComponent.tokenUsage()).toEqual({ input: 0, output: 0, thought: 0, total: 0 });
+    expect(thoughtSummary).toBeNull();
   });
 });

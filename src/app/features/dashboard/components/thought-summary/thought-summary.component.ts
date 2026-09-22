@@ -1,4 +1,3 @@
-import { TokenUsage } from '@/core/interfaces/token-usage.interface';
 import { Component, computed, input } from '@angular/core';
 import { marked } from 'marked';
 
@@ -9,7 +8,6 @@ import { marked } from 'marked';
 })
 export class ThoughtSummaryComponent {
   thought = input('');
-  tokenUsage = input<TokenUsage | undefined>(undefined);
 
   htmlThought = computed(() => marked(this.thought().replace('\n\n', '<br />')));
 }

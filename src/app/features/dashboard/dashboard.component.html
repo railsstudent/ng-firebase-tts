@@ -1,9 +1,26 @@
 <section class="dashboard-main">
   <app-analyzer-panel [(analysis)]="analysis" />
   @let imageAnalysis = analysis();
-  @defer (when imageAnalysis) {
-    @let thought = imageAnalysis?.thought || '';
-    @let tokenUsage = imageAnalysis?.tokenUsage || { input: 0, output: 0, thought: 0, total: 0 };
-    <app-thought-summary [thought]="thought" [tokenUsage]="tokenUsage" />
+  @if (imageAnalysis?.tokenUsage; as usage) {
+    <div class="usage-section">
+      <h3 class="section-title">Text Generation Token Usage</h3>
+      <div class="usage-grid">
+        <p class="usage-item">
+          <span>Input: </span><span>{{ usage.input || 0 }}</span>
+        </p>
+        <p class="usage-item">
+          <span>Output: </span><span>{{ usage.output || 0 }}</span>
+        </p>
+        <p class="usage-item">
+          <span>Thought: </span><span>{{ usage.thought || 0 }}</span>
+        </p>
+        <p class="usage-item">
+          <span>Total: </span><span>{{ usage.total }}</span>
+        </p>
+      </div>
+    </div>
+  }
+  @defer (when imageAnalysis?.thought) {
+    <app-thought-summary [thought]="imageAnalysis?.thought || ''" />
   }
 </section>
