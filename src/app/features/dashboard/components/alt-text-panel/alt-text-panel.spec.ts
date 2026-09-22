@@ -85,9 +85,12 @@ describe('AltTextPanel', () => {
     const emptyState = fixture.debugElement.query(By.css('.empty-state'));
     const errorCard = fixture.debugElement.query(By.css('.error-card'));
     const results = fixture.debugElement.query(By.css('.results-wrapper'));
+    const altTextDisplay = fixture.debugElement.query(By.css('.display-text'));
 
     expect(emptyState).toBeNull();
     expect(errorCard).toBeNull();
     expect(results).toBeTruthy();
+    expect(altTextDisplay).toBeTruthy();
+    expect(altTextDisplay.nativeElement.textContent).toContain('A high contrast graphic of Mars.');
   });
 });
