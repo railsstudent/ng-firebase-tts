@@ -2,7 +2,7 @@ import { AudioStreamChunk, SpeechChunkData, SpeechPrompt } from '@/core/interfac
 import { ConfigService } from '@/core/services/config.service';
 import { decodeAudioChunk, toWavBlob } from '@/core/utils/audio.util';
 import { inject, Service } from '@angular/core';
-import { AI, GenerateContentResponse, getGenerativeModel, ResponseModality } from 'firebase/ai';
+import { GenerateContentResponse, GenerativeModel, getGenerativeModel, ResponseModality } from 'firebase/ai';
 
 @Service()
 export class TextToSpeechService {
@@ -21,8 +21,7 @@ export class TextToSpeechService {
    * Yields decoded audio chunks as they arrive from the Gemini model.
    */
   async *synthesizeStream({ text, voice }: SpeechPrompt): AsyncGenerator<AudioStreamChunk> {
-    const aiBackend = await this.#configService.getAiBackend();
-    const model = this.createModel(aiBackend, voice);
+    const model = await this.createModel(voice);
     const responseStream = await model.generateContentStream([text]);
 
     for await (const chunk of responseStream.stream) {
@@ -39,10 +38,8 @@ export class TextToSpeechService {
    * Fetches the entire audio content at once, constructs a Blob, and returns it.
    */
   async synthesize({ text, voice }: SpeechPrompt): Promise<Blob> {
-    const aiBackend = await this.#configService.getAiBackend();
-    const model = this.createModel(aiBackend, voice);
-
     try {
+      const model = await this.createModel(voice);
       const result = await model.generateContent([text]);
       const chunk = this.extractValidChunkData(result.response);
       if (!chunk) {
@@ -55,8 +52,8 @@ export class TextToSpeechService {
     }
   }
 
-  private createModel(aiBackend: AI, voiceName: string) {
-    return getGenerativeModel(aiBackend, {
+  private async createModel(voiceName: string): Promise<GenerativeModel> {
+    return getGenerativeModel(await this.#configService.getAiBackend(), {
       model: this.#configService.appConfig.geminiTTSModelName,
       generationConfig: {
         responseModalities: [ResponseModality.AUDIO],

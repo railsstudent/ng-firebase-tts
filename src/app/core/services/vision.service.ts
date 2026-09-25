@@ -1,12 +1,39 @@
-import { SAFETY_SETTINGS } from '@/core/constants/firebase.constant';
 import { ImageAnalysis, ImageAnalysisResponse } from '@/core/interfaces/image-analysis.interface';
 import { ImageAnalysisSchema } from '@/core/schemas/image-analysis.schema';
 import { ConfigService } from '@/core/services/config.service';
 import { inject, Service } from '@angular/core';
-import { AI, getGenerativeModel, GroundingMetadata, UsageMetadata, WebGroundingChunk } from 'firebase/ai';
+import {
+  AI,
+  getGenerativeModel,
+  GroundingMetadata,
+  HarmBlockThreshold,
+  HarmCategory,
+  SafetySetting,
+  UsageMetadata,
+  WebGroundingChunk,
+} from 'firebase/ai';
 
 const NOT_FOUND_INDEX = -1;
 const PAYLOAD_OFFSET = 1;
+
+const SAFETY_SETTINGS: SafetySetting[] = [
+  {
+    category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+    threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+    threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+    threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+    threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+  },
+];
 
 @Service()
 export class VisionService {
@@ -17,7 +44,6 @@ export class VisionService {
       throw Error('image is required to generate texts.');
     }
 
-    const aiBackend = await this.#configService.getAiBackend();
     const imagePart = await this.fileToGenerativePart(image);
     const altTextPrompt = `
 You are asked to perform four tasks:
@@ -26,7 +52,7 @@ Task 2: Generate at least 3 tags to describe the image.
 Task 3: Based on the alternative text and tags, provide some suggestions to make the image more interesting and the reason to support them.
 Task 4: Search for a surprising or obscure fact that interconnects the following tags. If a direct link doesn't exist, find a conceptual link between them.
 `;
-    const aiModel = this.getGenerativeAIModel(aiBackend);
+    const aiModel = this.getGenerativeAIModel(await this.#configService.getAiBackend());
     const result = await aiModel.generateContent([altTextPrompt, imagePart]);
 
     if (result?.response) {
@@ -72,14 +98,13 @@ Task 4: Search for a surprising or obscure fact that interconnects the following
   }
 
   private getGenerativeAIModel(backend: AI) {
-    const appConfig = this.#configService.appConfig;
     return getGenerativeModel(backend, {
-      model: appConfig.geminiModelName,
+      model: this.#configService.appConfig.geminiModelName,
       generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: ImageAnalysisSchema,
         thinkingConfig: {
-          thinkingLevel: appConfig.thinkingLevel,
+          thinkingLevel: this.#configService.appConfig.thinkingLevel,
           includeThoughts: true,
         },
       },

@@ -5,14 +5,13 @@ import remoteConfigDefaults from '@/public/remote-config-defaults.json';
 import { inject, isDevMode, Service } from '@angular/core';
 import type { AI, ThinkingLevel } from 'firebase/ai';
 import { FirebaseApp, initializeApp } from 'firebase/app';
-import { fetchAndActivate, getRemoteConfig, getValue, RemoteConfig } from 'firebase/remote-config';
+import { fetchAndActivate, getRemoteConfig, getValue } from 'firebase/remote-config';
 
 const SECONDS = 60;
 const MILLISECONDS = 1000;
 const ONE_HOUR_IN_MILLISECONDS = SECONDS * SECONDS * MILLISECONDS;
 const DEV_TIMEOUT = 1000;
 const PROD_TIMEOUT = 2000;
-
 const LOCAL_DOMAINS = ['localhost', '127.0.0.1', '::1', '[::1]'];
 
 @Service()
@@ -49,9 +48,20 @@ export class ConfigService {
       : false;
   }
 
-  private ensureAppCheck(isLocalhost: boolean, key: string): Promise<void> {
+  private loadAppCheck(isLocalhost: boolean, key: string): Promise<void> {
+    const appCheck = import('firebase/app-check');
+    return appCheck.then(({ initializeAppCheck, ReCaptchaEnterpriseProvider }) => {
+      this.#configureAppCheckDebugToken(isLocalhost);
+      initializeAppCheck(this.#app, {
+        provider: new ReCaptchaEnterpriseProvider(key),
+        isTokenAutoRefreshEnabled: true,
+      });
+    });
+  }
+
+  private ensureAppCheck(isLocalhost: boolean): Promise<void> {
     if (!this.#appCheck) {
-      this.#appCheck = this.loadAppCheck(isLocalhost, key);
+      this.#appCheck = this.loadAppCheck(isLocalhost, firebaseConfig.recaptchaEnterpriseKey);
     }
     return this.#appCheck;
   }
@@ -67,9 +77,8 @@ export class ConfigService {
 
     const isOnline = this.#isOnline();
     const isLocalhost = this.#isLocalhost();
-    const key = firebaseConfig.recaptchaEnterpriseKey;
-    if (isOnline && key) {
-      await this.ensureAppCheck(isLocalhost, key);
+    if (isOnline && firebaseConfig.recaptchaEnterpriseKey) {
+      await this.ensureAppCheck(isLocalhost);
     }
 
     const { getAI, AgentPlatformBackend } = await import('firebase/ai');
@@ -95,37 +104,18 @@ export class ConfigService {
       fetchAndActivate(rc)
         .then((activated) => {
           console.log('Remote Config initialized. Activated new values:', activated);
-          this.applyRemoteConfigValues(rc);
+          this.#appConfig = {
+            vertexAILocation: getValue(rc, 'vertexAILocation').asString(),
+            useLimitedUseAppCheckTokens: getValue(rc, 'useLimitedUseAppCheckTokens').asBoolean(),
+            geminiModelName: getValue(rc, 'geminiModelName').asString(),
+            thinkingLevel: getValue(rc, 'thinkingLevel').asString() as ThinkingLevel,
+            geminiTTSModelName: getValue(rc, 'geminiTTSModelName').asString(),
+          };
+          this.#ai = null;
         })
         .catch((error) => {
           console.warn('Remote Config fetch timed out or failed. Using defaults:', error);
         });
     }
-  }
-
-  private applyRemoteConfigValues(rc: RemoteConfig): void {
-    const rawThinkingLevel = getValue(rc, 'thinkingLevel').asString();
-    const thinkingLevel = rawThinkingLevel as ThinkingLevel;
-
-    this.#appConfig = {
-      vertexAILocation: getValue(rc, 'vertexAILocation').asString(),
-      useLimitedUseAppCheckTokens: getValue(rc, 'useLimitedUseAppCheckTokens').asBoolean(),
-      geminiModelName: getValue(rc, 'geminiModelName').asString(),
-      thinkingLevel,
-      geminiTTSModelName: getValue(rc, 'geminiTTSModelName').asString(),
-    };
-
-    this.#ai = null;
-  }
-
-  private loadAppCheck(isLocalhost: boolean, key: string): Promise<void> {
-    const appCheck = import('firebase/app-check');
-    return appCheck.then((m) => {
-      this.#configureAppCheckDebugToken(isLocalhost);
-      m.initializeAppCheck(this.#app, {
-        provider: new m.ReCaptchaEnterpriseProvider(key),
-        isTokenAutoRefreshEnabled: true,
-      });
-    });
   }
 }
