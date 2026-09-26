@@ -1,6 +1,6 @@
 import { ImageAnalysisResponse } from '@/core/interfaces/image-analysis.interface';
 import { ObscureFactComponent } from '@/features/dashboard/components/obscure-fact/obscure-fact.component';
-import { PhotoPickerComponent } from '@/features/dashboard/components/photo-upload/photo-picker.component';
+import { PhotoPickerComponent } from '@/features/dashboard/components/photo-picker/photo-picker.component';
 import { TagsDisplayComponent } from '@/features/dashboard/components/tags-display/tags-display.component';
 import { Component, inject, input, model, output } from '@angular/core';
 import { AssetRegistry } from './services/asset-registry.service';

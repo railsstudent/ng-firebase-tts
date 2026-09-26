@@ -13,7 +13,7 @@
       <span class="voice-trigger-text">
         {{ displayLabel() }}
       </span>
-      <span class="voice-arrow material-symbols-outlined" translate="no" aria-hidden="true"> arrow_drop_down </span>
+      <app-arrow-drop-down-icon />
     </div>
 
     <ng-template
@@ -38,11 +38,9 @@
           >
             @for (option of sortedVoiceOptions; track option.name) {
               <div ngOption [value]="option.name" [label]="option.label">
-                <span class="voice-icon material-symbols-outlined" translate="no" aria-hidden="true"> mic </span>
+                <app-mic-icon />
                 <span class="voice-option-text">{{ option.label }}</span>
-                <span class="voice-icon option-check material-symbols-outlined" translate="no" aria-hidden="true">
-                  check
-                </span>
+                <app-check-icon />
               </div>
             }
           </div>

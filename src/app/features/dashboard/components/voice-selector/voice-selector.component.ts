@@ -3,6 +3,9 @@ import {
   SORTED_VOICE_OPTIONS,
 } from '@/features/dashboard/components/voice-selector/constants/voice-options.const';
 import { DEFAULT_VOICE } from '@/features/dashboard/constants/voice-name.const';
+import { ArrowDropDownIconComponent } from '@/shared/ui/icons/arrow-drop-down-icon.component';
+import { CheckIconComponent } from '@/shared/ui/icons/check-icon.component';
+import { MicIconComponent } from '@/shared/ui/icons/mic-icon.component';
 import { Combobox, ComboboxPopup, ComboboxWidget } from '@angular/aria/combobox';
 import { Listbox, Option } from '@angular/aria/listbox';
 import { OverlayModule } from '@angular/cdk/overlay';
@@ -16,7 +19,17 @@ function getVoiceValue(newValue: string) {
   selector: 'app-voice-selector',
   templateUrl: './voice-selector.component.html',
   styleUrl: './voice-selector.component.css',
-  imports: [Combobox, ComboboxPopup, ComboboxWidget, Listbox, Option, OverlayModule],
+  imports: [
+    Combobox,
+    ComboboxPopup,
+    ComboboxWidget,
+    Listbox,
+    Option,
+    OverlayModule,
+    ArrowDropDownIconComponent,
+    MicIconComponent,
+    CheckIconComponent,
+  ],
 })
 export class VoiceSelectorComponent {
   listbox = viewChild(Listbox);

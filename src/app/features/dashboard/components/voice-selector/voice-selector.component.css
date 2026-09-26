@@ -25,16 +25,8 @@
   @apply font-medium text-white;
 }
 
-/* --- Icon Classes (Material Symbols Built-In) --- */
-.voice-icon {
-  @apply text-indigo-400 text-lg shrink-0 select-none;
-}
-
-.voice-arrow {
-  @apply text-slate-400 text-lg transition-transform duration-200 select-none;
-}
-
-.voice-trigger[aria-expanded='true'] .voice-arrow {
+/* --- Dropdown Caret Rotation --- */
+.voice-trigger[aria-expanded='true'] app-arrow-drop-down-icon {
   @apply rotate-180 text-indigo-400;
 }
 
@@ -67,6 +59,6 @@
 }
 
 /* --- Check mark Visibility --- */
-[ngOption]:not([aria-selected='true']) .option-check {
+[ngOption]:not([aria-selected='true']) app-check-icon {
   @apply invisible;
 }

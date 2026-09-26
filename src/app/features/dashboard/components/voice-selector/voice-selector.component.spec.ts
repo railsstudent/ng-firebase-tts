@@ -118,18 +118,16 @@ describe('VoiceSelectorComponent', () => {
       });
     });
 
-    it('should annotate icon elements with aria-hidden="true" and translate="no"', () => {
-      const triggerIcon = fixture.debugElement.query(By.css('.voice-trigger-left span[translate="no"]'));
+    it('should annotate icon elements with aria-hidden="true"', () => {
+      const triggerIcon = fixture.debugElement.query(By.css('app-arrow-drop-down-icon svg'));
       expect(triggerIcon?.attributes['aria-hidden']).toBe('true');
-      expect(triggerIcon?.attributes['translate']).toBe('no');
 
       component.popupExpanded.set(true);
       fixture.detectChanges();
 
-      const checkIcons = fixture.debugElement.queryAll(By.css('.option-check'));
+      const checkIcons = fixture.debugElement.queryAll(By.css('app-check-icon svg'));
       expect(checkIcons.length).toBeGreaterThan(0);
       expect(checkIcons[0].attributes['aria-hidden']).toBe('true');
-      expect(checkIcons[0].attributes['translate']).toBe('no');
     });
   });
 
@@ -222,13 +220,13 @@ describe('VoiceSelectorComponent', () => {
     });
 
     it('should include voice arrow and option check elements in the template', () => {
-      const arrowEl = fixture.debugElement.query(By.css('.voice-arrow'));
+      const arrowEl = fixture.debugElement.query(By.css('app-arrow-drop-down-icon'));
       expect(arrowEl).toBeTruthy();
 
       component.popupExpanded.set(true);
       fixture.detectChanges();
 
-      const optionCheckEls = fixture.debugElement.queryAll(By.css('.option-check'));
+      const optionCheckEls = fixture.debugElement.queryAll(By.css('app-check-icon'));
       expect(optionCheckEls.length).toBe(SORTED_VOICE_OPTIONS.length);
     });
   });

@@ -24,11 +24,6 @@
               {
                 "glob": "**/*",
                 "input": "public"
-              },
-              {
-                "glob": "material-symbols-outlined-latin-400-normal.woff2",
-                "input": "node_modules/@fontsource/material-symbols-outlined/files",
-                "output": "fonts"
               }
             ],
             "styles": ["src/styles.css"]

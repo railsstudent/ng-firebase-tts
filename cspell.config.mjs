@@ -5,7 +5,6 @@ export default defineConfig({
   ignoreWords: [
     'prebuild',
     'ngsw',
-    'fontsource',
     'noopener',
     'noreferrer',
     'Subchunk',

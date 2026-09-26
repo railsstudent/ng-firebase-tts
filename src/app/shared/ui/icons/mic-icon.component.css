@@ -1,0 +1,5 @@
+@reference "../../../../styles.css";
+
+:host {
+  @apply inline-flex items-center justify-center shrink-0 w-5 h-5 text-indigo-400 select-none;
+}
