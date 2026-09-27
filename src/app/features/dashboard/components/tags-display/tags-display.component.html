@@ -1,5 +1,5 @@
-<div class="tags-wrapper">
-  <h3 class="tags-title">Suggested Tags</h3>
+<div class="section-wrapper">
+  <h3 class="section-title">Suggested Tags</h3>
   <div
     ngListbox
     class="tags-list"
@@ -13,7 +13,7 @@
         <span class="tag-pill" [class]="{ 'tag-pill-selected': optionRef.selected() }">{{ tag }}</span>
       </div>
     } @empty {
-      <p class="no-tags-message">No tags were generated for this image.</p>
+      <p class="empty-message">No tags were generated for this image.</p>
     }
   </div>
 </div>

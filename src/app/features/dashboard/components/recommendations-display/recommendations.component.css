@@ -1,13 +1,5 @@
 @reference "../../../../../styles.css";
 
-.recommendations-wrapper {
-  @apply w-full mt-6;
-}
-
-.recommendations-title {
-  @apply text-lg font-semibold text-slate-300 mb-3;
-}
-
 .recommendations-list {
   @apply flex flex-col gap-3;
 }
@@ -21,7 +13,7 @@
 }
 
 .recommendation-text {
-  @apply text-slate-200;
+  @apply text-(--color-text-primary);
 }
 
 .recommendation-reason-label {
@@ -29,11 +21,7 @@
 }
 
 .recommendation-reason-text {
-  @apply text-slate-400 text-xs italic block mt-0.5;
-}
-
-.no-recommendations {
-  @apply text-muted italic;
+  @apply text-(--color-text-muted) text-xs italic block mt-0.5;
 }
 
 [ngAccordionTrigger] {

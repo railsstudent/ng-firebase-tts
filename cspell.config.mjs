@@ -38,6 +38,9 @@ export default defineConfig({
     'sdkconfig',
     'autoplay',
     'llms',
+    'FOIT',
+    'roundtrips',
+    'FOUT',
   ],
   ignorePaths: [
     'node_modules',
@@ -51,5 +54,6 @@ export default defineConfig({
     'ngsw-config.json',
     'firebase.config',
     'skills-lock.json',
+    'DESIGN.md',
   ],
 });

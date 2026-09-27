@@ -9,5 +9,5 @@
 }
 
 .header-subtitle {
-  @apply mt-2 text-sm sm:text-base md:text-lg text-slate-400;
+  @apply mt-2 text-sm sm:text-base md:text-lg text-(--color-text-muted);
 }

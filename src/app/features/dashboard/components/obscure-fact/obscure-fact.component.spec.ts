@@ -33,7 +33,7 @@ describe('ObscureFactComponent', () => {
     const textToSpeechEl = fixture.nativeElement.querySelector('app-text-to-speech');
     expect(textToSpeechEl).toBeTruthy();
 
-    const emptyMsgEl = fixture.nativeElement.querySelector('.obscure-fact-empty');
+    const emptyMsgEl = fixture.nativeElement.querySelector('.empty-message');
     expect(emptyMsgEl).toBeFalsy();
   });
 
@@ -44,7 +44,7 @@ describe('ObscureFactComponent', () => {
     const textToSpeechEl = fixture.nativeElement.querySelector('app-text-to-speech');
     expect(textToSpeechEl).toBeFalsy();
 
-    const emptyMsgEl = fixture.nativeElement.querySelector('.obscure-fact-empty');
+    const emptyMsgEl = fixture.nativeElement.querySelector('.empty-message');
     expect(emptyMsgEl).toBeTruthy();
     expect(emptyMsgEl.textContent).toContain('Upload an image to discover an obscure fact and generate speech.');
   });

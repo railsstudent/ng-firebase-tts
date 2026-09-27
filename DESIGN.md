@@ -164,6 +164,26 @@ The **Firebase AI Logic Multimodal Speech Generator** is a focused AI studio web
   --color-error-border: #b91c1c;
   --color-error-text: #fecaca;
 }
+
+@utility section-wrapper {
+  @apply w-full mt-6;
+}
+
+@utility section-title {
+  @apply text-lg font-semibold text-(--color-text-primary) mb-3;
+}
+
+@utility surface-card {
+  @apply bg-(--color-surface-card) p-4 rounded-lg border border-(--color-surface-border);
+}
+
+@utility empty-message {
+  @apply text-center text-(--color-text-muted) italic;
+}
+
+@utility btn-primary {
+  @apply gap-2 text-white font-semibold py-3 px-4 rounded-lg bg-(--color-primary-indigo) hover:bg-(--color-primary-hover) disabled:bg-slate-600 disabled:cursor-not-allowed transition-all;
+}
 ```
 
 ---
@@ -250,14 +270,14 @@ The **Firebase AI Logic Multimodal Speech Generator** is a focused AI studio web
 
 ### 8. Alternative Text Card (`AltTextPanelComponent`)
 
-- **Heading (`.display-title`)**: `"Generated Alternative Text"` (`text-lg font-semibold text-slate-300 mb-2`).
+- **Heading (`.display-title`)**: `"Generated Alternative Text"` (`text-lg font-semibold text-slate-300 mb-3`).
 - **Card (`.display-card`)**: Rounded container (`bg-slate-800/50 border border-slate-700 rounded-xl p-6`).
 - **Content (`.display-text`)**: Quoted generated alt-text string in `text-slate-200 italic` (`"..."`).
 - **STRICT Constraint**: Strictly NO model badges (e.g. "Gemini 1.5 Pro"), NO label badges, and NO pill indicators.
 
 ### 9. Recommendations Accordion (`RecommendationsComponent`)
 
-- **Heading (`.recommendations-title`)**: Strictly `"Recommendations"` (`text-lg font-semibold text-slate-300 mb-2`).
+- **Heading (`.recommendations-title`)**: Strictly `"Recommendations"` (`text-lg font-semibold text-slate-300 mb-3`).
 - **Accordion List (`.recommendations-list`)**: Multi-expandable group (`[multiExpandable]="true"`).
 - **Item Trigger (`.recommendation-trigger`)**:
   - Contains ID and title: `<span class="recommendation-id">{{ item.id }}: </span> <span class="recommendation-text">{{ item.text }}</span>`
@@ -284,7 +304,7 @@ The **Firebase AI Logic Multimodal Speech Generator** is a focused AI studio web
 ### 11. Text Generation Token Usage & Thought Summary (`DashboardComponent` & `ThoughtSummaryComponent`)
 
 - **Text Generation Token Usage (`.usage-section`)**:
-  - **Heading (`.section-title`)**: `"Text Generation Token Usage"` (`text-lg font-semibold text-slate-300 mb-2`).
+  - **Heading (`.section-title`)**: `"Text Generation Token Usage"` (`text-lg font-semibold text-slate-300 mb-3`).
   - **Container (`.usage-grid`)**: Single rounded bar (`bg-slate-700/50 p-4 rounded-lg border border-slate-600 flex flex-wrap justify-around`).
   - **Items (`.usage-item`)**: 4 inline statistics formatted as `text-slate-200 italic`:
     - `Input: 412`
@@ -292,6 +312,6 @@ The **Firebase AI Logic Multimodal Speech Generator** is a focused AI studio web
     - `Thought: 84`
     - `Total: 664`
 - **Thought Summary (`ThoughtSummaryComponent`)**:
-  - **Heading (`.section-title`)**: `"Thought Summary"` (`text-lg font-semibold text-slate-300 mb-2`).
+  - **Heading (`.section-title`)**: `"Thought Summary"` (`text-lg font-semibold text-slate-300 mb-3`).
   - **Content Container (`.thought-content`)**: Scrollable box (`bg-slate-700/50 p-4 rounded-lg border border-slate-600 overflow-y-auto h-64`).
   - **Content Text (`.thought-text`)**: Markdown HTML rendered in `text-slate-200 italic`.

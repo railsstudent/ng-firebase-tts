@@ -1,11 +1,48 @@
 @import 'tailwindcss';
 
-.error-block {
-  @apply mt-6 bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded-lg relative;
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --color-app-bg: #0f172a;
+  --color-surface-card: rgba(30, 41, 59, 0.5);
+  --color-surface-border: #334155;
+  --color-surface-hover: #475569;
+
+  --color-text-primary: #f1f5f9;
+  --color-text-secondary: #cbd5e1;
+  --color-text-muted: #94a3b8;
+
+  --color-primary-indigo: #4f46e5;
+  --color-primary-hover: #6366f1;
+
+  --color-error-bg: #7f1d1d;
+  --color-error-border: #b91c1c;
+  --color-error-text: #fecaca;
 }
 
-.btn-audio {
-  @apply gap-2 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-500 disabled:bg-slate-600 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 disabled:scale-100;
+.error-block {
+  @apply mt-6 bg-(--color-error-bg) border border-(--color-error-border) text-(--color-error-text) px-4 py-3 rounded-lg relative;
+}
+
+@utility section-wrapper {
+  @apply w-full mt-6;
+}
+
+@utility section-title {
+  @apply text-lg font-semibold text-(--color-text-primary) mb-3;
+}
+
+@utility surface-card {
+  @apply bg-(--color-surface-card) p-4 rounded-lg border border-(--color-surface-border);
+}
+
+@utility empty-message {
+  @apply text-center text-(--color-text-muted) italic;
+}
+
+@utility btn-primary {
+  @apply gap-2 text-white font-semibold py-3 px-4 rounded-lg bg-(--color-primary-indigo) hover:bg-(--color-primary-hover) disabled:bg-slate-600 disabled:cursor-not-allowed transition-all;
 }
 
 .btn-image-selector {
@@ -14,8 +51,4 @@
 
 .form-field-label {
   @apply text-xs font-bold text-slate-400 uppercase tracking-wider ml-1;
-}
-
-@utility text-muted {
-  @apply text-slate-400;
 }

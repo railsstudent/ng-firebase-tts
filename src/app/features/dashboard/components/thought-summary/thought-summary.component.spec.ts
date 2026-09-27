@@ -35,11 +35,11 @@ describe('ThoughtSummaryComponent', () => {
     fixture.detectChanges();
 
     const wrapper = fixture.debugElement.query(By.css('.summary-container'));
-    const thoughtSection = fixture.debugElement.query(By.css('.thought-section'));
+    const thoughtContent = fixture.debugElement.query(By.css('.thought-content'));
     const thoughtText = fixture.debugElement.query(By.css('.thought-text'));
 
     expect(wrapper).toBeTruthy();
-    expect(thoughtSection).toBeTruthy();
+    expect(thoughtContent).toBeTruthy();
     expect(thoughtText.nativeElement.innerHTML).toContain('Thinking about Mars surface chemistry...');
   });
 });

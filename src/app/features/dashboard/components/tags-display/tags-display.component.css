@@ -1,13 +1,5 @@
 @reference "../../../../../styles.css";
 
-.tags-wrapper {
-  @apply w-full mt-6;
-}
-
-.tags-title {
-  @apply text-lg font-semibold text-slate-300 mb-3;
-}
-
 .tags-list {
   @apply flex flex-wrap gap-2;
 }
@@ -16,12 +8,8 @@
   @apply bg-indigo-900/20 text-indigo-200 border border-indigo-500/30 text-sm font-medium px-3 py-1 rounded-full;
 }
 
-.no-tags-message {
-  @apply text-muted italic;
-}
-
 /* Active Highlight when selected */
 .tag-pill-selected,
 .tag-option[aria-selected='true'] .tag-pill {
-  @apply bg-indigo-600 text-white border-indigo-400 shadow-md shadow-indigo-500/20;
+  @apply bg-(--color-primary-indigo) text-white border-indigo-400 shadow-md shadow-indigo-500/20;
 }

@@ -1,5 +1,5 @@
-<div class="recommendations-wrapper">
-  <h3 class="recommendations-title">Recommendations</h3>
+<div class="section-wrapper">
+  <h3 class="section-title">Recommendations</h3>
   <div class="recommendations-list" ngAccordionGroup [multiExpandable]="true">
     @for (item of recommendations(); track item.id) {
       <div class="recommendation-card">
@@ -35,7 +35,7 @@
         </p>
       </div>
     } @empty {
-      <p class="no-recommendations">No recommendation.</p>
+      <p class="empty-message">No recommendation.</p>
     }
   </div>
 </div>

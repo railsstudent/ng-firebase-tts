@@ -1,7 +1,7 @@
 @reference "../styles.css";
 
 .app-shell {
-  @apply min-h-screen bg-slate-900 text-slate-100 flex flex-col items-center p-4 sm:p-6 lg:p-8;
+  @apply min-h-screen bg-(--color-app-bg) text-(--color-text-primary) font-sans flex flex-col items-center p-4 sm:p-6 lg:p-8;
 }
 
 .app-container {

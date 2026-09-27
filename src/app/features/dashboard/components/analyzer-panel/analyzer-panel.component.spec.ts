@@ -46,7 +46,7 @@ describe('AnalyzerPanelComponent', () => {
   it('should render app-photo-panel and defer placeholder initially without loading VisionService', () => {
     const photoPanel = fixture.debugElement.query(By.css('app-photo-panel'));
     const altTextPanel = fixture.debugElement.query(By.css('app-alt-text-panel'));
-    const emptyState = fixture.debugElement.query(By.css('.empty-state'));
+    const emptyState = fixture.debugElement.query(By.css('.panel-container .empty-message'));
 
     expect(photoPanel).toBeTruthy();
     expect(altTextPanel).toBeNull();

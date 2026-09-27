@@ -7,7 +7,3 @@
 .panel-container {
   @apply flex flex-col justify-center min-h-auto md:min-h-[20rem] self-start w-full;
 }
-
-.empty-state {
-  @apply text-center text-muted;
-}

@@ -5,23 +5,23 @@
 }
 
 .dropzone {
-  @apply w-full h-48 sm:h-64 md:h-80 border-2 border-dashed border-slate-600 rounded-xl flex flex-col items-center justify-center text-slate-400 hover:bg-slate-700/50 hover:border-slate-500 transition-colors cursor-pointer p-4;
+  @apply w-full h-48 sm:h-64 md:h-80 border-2 border-dashed border-(--color-surface-border) rounded-xl flex flex-col items-center justify-center text-(--color-text-muted) hover:bg-(--color-surface-card) hover:border-(--color-surface-hover) transition-colors cursor-pointer p-4;
 }
 
 .dropzone.drag-active {
-  @apply bg-slate-700/80 border-indigo-500 text-indigo-200 scale-102 shadow-indigo-500/20 shadow-md;
+  @apply bg-(--color-surface-hover) border-(--color-primary-indigo) text-indigo-200 scale-102 shadow-indigo-500/20 shadow-md;
 }
 
 .photo-icon {
-  @apply w-12 h-12 sm:w-16 sm:h-16 text-slate-500;
+  @apply w-12 h-12 sm:w-16 sm:h-16 text-(--color-text-muted);
 }
 
 .upload-title {
-  @apply mt-2 sm:mt-4 text-sm sm:text-base font-semibold;
+  @apply mt-2 sm:mt-4 text-sm sm:text-base font-semibold text-(--color-text-primary);
 }
 
 .upload-subtitle {
-  @apply text-xs sm:text-sm;
+  @apply text-xs sm:text-sm text-(--color-text-muted);
 }
 
 .preview-container {

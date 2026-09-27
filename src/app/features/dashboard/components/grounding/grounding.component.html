@@ -1,4 +1,4 @@
-<div class="grounding-wrapper">
+<div class="section-wrapper">
   @let citations = metadata()?.citations;
   @let numCitations = citations?.length || 0;
   @if (numCitations > 0) {
@@ -20,7 +20,7 @@
       @for (query of metadata()?.searchQueries; track query) {
         @if (query) {
           <li class="query-text">
-            <span class="query-italic">{{ query }}</span>
+            <span class="italic">{{ query }}</span>
           </li>
         }
       }

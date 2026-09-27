@@ -25,7 +25,7 @@ describe('TagsDisplayComponent', () => {
       fixture.componentRef.setInput('tags', []);
       fixture.detectChanges();
 
-      const fallbackEl = fixture.debugElement.query(By.css('.no-tags-message'));
+      const fallbackEl = fixture.debugElement.query(By.css('.empty-message'));
       const options = fixture.debugElement.queryAll(By.css('[ngOption]'));
 
       expect(fallbackEl).toBeTruthy();
@@ -64,7 +64,7 @@ describe('TagsDisplayComponent', () => {
       fixture.componentRef.setInput('tags', sampleTags);
       fixture.detectChanges();
 
-      const fallbackEl = fixture.debugElement.query(By.css('.no-tags-message'));
+      const fallbackEl = fixture.debugElement.query(By.css('.empty-message'));
       const options = fixture.debugElement.queryAll(By.css('[ngOption]'));
 
       expect(fallbackEl).toBeNull();

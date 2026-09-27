@@ -15,9 +15,9 @@
   @defer (when hasTags) {
     <app-tags-display [tags]="tags" />
   } @placeholder {
-    <div class="tags-wrapper">
-      <h2 class="tags-title">Suggested Tags</h2>
-      <p class="no-tags-message">No tags were generated for this image.</p>
+    <div class="section-wrapper">
+      <h2 class="section-title">Suggested Tags</h2>
+      <p class="empty-message">No tags were generated for this image.</p>
     </div>
   }
 
@@ -25,9 +25,9 @@
   @defer (when fact) {
     <app-obscure-fact [interestingFact]="fact" />
   } @placeholder {
-    <div class="obscure-fact-placeholder">
-      <h3 class="obscure-fact-title">A surprising or obscure fact about the tags</h3>
-      <p class="obscure-fact-empty">Upload an image to discover an obscure fact and generate speech.</p>
+    <div class="section-wrapper">
+      <h3 class="section-title">A surprising or obscure fact about the tags</h3>
+      <p class="empty-message mb-2">Upload an image to discover an obscure fact and generate speech.</p>
     </div>
   }
 </div>

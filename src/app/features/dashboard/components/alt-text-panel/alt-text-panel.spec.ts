@@ -28,7 +28,7 @@ describe('AltTextPanel', () => {
     fixture.componentRef.setInput('isLoading', false);
     fixture.detectChanges();
 
-    const emptyState = fixture.debugElement.query(By.css('.empty-state'));
+    const emptyState = fixture.debugElement.query(By.css('.empty-message'));
     expect(emptyState).toBeTruthy();
     expect(emptyState.nativeElement.textContent).toContain('Upload an image and click "Generate" to see the results.');
   });
@@ -40,7 +40,7 @@ describe('AltTextPanel', () => {
     fixture.componentRef.setInput('isLoading', true);
     fixture.detectChanges();
 
-    const emptyState = fixture.debugElement.query(By.css('.empty-state'));
+    const emptyState = fixture.debugElement.query(By.css('.empty-message'));
     const loadingState = fixture.debugElement.query(By.css('.loading-state'));
     const spinner = fixture.debugElement.query(By.css('.loading-spinner'));
 
@@ -56,7 +56,7 @@ describe('AltTextPanel', () => {
     fixture.componentRef.setInput('isLoading', false);
     fixture.detectChanges();
 
-    const emptyState = fixture.debugElement.query(By.css('.empty-state'));
+    const emptyState = fixture.debugElement.query(By.css('.empty-message'));
     const errorDisplay = fixture.debugElement.query(By.css('app-error-display'));
     const errorBlock = fixture.debugElement.query(By.css('.error-block'));
 
@@ -82,7 +82,7 @@ describe('AltTextPanel', () => {
     fixture.componentRef.setInput('isLoading', false);
     fixture.detectChanges();
 
-    const emptyState = fixture.debugElement.query(By.css('.empty-state'));
+    const emptyState = fixture.debugElement.query(By.css('.empty-message'));
     const errorCard = fixture.debugElement.query(By.css('.error-card'));
     const results = fixture.debugElement.query(By.css('.results-wrapper'));
     const altTextDisplay = fixture.debugElement.query(By.css('.display-text'));
