@@ -213,10 +213,14 @@ The **Firebase AI Logic Multimodal Speech Generator** is a focused AI studio web
 
 ### 1. App Header (`HeaderComponent`)
 
-- **Container**: Centered text block (`text-center mb-6 sm:mb-8`).
+- **Container**: Relative wrapper with centered text block (`relative flex items-center justify-center text-center mb-6 sm:mb-8 min-h-[4rem]`).
+- **Home Navigation Action (`.header-home-btn`)**:
+  - Left-anchored link (`absolute left-0 top-1/2 -translate-y-1/2 p-2 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all`) housing `<app-home-icon />`.
+  - Accessible label: `aria-label="Go to Home Screen"`.
+  - Target: `routerLink="/home"`.
 - **Title (`h1`)**: `"Firebase AI Logic Obscure Fact Speech Generator"` (`text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight bg-gradient-to-r from-indigo-400 to-emerald-400 bg-clip-text text-transparent`).
 - **Subtitle (`p`)**: `"Upload an image to generate alt text and tags with Gemini"` (`text-sm sm:text-base md:text-lg text-slate-400 mt-2`).
-- **Constraints**: No navigation bars, tabs, breadcrumbs, or icons.
+- **Constraints**: Strictly NO tabs, breadcrumbs, search bars, user avatars, or secondary dropdown menus. Only the designated left-anchored Home navigation button and centered title/subtitle are permitted.
 
 ### 2. App Footer (`FooterComponent`)
 
@@ -315,3 +319,30 @@ The **Firebase AI Logic Multimodal Speech Generator** is a focused AI studio web
   - **Heading (`.section-title`)**: `"Thought Summary"` (`text-lg font-semibold text-slate-300 mb-3`).
   - **Content Container (`.thought-content`)**: Scrollable box (`bg-slate-700/50 p-4 rounded-lg border border-slate-600 overflow-y-auto h-64`).
   - **Content Text (`.thought-text`)**: Markdown HTML rendered in `text-slate-200 italic`.
+
+---
+
+### 12. Home Screen (`HomeComponent`)
+
+- **Outer Wrapper (`.home-container`)**: Centered layout inside standard `.app-main` (`w-full flex-1 flex flex-col items-center justify-center py-8 sm:py-16`).
+- **Hero Card (`.home-card` / `.surface-card`)**:
+  - **Desktop Viewport (1280px+)**: Floating surface card (`bg-slate-800/50 border border-slate-700 rounded-2xl max-w-2xl w-full p-8 sm:p-12 text-center flex flex-col items-center gap-6 shadow-2xl backdrop-blur-sm`).
+  - **Mobile Viewport (<768px)**: Full-width responsive card (`p-6 w-full flex flex-col items-center gap-5`).
+- **Category Pill (`.home-badge`)**: `"Firebase AI Logic & Vertex AI"` (`text-xs uppercase font-bold tracking-widest text-indigo-400 bg-indigo-950/60 border border-indigo-800/60 px-3 py-1 rounded-full`).
+- **Headline (`.home-title`)**: `"Multimodal Vision & Real-Time Speech Studio"` (`text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-slate-100`).
+- **Description (`.home-description`)**: `"Analyze images with Gemini multimodal intelligence, discover grounded obscure facts, and generate real-time streaming audio with customizable voice personas."` (`text-sm sm:text-base text-slate-400 max-w-lg leading-relaxed`).
+- **Primary CTA Button (`.btn-launch`)**:
+  - Button element with `routerLink="/dashboard"`.
+  - Styling: `@apply btn-primary px-8 py-3.5 text-base font-semibold shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2;`.
+  - Label: `"Launch Studio"`.
+- **Architecture & Capabilities Metadata Grid (`.home-features-grid`)**:
+  - Clean key-value list with **zero status pills or badge chips**:
+    - **Model Pipeline**: `Gemini 3.8 Flash`
+    - **Audio Synthesis**: `Gemini-TTS Streaming`
+    - **Grounding**: `Google Search Tool`
+  - Layout: 1-column stack on mobile (`grid-cols-1 gap-2.5`), 3-column row on desktop (`sm:grid-cols-3 sm:gap-4`).
+- **Strict Constraints**:
+  - Strictly NO status pills, badges, or chip tags on list items (`Multimodal`, `Real-Time`, `Verified` tags are forbidden).
+  - Strictly NO obsolete model names (must use modern `Gemini 3.8 Flash`).
+  - Strictly NO isolated `min-h-screen` or independent background overrides; must seamlessly inherit `.app-shell` and `.app-container`.
+  - Strictly NO marketing carousels, unstyled external links, or secondary sidebar menus.

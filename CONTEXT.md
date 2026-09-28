@@ -66,6 +66,20 @@ _Avoid_: Tag list, button pills, chip array
 A multi-expandable collapsible container (`ngAccordionGroup`, `[multiExpandable]="true"`) utilizing `<ng-template ngAccordionContent>` to defer DOM rendering of panel contents until expanded by the user.
 _Avoid_: Collapsible panel, accordion widget, expandable card
 
+### Navigation & Application Views
+
+**Home Screen (Landing View)**:
+The minimalist entry view of the application that introduces the capabilities of the AI studio and provides direct navigation to the multimodal analysis and speech generation workspace.
+_Avoid_: Splash page, login screen, index html, home widget
+
+**TTS Studio Workspace (Dashboard)**:
+The primary interactive workspace view providing real-time image analysis, prompt customization, and gapless streaming audio synthesis.
+_Avoid_: Home page, main panel, tool screen
+
+**Home Navigation Action**:
+The accessible icon button rendered on the left edge of the application header that enables users to navigate directly back to the Home Screen from any view.
+_Avoid_: Back button, logo button, root link
+
 ### Core Architecture & Configuration
 
 **Firebase AI Logic**:
