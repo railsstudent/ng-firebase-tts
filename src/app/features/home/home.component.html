@@ -1,0 +1,26 @@
+<section class="home-container">
+  <div class="home-card surface-card">
+    <span class="home-badge">Firebase AI Logic &amp; Vertex AI</span>
+
+    <h2 class="home-title">Multimodal Vision &amp; Real-Time Speech Studio</h2>
+
+    <p class="home-description">
+      Analyze images with Gemini multimodal intelligence, discover grounded obscure facts, and generate real-time
+      streaming audio with customizable voice personas.
+    </p>
+
+    <a [routerLink]="dashboard" class="btn-primary btn-launch group">
+      <span>Launch Studio</span>
+      <app-arrow-right-icon class="btn-launch-icon" />
+    </a>
+
+    <div class="home-features-grid">
+      @for (feature of features; track feature.label) {
+        <div class="feature-item">
+          <span class="feature-label">{{ feature.label }}</span>
+          <span class="feature-value">{{ feature.value }}</span>
+        </div>
+      }
+    </div>
+  </div>
+</section>

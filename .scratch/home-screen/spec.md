@@ -41,7 +41,8 @@ Provide a clean, minimalist Home Screen landing view based on the Obsidian & Ele
 ### 3. Global Header Navigation Landmark
 
 - Refactor the application header component to support relative positioning with a left-anchored navigation link containing the standalone Home icon.
-- Ensure the header title gradient and subtitle remain horizontally centered across desktop and mobile viewports.
+- Ensure the header gradient title (`h1`) remains horizontally centered across desktop and mobile viewports.
+- Explicitly remove the global subtitle to avoid context mismatch on the landing view and eliminate visual clutter.
 - Equip the navigation link with an accessible label and standard router link bindings.
 
 ### 4. Application Routing Architecture
@@ -66,7 +67,7 @@ Tests must verify external behavioral contracts, accessible landmarks, and routi
 
 - Verify the header renders the navigation anchor targeting the home route.
 - Verify the navigation anchor includes the correct `aria-label="Go to Home Screen"`.
-- Verify the header title and subtitle remain rendered with appropriate heading hierarchy.
+- Verify the header title renders with `h1` heading hierarchy without any extraneous subtitle elements.
 
 ### 3. Home Screen View Tests
 

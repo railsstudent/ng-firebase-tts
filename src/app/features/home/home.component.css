@@ -1,0 +1,45 @@
+@reference "../../../styles.css";
+
+.home-container {
+  @apply w-full flex-1 flex flex-col items-center justify-center py-8 sm:py-16;
+}
+
+.home-card {
+  @apply max-w-2xl w-full p-6 sm:p-12 text-center flex flex-col items-center gap-6 rounded-2xl shadow-2xl backdrop-blur-sm;
+}
+
+.home-badge {
+  @apply text-xs uppercase font-bold tracking-widest text-(--color-primary-accent) bg-indigo-950/60 border border-indigo-800/60 px-3 py-1 rounded-full;
+}
+
+.home-title {
+  @apply text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-(--color-text-primary);
+}
+
+.home-description {
+  @apply text-sm sm:text-base text-(--color-text-muted) max-w-lg leading-relaxed;
+}
+
+.btn-launch {
+  @apply px-8 py-3.5 text-base shadow-lg shadow-indigo-500/20 flex items-center justify-center;
+}
+
+.btn-launch-icon {
+  @apply transition-transform duration-200 group-hover:translate-x-1;
+}
+
+.home-features-grid {
+  @apply w-full grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-6 border-t border-(--color-surface-border)/60 mt-2;
+}
+
+.feature-item {
+  @apply bg-slate-900/60 border border-slate-800 rounded-xl p-3 sm:p-4 flex flex-col items-center gap-1 text-center;
+}
+
+.feature-label {
+  @apply text-xs font-medium text-(--color-text-muted) uppercase tracking-wider;
+}
+
+.feature-value {
+  @apply text-sm font-semibold text-(--color-text-secondary);
+}

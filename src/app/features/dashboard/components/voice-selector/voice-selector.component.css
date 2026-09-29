@@ -27,7 +27,7 @@
 
 /* --- Dropdown Caret Rotation --- */
 .voice-trigger[aria-expanded='true'] app-arrow-drop-down-icon {
-  @apply rotate-180 text-indigo-400;
+  @apply rotate-180 text-(--color-primary-accent);
 }
 
 /* --- Popup Overlay Container --- */
@@ -42,7 +42,7 @@
 
 /* --- Option Items --- */
 [ngOption] {
-  @apply flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-200 cursor-pointer transition-colors text-sm select-none;
+  @apply flex items-center gap-2.5 px-3 py-2 rounded-lg text-(--color-text-secondary) cursor-pointer transition-colors text-sm select-none;
 }
 
 [ngOption]:hover,
@@ -55,7 +55,14 @@
 }
 
 .voice-option-text {
-  @apply flex-1 text-slate-200;
+  @apply flex-1 text-(--color-text-secondary);
+}
+
+/* --- Voice Selector Icons --- */
+app-mic-icon,
+app-check-icon,
+app-arrow-drop-down-icon {
+  @apply text-(--color-primary-accent);
 }
 
 /* --- Check mark Visibility --- */

@@ -1,5 +1,5 @@
 @reference "../../../../../styles.css";
 
 .obscure-fact-text {
-  @apply text-indigo-400 italic mb-2 text-lg;
+  @apply text-(--color-primary-accent) italic mb-2 text-lg;
 }

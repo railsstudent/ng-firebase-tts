@@ -1,8 +1,9 @@
 import { DeferBlockState, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { App } from './app';
 
-import { SwUpdate } from '@angular/service-worker';
 import { WINDOW } from '@/core/constants/navigator.const';
+import { SwUpdate } from '@angular/service-worker';
 import { EMPTY } from 'rxjs';
 
 describe('App', () => {
@@ -10,6 +11,7 @@ describe('App', () => {
     await TestBed.configureTestingModule({
       imports: [App],
       providers: [
+        provideRouter([]),
         {
           provide: SwUpdate,
           useValue: {

@@ -219,8 +219,7 @@ The **Firebase AI Logic Multimodal Speech Generator** is a focused AI studio web
   - Accessible label: `aria-label="Go to Home Screen"`.
   - Target: `routerLink="/home"`.
 - **Title (`h1`)**: `"Firebase AI Logic Obscure Fact Speech Generator"` (`text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight bg-gradient-to-r from-indigo-400 to-emerald-400 bg-clip-text text-transparent`).
-- **Subtitle (`p`)**: `"Upload an image to generate alt text and tags with Gemini"` (`text-sm sm:text-base md:text-lg text-slate-400 mt-2`).
-- **Constraints**: Strictly NO tabs, breadcrumbs, search bars, user avatars, or secondary dropdown menus. Only the designated left-anchored Home navigation button and centered title/subtitle are permitted.
+- **Constraints**: Strictly NO subtitles, secondary paragraphs, tabs, breadcrumbs, search bars, user avatars, or secondary dropdown menus. Only the designated left-anchored Home navigation button and centered `h1` title are permitted.
 
 ### 2. App Footer (`FooterComponent`)
 
@@ -332,9 +331,9 @@ The **Firebase AI Logic Multimodal Speech Generator** is a focused AI studio web
 - **Headline (`.home-title`)**: `"Multimodal Vision & Real-Time Speech Studio"` (`text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-slate-100`).
 - **Description (`.home-description`)**: `"Analyze images with Gemini multimodal intelligence, discover grounded obscure facts, and generate real-time streaming audio with customizable voice personas."` (`text-sm sm:text-base text-slate-400 max-w-lg leading-relaxed`).
 - **Primary CTA Button (`.btn-launch`)**:
-  - Button element with `routerLink="/dashboard"`.
+  - Semantic link element with `[routerLink]="dashboard"` (typed `APP_LINKS.DASHBOARD`).
+  - Content: `"Launch Studio"` label accompanied by standalone `<app-arrow-right-icon>` (`ArrowRightIconComponent`, `aria-hidden="true"`) with micro-interaction hover translation (`group-hover:translate-x-1`).
   - Styling: `@apply btn-primary px-8 py-3.5 text-base font-semibold shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2;`.
-  - Label: `"Launch Studio"`.
 - **Architecture & Capabilities Metadata Grid (`.home-features-grid`)**:
   - Clean key-value list with **zero status pills or badge chips**:
     - **Model Pipeline**: `Gemini 3.8 Flash`

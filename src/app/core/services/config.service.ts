@@ -4,8 +4,7 @@ import firebaseConfig from '@/public/firebase.config.json';
 import remoteConfigDefaults from '@/public/remote-config-defaults.json';
 import { inject, isDevMode, Service } from '@angular/core';
 import type { AI, ThinkingLevel } from 'firebase/ai';
-import { FirebaseApp, initializeApp } from 'firebase/app';
-import { fetchAndActivate, getRemoteConfig, getValue } from 'firebase/remote-config';
+import type { FirebaseApp } from 'firebase/app';
 
 const SECONDS = 60;
 const MILLISECONDS = 1000;
@@ -90,32 +89,39 @@ export class ConfigService {
     return this.#ai;
   }
 
-  initialize() {
-    this.#app = initializeApp(firebaseConfig.app);
-    const isOnline = this.#isOnline();
-
-    const rc = getRemoteConfig(this.#app);
-    rc.defaultConfig = remoteConfigDefaults;
-    const dev = isDevMode();
-    rc.settings.minimumFetchIntervalMillis = dev ? 0 : ONE_HOUR_IN_MILLISECONDS;
-    rc.settings.fetchTimeoutMillis = dev ? DEV_TIMEOUT : PROD_TIMEOUT;
-
-    if (isOnline) {
-      fetchAndActivate(rc)
-        .then((activated) => {
-          console.log('Remote Config initialized. Activated new values:', activated);
-          this.#appConfig = {
-            vertexAILocation: getValue(rc, 'vertexAILocation').asString(),
-            useLimitedUseAppCheckTokens: getValue(rc, 'useLimitedUseAppCheckTokens').asBoolean(),
-            geminiModelName: getValue(rc, 'geminiModelName').asString(),
-            thinkingLevel: getValue(rc, 'thinkingLevel').asString() as ThinkingLevel,
-            geminiTTSModelName: getValue(rc, 'geminiTTSModelName').asString(),
-          };
-          this.#ai = null;
-        })
-        .catch((error) => {
-          console.warn('Remote Config fetch timed out or failed. Using defaults:', error);
-        });
+  initialize(): void {
+    if (this.#app) {
+      return; // Already initialized, instant no-op!
     }
+
+    const isOnline = this.#isOnline();
+    Promise.all([import('firebase/app'), import('firebase/remote-config')]).then(
+      ([{ initializeApp }, { getRemoteConfig, fetchAndActivate, getValue }]) => {
+        this.#app = initializeApp(firebaseConfig.app);
+        const rc = getRemoteConfig(this.#app);
+        rc.defaultConfig = remoteConfigDefaults;
+        const dev = isDevMode();
+        rc.settings.minimumFetchIntervalMillis = dev ? 0 : ONE_HOUR_IN_MILLISECONDS;
+        rc.settings.fetchTimeoutMillis = dev ? DEV_TIMEOUT : PROD_TIMEOUT;
+
+        if (isOnline) {
+          fetchAndActivate(rc)
+            .then((activated) => {
+              console.log('Remote Config initialized. Activated new values:', activated);
+              this.#appConfig = {
+                vertexAILocation: getValue(rc, 'vertexAILocation').asString(),
+                useLimitedUseAppCheckTokens: getValue(rc, 'useLimitedUseAppCheckTokens').asBoolean(),
+                geminiModelName: getValue(rc, 'geminiModelName').asString(),
+                thinkingLevel: getValue(rc, 'thinkingLevel').asString() as ThinkingLevel,
+                geminiTTSModelName: getValue(rc, 'geminiTTSModelName').asString(),
+              };
+              this.#ai = null;
+            })
+            .catch((error) => {
+              console.warn('Remote Config fetch timed out or failed. Using defaults:', error);
+            });
+        }
+      },
+    );
   }
 }

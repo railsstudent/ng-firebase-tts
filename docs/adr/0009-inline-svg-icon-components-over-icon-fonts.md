@@ -18,9 +18,9 @@ This architecture had several drawbacks:
 
 We replace all icon web fonts with **standalone Angular SVG components** located in `src/app/shared/ui/icons/`:
 
-1. **Self-Contained Components with Dedicated CSS**:
-   - Each icon is encapsulated in its own `.component.ts` file with a companion `.component.css` file.
-   - The stylesheet defines the host layout, dimensions, and base colors using Tailwind CSS v4 `@apply` rules on `:host` (e.g. `:host { @apply inline-flex items-center justify-center shrink-0 w-5 h-5 ...; }`).
+1. **Self-Contained Components with Shared Base Stylesheet**:
+   - Each icon is encapsulated in its own `.component.ts` file in `src/app/shared/ui/icons/` referencing the centralized `styleUrl: './icon.css'`.
+   - The shared stylesheet standardizes host layout, dimensions, and baseline behavior using Tailwind CSS v4 `@apply app-icon` on `:host`. Individual companion `.component.css` files are retained only when an icon requires unique transitions or animation states (e.g. `arrow-drop-down-icon`).
    - The component template renders an inline `<svg class="w-full h-full" fill="currentColor" aria-hidden="true">` that inherits layout, size, and color dynamically from `:host`.
 2. **Contextual State Styling via Element Selectors**:
    - Consuming components (like `VoiceSelectorComponent`) apply contextual interaction states (such as caret rotation on expand or checkmark visibility on selection) by targeting element selectors directly (e.g. `.voice-trigger[aria-expanded='true'] app-arrow-drop-down-icon`).

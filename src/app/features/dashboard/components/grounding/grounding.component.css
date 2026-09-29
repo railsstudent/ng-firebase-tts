@@ -9,7 +9,7 @@
 }
 
 .link-anchor {
-  @apply text-indigo-400 hover:text-indigo-300 underline;
+  @apply text-(--color-primary-accent) hover:text-indigo-300 underline;
 }
 
 .query-text {
