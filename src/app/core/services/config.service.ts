@@ -5,6 +5,7 @@ import remoteConfigDefaults from '@/public/remote-config-defaults.json';
 import { inject, isDevMode, Service } from '@angular/core';
 import type { AI, ThinkingLevel } from 'firebase/ai';
 import type { FirebaseApp } from 'firebase/app';
+import type { RemoteConfig } from 'firebase/remote-config';
 
 const SECONDS = 60;
 const MILLISECONDS = 1000;
@@ -17,6 +18,9 @@ const LOCAL_DOMAINS = ['localhost', '127.0.0.1', '::1', '[::1]'];
 export class ConfigService {
   readonly #window = inject(WINDOW);
   #app: FirebaseApp | undefined = undefined;
+  #ai: AI | null = null;
+  #appReady: Promise<void> | null = null;
+  #appCheck: Promise<void> | null = null;
 
   #appConfig: AppRemoteConfig = {
     useLimitedUseAppCheckTokens: remoteConfigDefaults.useLimitedUseAppCheckTokens === 'true',
@@ -29,9 +33,6 @@ export class ConfigService {
   get appConfig(): AppRemoteConfig {
     return this.#appConfig;
   }
-
-  #ai: AI | null = null;
-  #appCheck: Promise<void> | null = null;
 
   #isOnline(): boolean {
     return this.#window?.navigator?.onLine ?? true;
@@ -66,18 +67,21 @@ export class ConfigService {
   }
 
   async getAiBackend(): Promise<AI> {
-    if (!this.#app) {
-      throw new Error('Firebase App has not been initialized yet.');
-    }
-
     if (this.#ai) {
       return this.#ai;
     }
 
-    const isOnline = this.#isOnline();
-    const isLocalhost = this.#isLocalhost();
-    if (isOnline && firebaseConfig.recaptchaEnterpriseKey) {
-      await this.ensureAppCheck(isLocalhost);
+    /* initialized the firebase app and fetch remote config in the background once */
+    if (this.#appReady) {
+      await this.#appReady;
+    }
+
+    if (!this.#app) {
+      throw new Error('Firebase App has not been initialized yet.');
+    }
+
+    if (this.#isOnline() && firebaseConfig.recaptchaEnterpriseKey) {
+      await this.ensureAppCheck(this.#isLocalhost());
     }
 
     const { getAI, AgentPlatformBackend } = await import('firebase/ai');
@@ -89,14 +93,9 @@ export class ConfigService {
     return this.#ai;
   }
 
-  initialize(): void {
-    if (this.#app) {
-      return; // Already initialized, instant no-op!
-    }
-
-    const isOnline = this.#isOnline();
-    Promise.all([import('firebase/app'), import('firebase/remote-config')]).then(
-      ([{ initializeApp }, { getRemoteConfig, fetchAndActivate, getValue }]) => {
+  private loadFirebase(): Promise<void> {
+    return Promise.all([import('firebase/app'), import('firebase/remote-config')])
+      .then(([{ initializeApp }, { getRemoteConfig, fetchAndActivate, getValue }]) => {
         this.#app = initializeApp(firebaseConfig.app);
         const rc = getRemoteConfig(this.#app);
         rc.defaultConfig = remoteConfigDefaults;
@@ -104,24 +103,41 @@ export class ConfigService {
         rc.settings.minimumFetchIntervalMillis = dev ? 0 : ONE_HOUR_IN_MILLISECONDS;
         rc.settings.fetchTimeoutMillis = dev ? DEV_TIMEOUT : PROD_TIMEOUT;
 
-        if (isOnline) {
-          fetchAndActivate(rc)
-            .then((activated) => {
-              console.log('Remote Config initialized. Activated new values:', activated);
-              this.#appConfig = {
-                vertexAILocation: getValue(rc, 'vertexAILocation').asString(),
-                useLimitedUseAppCheckTokens: getValue(rc, 'useLimitedUseAppCheckTokens').asBoolean(),
-                geminiModelName: getValue(rc, 'geminiModelName').asString(),
-                thinkingLevel: getValue(rc, 'thinkingLevel').asString() as ThinkingLevel,
-                geminiTTSModelName: getValue(rc, 'geminiTTSModelName').asString(),
-              };
-              this.#ai = null;
-            })
-            .catch((error) => {
-              console.warn('Remote Config fetch timed out or failed. Using defaults:', error);
-            });
-        }
-      },
-    );
+        this.fetchRemoteConfig(fetchAndActivate, rc, getValue);
+      })
+      .catch((error) => {
+        console.warn('Remote Config fetch timed out or failed. Using defaults:', error);
+        this.#appReady = null;
+        this.#app = undefined;
+        this.#ai = null;
+      });
+  }
+
+  private fetchRemoteConfig(
+    fetchAndActivate: typeof import('firebase/remote-config').fetchAndActivate,
+    rc: RemoteConfig,
+    getValue: typeof import('firebase/remote-config').getValue,
+  ) {
+    if (this.#isOnline()) {
+      fetchAndActivate(rc)
+        .then((activated) => {
+          console.log('Remote Config initialized. Activated new values:', activated);
+          this.#appConfig = {
+            vertexAILocation: getValue(rc, 'vertexAILocation').asString(),
+            useLimitedUseAppCheckTokens: getValue(rc, 'useLimitedUseAppCheckTokens').asBoolean(),
+            geminiModelName: getValue(rc, 'geminiModelName').asString(),
+            thinkingLevel: getValue(rc, 'thinkingLevel').asString() as ThinkingLevel,
+            geminiTTSModelName: getValue(rc, 'geminiTTSModelName').asString(),
+          };
+          this.#ai = null;
+        })
+        .catch((error) => console.warn('Remote Config fetch timed out or failed. Using defaults:', error));
+    }
+  }
+
+  initialize(): void {
+    if (!this.#appReady) {
+      this.#appReady = this.loadFirebase();
+    }
   }
 }

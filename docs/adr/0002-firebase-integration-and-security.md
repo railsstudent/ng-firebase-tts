@@ -11,14 +11,18 @@ Our application relies on Firebase services as its backend architecture. Because
 
 We will establish a secure, SSR-safe Firebase core architecture using runtime configurations, dynamic Remote Config defaults, and App Check protection:
 
-1. **Dynamic Config Loading**: Load project credentials asynchronously at runtime from `public/firebase.config.json` instead of hardcoding them into compiling environments.
+1. **Dynamic Config & SDK Loading**:
+   - Load project credentials asynchronously at runtime from `public/firebase.config.json` instead of hardcoding them into compiling environments.
+   - Dynamically import core Firebase Web SDKs (`firebase/app`, `firebase/remote-config`) on-demand when entering feature routes via `provideEnvironmentInitializer`, keeping initial landing views free of Firebase dependencies.
 2. **App Check Protection**:
    - Initialize App Check using the **reCAPTCHA Enterprise** provider for web clients.
+   - Defer App Check initialization just-in-time (JIT) until `getAiBackend()` is invoked to keep the initial rendering path and route navigation non-blocking.
    - Support zero-friction developer testing by loading pre-registered App Check debug tokens from `.env` (packaged into `firebase.config.json`) and assigning the explicit string directly to `self.FIREBASE_APPCHECK_DEBUG_TOKEN`. This avoids the manual console-registration overhead that setting the value to `true` (auto-generating fresh tokens) would require on every developer session.
    - Defer App Check initialization entirely in non-browser execution contexts (e.g., SSR or build-time compilation) to prevent server-side failures.
-3. **Resilient Remote Config**:
+3. **Resilient Remote Config & Bootstrap Coordination**:
+   - Coordinate background initialization through internal synchronization (`#appReady`), ensuring idempotent SDK loading and thread-safe execution across concurrent calls.
    - Register a local fallback configuration `public/remote-config-defaults.json` checked into Git.
-   - If `fetchAndActivate()` fails during build prerendering or due to user offline states, the app catches the error and utilizes the local fallback file gracefully.
+   - If `fetchAndActivate()` fails during build prerendering or due to user offline states/timeouts, the app catches the error and utilizes the local fallback file gracefully without resetting initialized core app instances.
 4. **Declarative Remote Config & Tooling Ecosystem**:
    - Maintain the project's multi-app Remote Config parameters and conditions declaratively in `firebase/remote-config-template.json` checked into Git.
    - **Build & Synchronization Tooling**:
@@ -34,10 +38,12 @@ We will establish a secure, SSR-safe Firebase core architecture using runtime co
 ### Positive
 
 - High security posture protecting Google Cloud API budgets from bot networks.
+- Reduced initial landing page footprint by deferring Firebase SDK parsing and initialization to feature routes.
+- Protected Core Web Vitals (FCP/LCP) through non-blocking, asynchronous SDK bootstrapping.
 - Safe, compile-friendly, non-crashing build adapter compilation during automated Firebase App Hosting builds.
 - Seamless developer testing via automated App Check debug tokens.
 - Multi-app Remote Config values and conditional rules are version-controlled in Git, minimizing manual Firebase Web Console updates.
 
 ### Negative / Trade-offs
 
-- Slight initialization overhead during app startup as configurations are resolved and fetched.
+- First-time entry to feature routes involves an asynchronous dynamic chunk fetch before backend SDK services are active.

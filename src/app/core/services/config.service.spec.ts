@@ -114,9 +114,11 @@ describe('ConfigService', () => {
     const result = service.initialize();
     expect(result).toBeUndefined();
 
-    expect(initializeApp).toHaveBeenCalledWith(firebaseConfig.app);
-    expect(getRemoteConfig).toHaveBeenCalled();
-    expect(fetchAndActivate).toHaveBeenCalled();
+    await vi.waitFor(() => {
+      expect(initializeApp).toHaveBeenCalledWith(firebaseConfig.app);
+      expect(getRemoteConfig).toHaveBeenCalled();
+      expect(fetchAndActivate).toHaveBeenCalled();
+    });
 
     // App Check is deliberately NOT called at startup (protects FCP/LCP)
     expect(initializeAppCheck).not.toHaveBeenCalled();
@@ -141,9 +143,11 @@ describe('ConfigService', () => {
 
     service.initialize();
 
-    expect(initializeApp).toHaveBeenCalledWith(firebaseConfig.app);
+    await vi.waitFor(() => {
+      expect(initializeApp).toHaveBeenCalledWith(firebaseConfig.app);
+      expect(getRemoteConfig).toHaveBeenCalled();
+    });
     expect(initializeAppCheck).not.toHaveBeenCalled();
-    expect(getRemoteConfig).toHaveBeenCalled();
     expect(fetchAndActivate).not.toHaveBeenCalled();
 
     // Even when getAiBackend() is called, App Check should not be initialized offline
@@ -182,8 +186,10 @@ describe('ConfigService', () => {
       }
 
       service.initialize();
-      expect(getRemoteConfig).toHaveBeenCalled();
-      expect(fetchAndActivate).toHaveBeenCalled();
+      await vi.waitFor(() => {
+        expect(getRemoteConfig).toHaveBeenCalled();
+        expect(fetchAndActivate).toHaveBeenCalled();
+      });
 
       await service.getAiBackend();
       expect(initializeAppCheck).not.toHaveBeenCalled();
@@ -202,9 +208,11 @@ describe('ConfigService', () => {
     // Non-blocking call should not throw or reject
     expect(() => service.initialize()).not.toThrow();
 
-    expect(initializeApp).toHaveBeenCalledWith(firebaseConfig.app);
-    expect(getRemoteConfig).toHaveBeenCalled();
-    expect(fetchAndActivate).toHaveBeenCalled();
+    await vi.waitFor(() => {
+      expect(initializeApp).toHaveBeenCalledWith(firebaseConfig.app);
+      expect(getRemoteConfig).toHaveBeenCalled();
+      expect(fetchAndActivate).toHaveBeenCalled();
+    });
 
     // When fetch fails in the background, signal retains default values
     await vi.waitFor(() => {
