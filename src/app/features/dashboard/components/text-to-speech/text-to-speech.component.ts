@@ -25,11 +25,23 @@ export class TextToSpeechComponent {
   loadingMode = this.speechService.loadingMode;
 
   isLoading = computed(() => this.loadingMode() !== 'idle');
+  isGeneratedForCurrentInput = computed(() => {
+    const activeAudio = this.speechService.activeAudio();
+    if (!activeAudio) {
+      return false;
+    }
+
+    const trimmedVoice = activeAudio.voice.trim().toLowerCase();
+    const trimmedPrompt = activeAudio.prompt.trim().toLowerCase();
+    return (
+      trimmedPrompt === this.audioPrompt().trim().toLowerCase() && trimmedVoice === this.voice().trim().toLowerCase()
+    );
+  });
 
   async generateSpeech(mode: GenerateSpeechMode) {
     try {
       const fact = this.interestingFact();
-      if (!fact) {
+      if (!fact || (mode !== 'web_audio_api' && this.isGeneratedForCurrentInput())) {
         return;
       }
 

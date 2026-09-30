@@ -41,6 +41,7 @@ export default defineConfig({
     'FOIT',
     'roundtrips',
     'FOUT',
+    'desynchronization',
   ],
   ignorePaths: [
     'node_modules',

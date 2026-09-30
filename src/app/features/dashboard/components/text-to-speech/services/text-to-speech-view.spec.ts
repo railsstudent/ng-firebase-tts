@@ -65,7 +65,7 @@ describe('TextToSpeechViewService', () => {
   });
 
   describe('generateSpeech - Sync Mode', () => {
-    it('should generate speech in sync mode and set the audio URL', async () => {
+    it('should generate speech in sync mode and set the audio URL and activeAudio record', async () => {
       const mockBlob = new Blob(['pcm bytes'], { type: 'audio/pcm' });
       mockSpeechService.synthesize.mockResolvedValue(mockBlob);
       vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:sync-url');
@@ -75,18 +75,37 @@ describe('TextToSpeechViewService', () => {
 
       expect(mockSpeechService.synthesize).toHaveBeenCalledWith({ text: 'Sync prompt', voice: 'Kore' });
       expect(service.audioUrl()).toBe('blob:sync-url');
+      expect(service.activeAudio()).toEqual({
+        url: 'blob:sync-url',
+        prompt: 'Sync prompt',
+        voice: 'Kore',
+      });
       expect(service.loadingMode()).toBe('idle');
     });
 
-    it('should catch exceptions, clean up, and throw error', async () => {
+    it('should catch exceptions, clean up playback, preserve previous valid activeAudio, and throw error', async () => {
+      // First successful run
+      const mockBlob = new Blob(['pcm bytes'], { type: 'audio/pcm' });
+      mockSpeechService.synthesize.mockResolvedValue(mockBlob);
+      vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:initial-valid-url');
+      await service.generateSpeech('sync', { prompt: 'Initial prompt', voice: 'Kore', fact: 'Fact 1' });
+      expect(service.activeAudio()?.url).toBe('blob:initial-valid-url');
+
+      // Second failed run
       mockSpeechService.synthesize.mockRejectedValue(new Error('Sync failure'));
       vi.spyOn(URL, 'revokeObjectURL');
 
-      const config = { prompt: 'Sync prompt', voice: 'Kore', fact: 'Interesting fact' };
+      const config = { prompt: 'Failed prompt', voice: 'Aoede', fact: 'Fact 2' };
       await expect(service.generateSpeech('sync', config)).rejects.toThrow('Error generating speech (Sync).');
 
       expect(mockAudioPlayerService.stopAll).toHaveBeenCalled();
-      expect(service.audioUrl()).toBeUndefined();
+      // Verifying error preservation: previous active audio is preserved
+      expect(service.activeAudio()).toEqual({
+        url: 'blob:initial-valid-url',
+        prompt: 'Initial prompt',
+        voice: 'Kore',
+      });
+      expect(service.audioUrl()).toBe('blob:initial-valid-url');
     });
   });
 
@@ -121,6 +140,11 @@ describe('TextToSpeechViewService', () => {
         signal: expect.any(AbortSignal),
       });
       expect(service.audioUrl()).toBe('blob:stream-url');
+      expect(service.activeAudio()).toEqual({
+        url: 'blob:stream-url',
+        prompt: 'Stream prompt',
+        voice: 'Kore',
+      });
     });
 
     it('should handle empty stream gracefully without setting audioUrl', async () => {

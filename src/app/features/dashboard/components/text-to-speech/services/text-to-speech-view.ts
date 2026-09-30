@@ -6,9 +6,10 @@ import {
 } from '@/core/constants/text-to-speech.constant';
 import { recordStreamChunks, toWavBlob } from '@/core/utils/audio.util';
 import { revokeBlobURL } from '@/core/utils/blob.util';
+import { GeneratedAudioRecord } from '@/features/dashboard/components/text-to-speech/interfaces/audio.interface';
 import { FactConfig } from '@/features/dashboard/interfaces/fact-config.interface';
 import { GenerateSpeechMode } from '@/features/dashboard/types/generate-speech-mode.type';
-import { DestroyRef, inject, Injectable, injectAsync, signal } from '@angular/core';
+import { computed, DestroyRef, inject, Injectable, injectAsync, signal } from '@angular/core';
 
 @Injectable()
 export class TextToSpeechViewService {
@@ -21,30 +22,43 @@ export class TextToSpeechViewService {
   );
 
   readonly #destroyRef$ = inject(DestroyRef);
-  readonly #audioUrl = signal<string | undefined>(undefined);
+  readonly #activeAudio = signal<GeneratedAudioRecord | undefined>(undefined);
   readonly #loadingMode = signal<GenerateSpeechMode | 'idle'>('idle');
   readonly #playbackRate = signal(DEFAULT_PLAYBACK_RATE);
 
-  audioUrl = this.#audioUrl.asReadonly();
+  audioUrl = computed(() => this.#activeAudio()?.url);
+  activeAudio = this.#activeAudio.asReadonly();
   playbackRate = this.#playbackRate.asReadonly();
   loadingMode = this.#loadingMode.asReadonly();
 
   constructor() {
-    this.#destroyRef$.onDestroy(async () => revokeBlobURL(this.#audioUrl()));
+    this.#destroyRef$.onDestroy(() => this.clearAudio());
+  }
+
+  private setGeneratedAudioRecord(blob: Blob, prompt: string, voice: string) {
+    // Clean up any existing Blob URL to prevent memory leaks
+    revokeBlobURL(this.#activeAudio()?.url);
+
+    const url = URL.createObjectURL(blob);
+    this.#activeAudio.set({ url, prompt, voice });
+  }
+
+  private clearAudio() {
+    revokeBlobURL(this.#activeAudio()?.url);
+    this.#activeAudio.set(undefined);
   }
 
   private async handlePlaybackError(e: unknown) {
     console.error('Streaming playback failed:', e);
     const audioPlayerService = await this.#asyncAudioPlayerService();
     audioPlayerService.stopAll();
-    revokeBlobURL(this.#audioUrl());
   }
 
   private async handleSync(promptArgs: FactConfig) {
     try {
       const speechService = await this.#asyncSpeechService();
       const blob = await speechService.synthesize({ text: promptArgs.prompt, voice: promptArgs.voice });
-      this.setAudioUrl(blob);
+      this.setGeneratedAudioRecord(blob, promptArgs.prompt, promptArgs.voice);
     } catch (e) {
       this.handlePlaybackError(e);
       throw e;
@@ -78,7 +92,7 @@ export class TextToSpeechViewService {
       });
 
       if (shouldWait && !abortController.signal.aborted && rawChunks.length > 0) {
-        this.setAudioUrl(toWavBlob(rawChunks, DEFAULT_AUDIO_TYPE));
+        this.setGeneratedAudioRecord(toWavBlob(rawChunks, DEFAULT_AUDIO_TYPE), prompt, voice);
       }
     } catch (e) {
       if (!abortController.signal.aborted) {
@@ -90,23 +104,10 @@ export class TextToSpeechViewService {
     }
   }
 
-  private setAudioUrl(finalBlob: Blob | undefined) {
-    if (finalBlob) {
-      const createdUrl = URL.createObjectURL(finalBlob);
-      this.#audioUrl.set(createdUrl);
-      return createdUrl;
-    }
-    return undefined;
-  }
-
   async generateSpeech(mode: GenerateSpeechMode, promptArgs: FactConfig) {
     if (!promptArgs.fact || this.#loadingMode() !== 'idle') {
       return;
     }
-
-    // 1. Clean up previous URL immediately before starting
-    revokeBlobURL(this.#audioUrl());
-    this.#audioUrl.set(undefined);
 
     try {
       this.#loadingMode.set(mode);
@@ -123,9 +124,6 @@ export class TextToSpeechViewService {
       }
     } catch (e) {
       console.error('TTS Generation failed:', e);
-      revokeBlobURL(this.#audioUrl());
-      this.#audioUrl.set(undefined);
-
       throw new Error(
         mode === 'web_audio_api'
           ? 'Error streaming speech using the Web Audio API.'

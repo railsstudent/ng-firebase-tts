@@ -103,7 +103,7 @@ export class ConfigService {
         rc.settings.minimumFetchIntervalMillis = dev ? 0 : ONE_HOUR_IN_MILLISECONDS;
         rc.settings.fetchTimeoutMillis = dev ? DEV_TIMEOUT : PROD_TIMEOUT;
 
-        this.fetchRemoteConfig(fetchAndActivate, rc, getValue);
+        this.fetchRemoteConfig(rc, fetchAndActivate, getValue);
       })
       .catch((error) => {
         console.warn('Remote Config fetch timed out or failed. Using defaults:', error);
@@ -114,8 +114,8 @@ export class ConfigService {
   }
 
   private fetchRemoteConfig(
-    fetchAndActivate: typeof import('firebase/remote-config').fetchAndActivate,
     rc: RemoteConfig,
+    fetchAndActivate: typeof import('firebase/remote-config').fetchAndActivate,
     getValue: typeof import('firebase/remote-config').getValue,
   ) {
     if (this.#isOnline()) {

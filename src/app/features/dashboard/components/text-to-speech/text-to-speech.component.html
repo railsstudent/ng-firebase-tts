@@ -25,7 +25,7 @@
   </div>
 </div>
 
-@if (audioUrl(); as url) {
+@if (!isLoading() && audioUrl(); as url) {
   <figure class="playback-figure">
     <figcaption class="playback-caption">Listen to the Gemini-TTS:</figcaption>
     <audio controls [src]="url" [playbackRate]="'1.25'" class="playback-audio"></audio>
