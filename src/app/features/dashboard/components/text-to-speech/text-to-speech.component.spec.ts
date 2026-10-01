@@ -10,21 +10,18 @@ describe('TextToSpeechComponent', () => {
   let fixture: ComponentFixture<TextToSpeechComponent>;
   let mockViewService: {
     generateSpeech: ReturnType<typeof vi.fn>;
-    audioUrl: Signal<string | undefined>;
     activeAudio: Signal<GeneratedAudioRecord | undefined>;
     playbackRate: Signal<number>;
     loadingMode: Signal<GenerateSpeechMode | 'idle'>;
   };
 
   beforeEach(async () => {
-    const audioUrlSignal = signal<string | undefined>(undefined);
     const activeAudioSignal = signal<GeneratedAudioRecord | undefined>(undefined);
     const playbackRateSignal = signal(1.25);
     const loadingModeSignal = signal<GenerateSpeechMode | 'idle'>('idle');
 
     mockViewService = {
       generateSpeech: vi.fn(),
-      audioUrl: audioUrlSignal,
       activeAudio: activeAudioSignal,
       playbackRate: playbackRateSignal,
       loadingMode: loadingModeSignal,
@@ -167,7 +164,11 @@ describe('TextToSpeechComponent', () => {
 
   describe('Audio Element Rendering & Loading State Suppression', () => {
     it('should render the audio element when audioUrl is present and loadingMode is idle', () => {
-      (mockViewService.audioUrl as unknown as WritableSignal<string | undefined>).set('blob:test-url');
+      (mockViewService.activeAudio as unknown as WritableSignal<GeneratedAudioRecord | undefined>).set({
+        url: 'blob:test-url',
+        prompt: 'Listen to honey fact.',
+        voice: 'Kore',
+      });
       (mockViewService.loadingMode as unknown as WritableSignal<GenerateSpeechMode | 'idle'>).set('idle');
       fixture.detectChanges();
 
@@ -177,7 +178,11 @@ describe('TextToSpeechComponent', () => {
     });
 
     it('should hide the audio element during in-flight generation even if audioUrl exists', () => {
-      (mockViewService.audioUrl as unknown as WritableSignal<string | undefined>).set('blob:test-url');
+      (mockViewService.activeAudio as unknown as WritableSignal<GeneratedAudioRecord | undefined>).set({
+        url: 'blob:test-url',
+        prompt: 'Listen to honey fact.',
+        voice: 'Kore',
+      });
       (mockViewService.loadingMode as unknown as WritableSignal<GenerateSpeechMode | 'idle'>).set('sync');
       fixture.detectChanges();
 

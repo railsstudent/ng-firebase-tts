@@ -60,7 +60,7 @@ describe('TextToSpeechViewService', () => {
   it('should be created and expose initial state with default playbackRate independently of AudioPlayerService', () => {
     expect(service).toBeTruthy();
     expect(service.playbackRate()).toBe(DEFAULT_PLAYBACK_RATE);
-    expect(service.audioUrl()).toBeUndefined();
+    expect(service.activeAudio()).toBeUndefined();
     expect(service.loadingMode()).toBe('idle');
   });
 
@@ -74,7 +74,6 @@ describe('TextToSpeechViewService', () => {
       await service.generateSpeech('sync', config);
 
       expect(mockSpeechService.synthesize).toHaveBeenCalledWith({ text: 'Sync prompt', voice: 'Kore' });
-      expect(service.audioUrl()).toBe('blob:sync-url');
       expect(service.activeAudio()).toEqual({
         url: 'blob:sync-url',
         prompt: 'Sync prompt',
@@ -105,7 +104,6 @@ describe('TextToSpeechViewService', () => {
         prompt: 'Initial prompt',
         voice: 'Kore',
       });
-      expect(service.audioUrl()).toBe('blob:initial-valid-url');
     });
   });
 
@@ -139,7 +137,6 @@ describe('TextToSpeechViewService', () => {
         playbackRate: 1,
         signal: expect.any(AbortSignal),
       });
-      expect(service.audioUrl()).toBe('blob:stream-url');
       expect(service.activeAudio()).toEqual({
         url: 'blob:stream-url',
         prompt: 'Stream prompt',
@@ -154,7 +151,7 @@ describe('TextToSpeechViewService', () => {
       await service.generateSpeech('stream', config);
 
       expect(mockAudioPlayerService.playStream).toHaveBeenCalled();
-      expect(service.audioUrl()).toBeUndefined();
+      expect(service.activeAudio()).toBeUndefined();
     });
 
     it('should handle streaming exceptions, clean up, and throw error', async () => {
@@ -178,7 +175,7 @@ describe('TextToSpeechViewService', () => {
       await expect(service.generateSpeech('stream', config)).rejects.toThrow('Error generating speech (Stream).');
 
       expect(mockAudioPlayerService.stopAll).toHaveBeenCalled();
-      expect(service.audioUrl()).toBeUndefined();
+      expect(service.activeAudio()).toBeUndefined();
     });
   });
 
@@ -205,7 +202,7 @@ describe('TextToSpeechViewService', () => {
         playbackRate: expect.any(Number),
         signal: expect.any(AbortSignal),
       });
-      expect(service.audioUrl()).toBeUndefined();
+      expect(service.activeAudio()).toBeUndefined();
     });
 
     it('should handle speak exceptions, clean up, and throw error', async () => {
@@ -290,7 +287,7 @@ describe('TextToSpeechViewService', () => {
       const config = { prompt: 'Prompt', voice: 'Kore', fact: 'Fact' };
 
       await service.generateSpeech('sync', config);
-      expect(service.audioUrl()).toBe('blob:destroy-url');
+      expect(service.activeAudio()?.url).toBe('blob:destroy-url');
 
       // Resetting/destroying the testing module triggers DestroyRef.onDestroy
       TestBed.resetTestingModule();

@@ -30,8 +30,8 @@ We introduce a reactive deduplication and atomic state snapshotting strategy in 
      }
      ```
 
-   - Manage active audio via a single private signal `#activeAudio = signal<GeneratedAudioRecord | null>(null)`.
-   - Derive public `audioUrl` automatically via `computed(() => this.#activeAudio()?.url)`.
+   - Manage active audio in `TextToSpeechViewService` via a single private signal `#activeAudio = signal<GeneratedAudioRecord | undefined>(undefined)` and expose `activeAudio = this.#activeAudio.asReadonly()`.
+   - The presenting `TextToSpeechComponent` derives its local `audioUrl` presentation signal via `computed(() => this.speechService.activeAudio()?.url)`.
 
 2. **Primitive Input Comparison & Deduplication**:
    - Speech requests sent to Firebase are uniquely and completely identified by `(prompt: string, voice: string)`.

@@ -20,7 +20,7 @@ export class TextToSpeechComponent {
 
   ttsError = model<string>('');
 
-  audioUrl = this.speechService.audioUrl;
+  audioUrl = computed(() => this.speechService.activeAudio()?.url);
   playbackRate = this.speechService.playbackRate;
   loadingMode = this.speechService.loadingMode;
 

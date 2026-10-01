@@ -9,7 +9,7 @@ import { revokeBlobURL } from '@/core/utils/blob.util';
 import { GeneratedAudioRecord } from '@/features/dashboard/components/text-to-speech/interfaces/audio.interface';
 import { FactConfig } from '@/features/dashboard/interfaces/fact-config.interface';
 import { GenerateSpeechMode } from '@/features/dashboard/types/generate-speech-mode.type';
-import { computed, DestroyRef, inject, Injectable, injectAsync, signal } from '@angular/core';
+import { DestroyRef, inject, Injectable, injectAsync, signal } from '@angular/core';
 
 @Injectable()
 export class TextToSpeechViewService {
@@ -26,7 +26,6 @@ export class TextToSpeechViewService {
   readonly #loadingMode = signal<GenerateSpeechMode | 'idle'>('idle');
   readonly #playbackRate = signal(DEFAULT_PLAYBACK_RATE);
 
-  audioUrl = computed(() => this.#activeAudio()?.url);
   activeAudio = this.#activeAudio.asReadonly();
   playbackRate = this.#playbackRate.asReadonly();
   loadingMode = this.#loadingMode.asReadonly();
