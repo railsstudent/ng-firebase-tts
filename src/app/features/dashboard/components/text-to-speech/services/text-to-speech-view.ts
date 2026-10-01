@@ -32,10 +32,7 @@ export class TextToSpeechViewService {
   loadingMode = this.#loadingMode.asReadonly();
 
   constructor() {
-    this.#destroyRef$.onDestroy(() => {
-      revokeBlobURL(this.#activeAudio()?.url);
-      this.#activeAudio.set(undefined);
-    });
+    this.#destroyRef$.onDestroy(() => this.clearAudio());
   }
 
   private setGeneratedAudioRecord(blob: Blob, prompt: string, voice: string) {
@@ -94,8 +91,14 @@ export class TextToSpeechViewService {
         signal: abortController.signal,
       });
 
-      if (shouldWait && !abortController.signal.aborted && rawChunks.length > 0) {
+      if (abortController.signal.aborted) {
+        return;
+      }
+
+      if (shouldWait && rawChunks.length > 0) {
         this.setGeneratedAudioRecord(toWavBlob(rawChunks, DEFAULT_AUDIO_TYPE), prompt, voice);
+      } else {
+        this.clearAudio();
       }
     } catch (e) {
       if (!abortController.signal.aborted) {
