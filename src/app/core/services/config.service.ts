@@ -5,7 +5,6 @@ import remoteConfigDefaults from '@/public/remote-config-defaults.json';
 import { inject, isDevMode, Service } from '@angular/core';
 import type { AI, ThinkingLevel } from 'firebase/ai';
 import type { FirebaseApp } from 'firebase/app';
-import type { RemoteConfig } from 'firebase/remote-config';
 
 const SECONDS = 60;
 const MILLISECONDS = 1000;
@@ -95,33 +94,31 @@ export class ConfigService {
 
   private loadFirebase(): Promise<void> {
     return Promise.all([import('firebase/app'), import('firebase/remote-config')])
-      .then(([{ initializeApp }, { getRemoteConfig, fetchAndActivate, getValue }]) => {
+      .then(([{ initializeApp }, remoteConfigSdk]) => {
         this.#app = initializeApp(firebaseConfig.app);
-        const rc = getRemoteConfig(this.#app);
-        rc.defaultConfig = remoteConfigDefaults;
-        const dev = isDevMode();
-        rc.settings.minimumFetchIntervalMillis = dev ? 0 : ONE_HOUR_IN_MILLISECONDS;
-        rc.settings.fetchTimeoutMillis = dev ? DEV_TIMEOUT : PROD_TIMEOUT;
-
-        this.fetchRemoteConfig(rc, fetchAndActivate, getValue);
+        this.fetchRemoteConfig(remoteConfigSdk);
       })
       .catch((error) => {
-        console.warn('Remote Config fetch timed out or failed. Using defaults:', error);
+        console.warn('Firebase initialization failed:', error);
         this.#appReady = null;
         this.#app = undefined;
         this.#ai = null;
       });
   }
 
-  private fetchRemoteConfig(
-    rc: RemoteConfig,
-    fetchAndActivate: typeof import('firebase/remote-config').fetchAndActivate,
-    getValue: typeof import('firebase/remote-config').getValue,
-  ) {
+  private fetchRemoteConfig({
+    getRemoteConfig,
+    fetchAndActivate,
+    getValue,
+  }: Pick<typeof import('firebase/remote-config'), 'getRemoteConfig' | 'fetchAndActivate' | 'getValue'>) {
+    const rc = getRemoteConfig(this.#app);
+    rc.defaultConfig = remoteConfigDefaults;
+    const dev = isDevMode();
+    rc.settings.minimumFetchIntervalMillis = dev ? 0 : ONE_HOUR_IN_MILLISECONDS;
+    rc.settings.fetchTimeoutMillis = dev ? DEV_TIMEOUT : PROD_TIMEOUT;
     if (this.#isOnline()) {
       fetchAndActivate(rc)
-        .then((activated) => {
-          console.log('Remote Config initialized. Activated new values:', activated);
+        .then(() => {
           this.#appConfig = {
             vertexAILocation: getValue(rc, 'vertexAILocation').asString(),
             useLimitedUseAppCheckTokens: getValue(rc, 'useLimitedUseAppCheckTokens').asBoolean(),

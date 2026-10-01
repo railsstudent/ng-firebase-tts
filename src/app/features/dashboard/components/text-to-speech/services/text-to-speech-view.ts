@@ -32,7 +32,10 @@ export class TextToSpeechViewService {
   loadingMode = this.#loadingMode.asReadonly();
 
   constructor() {
-    this.#destroyRef$.onDestroy(() => this.clearAudio());
+    this.#destroyRef$.onDestroy(() => {
+      revokeBlobURL(this.#activeAudio()?.url);
+      this.#activeAudio.set(undefined);
+    });
   }
 
   private setGeneratedAudioRecord(blob: Blob, prompt: string, voice: string) {
