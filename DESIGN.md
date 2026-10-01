@@ -304,20 +304,33 @@ The **Firebase AI Logic Multimodal Speech Generator** is a focused AI studio web
   - Rendered search suggestion HTML container.
 - **STRICT Constraint**: Zero artificial dashboard metric badges (e.g. NO "3 verified links", NO "0.94 score", NO chip grids). Structured as clean ordered lists with title-case headings.
 
-### 11. Text Generation Token Usage & Thought Summary (`DashboardComponent` & `ThoughtSummaryComponent`)
+### 11. Usage & Optimization Telemetry (`UsageMetricsComponent` & `ThoughtSummaryComponent`)
 
-- **Text Generation Token Usage (`.usage-section`)**:
+- **Telemetry Container (`.metrics-container`)**:
+  - Full-width wrapper with responsive layout (`w-full flex flex-col md:flex-row gap-4 mt-6`).
+- **Telemetry Card Surface (`.metrics-card`)**:
+  - Surface card (`bg-slate-700/50 p-4 rounded-lg border border-slate-600 flex-1`).
+- **Text Generation Token Usage Card**:
   - **Heading (`.section-title`)**: `"Text Generation Token Usage"` (`text-lg font-semibold text-slate-300 mb-3`).
-  - **Container (`.usage-grid`)**: Single rounded bar (`bg-slate-700/50 p-4 rounded-lg border border-slate-600 flex flex-wrap justify-around`).
-  - **Items (`.usage-item`)**: 4 inline statistics formatted as `text-slate-200 italic`:
+  - **Container (`.usage-grid`)**: Responsive statistics row (`flex flex-wrap justify-around gap-2`).
+  - **Items (`.usage-item`)**: 4 statistics formatted as `text-slate-200 italic`:
     - `Input: 412`
     - `Output: 168`
     - `Thought: 84`
     - `Total: 664`
+- **Image Optimization Efficiency Card** (when `optimizationMetrics` present):
+  - **Heading (`.section-title`)**: `"Image Optimization Efficiency"` (`text-lg font-semibold text-slate-300 mb-3`).
+  - **Container (`.usage-grid`)**: Responsive statistics row (`flex flex-wrap justify-around gap-2`).
+  - **Items (`.usage-item`)**: Statistics formatted as `text-slate-200 italic`:
+    - `Original Size: 4.8 MB`
+    - `Optimized Size: 56 KB`
+    - `Payload Saved: 98.8%`
+    - `Tokens Saved: ~5,934`
 - **Thought Summary (`ThoughtSummaryComponent`)**:
   - **Heading (`.section-title`)**: `"Thought Summary"` (`text-lg font-semibold text-slate-300 mb-3`).
-  - **Content Container (`.thought-content`)**: Scrollable box (`bg-slate-700/50 p-4 rounded-lg border border-slate-600 overflow-y-auto h-64`).
+  - **Content Container (`.thought-content`)**: Scrollable box (`bg-slate-700/50 p-4 rounded-lg border border-slate-600 overflow-y-auto h-64 mt-6`).
   - **Content Text (`.thought-text`)**: Markdown HTML rendered in `text-slate-200 italic`.
+- **STRICT Constraint**: Zero artificial neon badges, circular progress meters, or status chips. Clean key-value telemetry adhering strictly to the Obsidian & Indigo theme tokens.
 
 ---
 

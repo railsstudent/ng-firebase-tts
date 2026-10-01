@@ -52,6 +52,22 @@ _Avoid_: External links, search references, web scrapings
 An actionable, numbered suggestion provided by Gemini to make an analyzed image more engaging or visually interesting.
 _Avoid_: Suggestion, tip, image advice
 
+**Vision Payload Preprocessing**:
+The client-side downscaling, EXIF orientation correction, and WebP compression applied to an uploaded image prior to Base64 encoding and transmission to Firebase AI Logic.
+_Avoid_: Image compression, file downsizing, thumbnail generator
+
+**Max Bounding Dimension**:
+The constrained maximum pixel limit (768px) applied to an image's longest dimension to preserve aspect ratio while bounding token consumption to a single vision tile.
+_Avoid_: Resize limit, crop dimensions, photo scale
+
+**Multimodal Tile Budget**:
+The spatial grid of 768x768 pixel patches (at 258 tokens per tile) used by Gemini to tokenize and encode visual inputs.
+_Avoid_: Token estimate, image grid count, photo slices
+
+**Image Optimization Metrics**:
+The deterministic telemetry measuring network payload savings (bytes, percentage) and eliminated vision tokens between an uploaded original photo and the preprocessed AI payload.
+_Avoid_: Compression stats, resize info, file savings
+
 ### Headless Accessible Components & UI Patterns
 
 **Accessible Combobox**:
