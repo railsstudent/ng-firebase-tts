@@ -205,6 +205,30 @@ describe('TextToSpeechViewService', () => {
       expect(service.activeAudio()).toBeUndefined();
     });
 
+    it('should clear activeAudio when generating in Web Audio API mode to prevent ghost player', async () => {
+      const mockBlob = new Blob(['wav-bytes'], { type: 'audio/wav' });
+      mockSpeechService.synthesize.mockResolvedValue(mockBlob);
+
+      const syncConfig = { prompt: 'Sync prompt', voice: 'Aoede', fact: 'Fact 1' };
+      await service.generateSpeech('sync', syncConfig);
+      expect(service.activeAudio()).toBeDefined();
+
+      mockSpeechService.synthesizeStream.mockReturnValue(
+        createStreamGenerator([
+          {
+            decodedData: new Uint8Array([3, 4]),
+            sampleRate: 16000,
+            mimeType: 'audio/l16; rate=16000; channels=1',
+          },
+        ]),
+      );
+
+      const webAudioConfig = { prompt: 'WebAudio prompt', voice: 'Puck', fact: 'Fact 2' };
+      await service.generateSpeech('web_audio_api', webAudioConfig);
+
+      expect(service.activeAudio()).toBeUndefined();
+    });
+
     it('should handle speak exceptions, clean up, and throw error', async () => {
       mockSpeechService.synthesizeStream.mockImplementation(() => {
         throw new Error('Speak failed');

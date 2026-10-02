@@ -42,6 +42,7 @@ export default defineConfig({
     'roundtrips',
     'FOUT',
     'desynchronization',
+    'EXIF',
   ],
   ignorePaths: [
     'node_modules',
