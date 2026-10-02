@@ -1,8 +1,4 @@
-import {
-  DEFAULT_PLAYBACK_RATE,
-  DEFAULT_SAMPLE_RATE,
-  PLAYBACK_POLL_INTERVAL,
-} from '@/core/constants/text-to-speech.constant';
+import { DEFAULT_PLAYBACK_RATE, PLAYBACK_POLL_INTERVAL } from '@/core/constants/text-to-speech.constant';
 import { AudioStreamChunk } from '@/core/interfaces/text-to-speech.interface';
 import { normalizePcmSamples } from '@/core/utils/audio.util';
 import { AudioPlaybackOptions } from '@/shared/interfaces/audio-playback-options.interface';
@@ -41,7 +37,7 @@ export class AudioPlayerService {
   ): Promise<void> {
     for await (const chunk of stream) {
       if (this.isAborted(signal)) {
-        this.stopAll();
+        await this.stopAll();
         return;
       }
 
@@ -55,7 +51,7 @@ export class AudioPlayerService {
 
   async playStream(stream: AsyncIterable<AudioStreamChunk>, options: AudioPlaybackOptions = {}): Promise<void> {
     const signal = options.signal;
-    this.stopAll();
+    await this.stopAll();
     this.#playbackRate = options.playbackRate || DEFAULT_PLAYBACK_RATE;
 
     if (this.isAborted(signal)) {
@@ -67,13 +63,6 @@ export class AudioPlayerService {
     if (!this.isAborted(signal)) {
       await this.awaitPlaybackComplete();
     }
-  }
-
-  initialize(sampleRate = DEFAULT_SAMPLE_RATE, playbackRate = DEFAULT_PLAYBACK_RATE): void {
-    this.stopAll();
-    this.#audioCtx = new AudioContext({ sampleRate });
-    this.#nextStartTime = this.#audioCtx.currentTime;
-    this.#playbackRate = playbackRate;
   }
 
   processChunk(rawBytes: Uint8Array): void {
@@ -105,7 +94,7 @@ export class AudioPlayerService {
     sourceNode.onended = () => (this.#activeSources = this.#activeSources.filter((s) => s !== sourceNode));
   }
 
-  stopAll(): void {
+  async stopAll(): Promise<void> {
     this.#activeSources.forEach((s) => {
       try {
         s.stop();
@@ -119,7 +108,7 @@ export class AudioPlayerService {
     this.#nextStartTime = 0;
     if (this.#audioCtx) {
       try {
-        this.#audioCtx.close();
+        await this.#audioCtx.close();
       } catch {
         // Safe swallow
       }

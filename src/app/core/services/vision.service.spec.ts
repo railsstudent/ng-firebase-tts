@@ -14,6 +14,13 @@ vi.mock('firebase/ai', async (importOriginal) => {
   });
 });
 
+vi.mock('@firebase/ai', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@firebase/ai')>();
+  return Object.assign({}, actual, {
+    getGenerativeModel: vi.fn(() => mockAiModel),
+  });
+});
+
 describe('VisionService', () => {
   let service: VisionService;
 

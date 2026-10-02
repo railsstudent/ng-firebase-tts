@@ -51,7 +51,7 @@ export class TextToSpeechViewService {
   private async handlePlaybackError(e: unknown) {
     console.error('Streaming playback failed:', e);
     const audioPlayerService = await this.#asyncAudioPlayerService();
-    audioPlayerService.stopAll();
+    await audioPlayerService.stopAll();
   }
 
   private async handleSync(promptArgs: FactConfig) {
@@ -60,7 +60,7 @@ export class TextToSpeechViewService {
       const blob = await speechService.synthesize({ text: promptArgs.prompt, voice: promptArgs.voice });
       this.setGeneratedAudioRecord(blob, promptArgs.prompt, promptArgs.voice);
     } catch (e) {
-      this.handlePlaybackError(e);
+      await this.handlePlaybackError(e);
       throw e;
     }
   }
@@ -101,7 +101,7 @@ export class TextToSpeechViewService {
       }
     } catch (e) {
       if (!abortController.signal.aborted) {
-        this.handlePlaybackError(e);
+        await this.handlePlaybackError(e);
         throw e;
       }
     } finally {

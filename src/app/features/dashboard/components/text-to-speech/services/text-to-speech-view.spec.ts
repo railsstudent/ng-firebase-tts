@@ -28,9 +28,8 @@ const mockSpeechService = {
 
 const mockAudioPlayerService = {
   playStream: vi.spyOn(AudioPlayerService.prototype, 'playStream').mockResolvedValue(undefined),
-  initialize: vi.spyOn(AudioPlayerService.prototype, 'initialize').mockImplementation(() => undefined),
   processChunk: vi.spyOn(AudioPlayerService.prototype, 'processChunk').mockImplementation(() => undefined),
-  stopAll: vi.spyOn(AudioPlayerService.prototype, 'stopAll').mockImplementation(() => undefined),
+  stopAll: vi.spyOn(AudioPlayerService.prototype, 'stopAll').mockResolvedValue(undefined),
   awaitPlaybackComplete: vi.spyOn(AudioPlayerService.prototype, 'awaitPlaybackComplete').mockResolvedValue(undefined),
 };
 

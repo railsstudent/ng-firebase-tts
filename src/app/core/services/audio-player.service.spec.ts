@@ -27,6 +27,12 @@ interface MockAudioContext {
   destination: Record<string, unknown>;
 }
 
+async function* createMockStream(chunks: AudioStreamChunk[]): AsyncGenerator<AudioStreamChunk, void, unknown> {
+  for (const chunk of chunks) {
+    yield chunk;
+  }
+}
+
 describe('AudioPlayerService', () => {
   let service: AudioPlayerService;
   let mockAudioContext: MockAudioContext;
@@ -76,11 +82,6 @@ describe('AudioPlayerService', () => {
     vi.unstubAllGlobals();
   });
 
-  it('should initialize AudioContext correctly on initialize()', () => {
-    service.initialize(24000);
-    expect(globalThis.AudioContext).toHaveBeenCalledWith({ sampleRate: 24000 });
-  });
-
   describe('SSR Safety', () => {
     it('should instantiate safely and no-op without crashing when AudioContext is undefined in global scope', () => {
       vi.stubGlobal('AudioContext', undefined);
@@ -97,13 +98,17 @@ describe('AudioPlayerService', () => {
     expect(mockAudioContext.createBuffer).not.toHaveBeenCalled();
   });
 
-  it('should convert 16-bit PCM bytes to Float32 [-1.0, 1.0] and play it via createBuffer', () => {
-    service.initialize(24000);
-
+  it('should convert 16-bit PCM bytes to Float32 [-1.0, 1.0] and play it via createBuffer', async () => {
     const int16Array = new Int16Array([0, 32767]);
     const rawBytes = new Uint8Array(int16Array.buffer);
+    const chunk: AudioStreamChunk = {
+      decodedData: rawBytes,
+      sampleRate: 24000,
+      mimeType: 'audio/l16; rate=24000',
+    };
 
-    service.processChunk(rawBytes);
+    vi.spyOn(service, 'awaitPlaybackComplete').mockResolvedValue(undefined);
+    await service.playStream(createMockStream([chunk]));
 
     expect(mockAudioContext.createBuffer).toHaveBeenCalledWith(1, 2, 24000);
     expect(mockBuffer.copyToChannel).toHaveBeenCalled();
@@ -117,35 +122,43 @@ describe('AudioPlayerService', () => {
     expect(mockSourceNode.start).toHaveBeenCalled();
   });
 
-  it('should stop and clean up active sources on stopAll()', () => {
-    service.initialize(24000);
-
+  it('should stop and clean up active sources on stopAll()', async () => {
     const int16Array = new Int16Array([0, 1000]);
     const rawBytes = new Uint8Array(int16Array.buffer);
+    const chunk: AudioStreamChunk = {
+      decodedData: rawBytes,
+      sampleRate: 24000,
+      mimeType: 'audio/l16; rate=24000',
+    };
 
-    service.processChunk(rawBytes); // Adds source node
-    service.stopAll();
+    vi.spyOn(service, 'awaitPlaybackComplete').mockResolvedValue(undefined);
+    await service.playStream(createMockStream([chunk]));
+    await service.stopAll();
 
     expect(mockSourceNode.stop).toHaveBeenCalled();
     expect(mockSourceNode.disconnect).toHaveBeenCalled();
     expect(mockAudioContext.close).toHaveBeenCalled();
   });
 
-  it('should automatically remove source node from list when it ends playing', () => {
-    service.initialize(24000);
-
+  it('should automatically remove source node from list when it ends playing', async () => {
     const int16Array = new Int16Array([0, 1000]);
     const rawBytes = new Uint8Array(int16Array.buffer);
+    const chunk: AudioStreamChunk = {
+      decodedData: rawBytes,
+      sampleRate: 24000,
+      mimeType: 'audio/l16; rate=24000',
+    };
 
-    service.processChunk(rawBytes);
+    vi.spyOn(service, 'awaitPlaybackComplete').mockResolvedValue(undefined);
+    await service.playStream(createMockStream([chunk]));
 
     expect(mockSourceNode.onended).toBeTypeOf('function');
     if (mockSourceNode.onended) {
-      mockSourceNode.onended(); // Simulate completion callback
+      mockSourceNode.onended();
     }
 
     mockSourceNode.stop.mockClear();
-    service.stopAll();
+    await service.stopAll();
     expect(mockSourceNode.stop).not.toHaveBeenCalled();
   });
 
@@ -167,26 +180,19 @@ describe('AudioPlayerService', () => {
       await expect(testService.awaitPlaybackComplete()).resolves.toBeUndefined();
     });
 
-    it('should resolve instantly if initialized but no audio is scheduled', async () => {
-      testService.initialize(24000);
-      const promise = testService.awaitPlaybackComplete();
-      await vi.advanceTimersByTimeAsync(100);
-      await expect(promise).resolves.toBeUndefined();
-    });
-
     it('should block until all scheduled audio is finished playing', async () => {
-      testService.initialize(24000);
-
       mockAudioContext.currentTime = 10;
 
-      // Process two chunks (each takes 1 second to play, total 2 seconds, nextStartTime = 12)
       const int16Array = new Int16Array([0, 1000]);
       const rawBytes = new Uint8Array(int16Array.buffer);
-      testService.processChunk(rawBytes);
-      testService.processChunk(rawBytes);
+      const chunk: AudioStreamChunk = {
+        decodedData: rawBytes,
+        sampleRate: 24000,
+        mimeType: 'audio/l16; rate=24000',
+      };
 
       let resolved = false;
-      const promise = testService.awaitPlaybackComplete().then(() => {
+      const promise = testService.playStream(createMockStream([chunk, chunk])).then(() => {
         resolved = true;
       });
 
@@ -208,22 +214,28 @@ describe('AudioPlayerService', () => {
     });
 
     it('should resolve immediately if stopAll() is called mid-playback', async () => {
-      testService.initialize(24000);
-
       mockAudioContext.currentTime = 10;
       const int16Array = new Int16Array([0, 1000]);
       const rawBytes = new Uint8Array(int16Array.buffer);
-      testService.processChunk(rawBytes); // schedules playing from 10 to 11
+      const chunk: AudioStreamChunk = {
+        decodedData: rawBytes,
+        sampleRate: 24000,
+        mimeType: 'audio/l16; rate=24000',
+      };
 
       let resolved = false;
-      const promise = testService.awaitPlaybackComplete().then(() => {
+      const promise = testService.playStream(createMockStream([chunk, chunk])).then(() => {
         resolved = true;
       });
 
-      // Stop all mid-playback
-      testService.stopAll();
+      // Advance by 100ms so playback is actively polling
+      await vi.advanceTimersByTimeAsync(100);
+      expect(resolved).toBe(false);
 
-      // Advance timers - should resolve instantly now
+      // Stop all mid-playback
+      void testService.stopAll();
+
+      // Advance timers - should resolve instantly on next poll
       await vi.advanceTimersByTimeAsync(100);
       await promise;
       expect(resolved).toBe(true);
@@ -231,12 +243,6 @@ describe('AudioPlayerService', () => {
   });
 
   describe('playStream', () => {
-    async function* createMockStream(chunks: AudioStreamChunk[]): AsyncGenerator<AudioStreamChunk, void, unknown> {
-      for (const chunk of chunks) {
-        yield chunk;
-      }
-    }
-
     it('should consume chunks, initialize audio context on first chunk, and await completion', async () => {
       const chunk1: AudioStreamChunk = {
         decodedData: new Uint8Array([0, 100]),

@@ -20,6 +20,13 @@ vi.mock('firebase/ai', async (importOriginal) => {
   });
 });
 
+vi.mock('@firebase/ai', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@firebase/ai')>();
+  return Object.assign({}, actual, {
+    getGenerativeModel: () => mockModel,
+  });
+});
+
 describe('TextToSpeechService', () => {
   let service: TextToSpeechService;
   let mockAI: Record<string, unknown>;
@@ -58,10 +65,6 @@ describe('TextToSpeechService', () => {
 
     service = TestBed.inject(TextToSpeechService);
     vi.clearAllMocks();
-  });
-
-  afterAll(() => {
-    vi.restoreAllMocks();
   });
 
   describe('On-demand Model Construction', () => {

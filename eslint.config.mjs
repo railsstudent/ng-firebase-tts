@@ -16,6 +16,12 @@ export default defineConfig([
       tseslint.configs.stylistic,
       angular.configs.tsRecommended,
     ],
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
     processor: angular.processInlineTemplates,
     rules: {
       '@angular-eslint/directive-selector': [
@@ -80,6 +86,7 @@ export default defineConfig([
       'max-lines': ['error', { max: 300, skipComments: true, skipBlankLines: true }],
       'no-magic-numbers': 'off',
       '@typescript-eslint/no-magic-numbers': ['error', { ignoreArrayIndexes: true, ignore: [0, 1, 2] }],
+      '@typescript-eslint/no-floating-promises': ['error'],
     },
   },
   {
