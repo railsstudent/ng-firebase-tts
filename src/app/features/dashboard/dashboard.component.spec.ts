@@ -56,11 +56,6 @@ describe('DashboardComponent', () => {
     });
     fixture.detectChanges();
 
-    const tokenUsage = fixture.debugElement.query(By.css('.usage-section'));
-    expect(tokenUsage).toBeTruthy();
-    expect(tokenUsage.nativeElement.textContent).toContain('Input: 10');
-    expect(tokenUsage.nativeElement.textContent).toContain('Total: 35');
-
     const deferBlocks = await fixture.getDeferBlocks();
     expect(deferBlocks.length).toBeGreaterThanOrEqual(1);
 
@@ -68,6 +63,11 @@ describe('DashboardComponent', () => {
       await block.render(DeferBlockState.Complete);
     }
     fixture.detectChanges();
+
+    const usageMetrics = fixture.debugElement.query(By.css('app-usage-metrics'));
+    expect(usageMetrics).toBeTruthy();
+    expect(usageMetrics.nativeElement.textContent).toContain('Input: 10');
+    expect(usageMetrics.nativeElement.textContent).toContain('Total: 35');
 
     const thoughtSummary = fixture.debugElement.query(By.css('app-thought-summary'));
     expect(thoughtSummary).toBeTruthy();
@@ -91,9 +91,15 @@ describe('DashboardComponent', () => {
     } as unknown as ImageAnalysisResponse);
     fixture.detectChanges();
 
-    const tokenUsage = fixture.debugElement.query(By.css('.usage-section'));
-    expect(tokenUsage).toBeTruthy();
-    expect(tokenUsage.nativeElement.textContent).toContain('Input: 5');
+    const deferBlocks = await fixture.getDeferBlocks();
+    if (deferBlocks.length > 0) {
+      await deferBlocks[0].render(DeferBlockState.Complete);
+    }
+    fixture.detectChanges();
+
+    const usageMetrics = fixture.debugElement.query(By.css('app-usage-metrics'));
+    expect(usageMetrics).toBeTruthy();
+    expect(usageMetrics.nativeElement.textContent).toContain('Input: 5');
 
     const thoughtSummary = fixture.debugElement.query(By.css('app-thought-summary'));
     expect(thoughtSummary).toBeNull();

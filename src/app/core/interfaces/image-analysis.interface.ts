@@ -1,4 +1,5 @@
 import { Metadata } from './grounding.interface';
+import { ImageOptimizationMetrics } from './image-processing.interface';
 import { Recommendation } from './recommendation.interface';
 import { TokenUsage } from './token-usage.interface';
 
@@ -14,4 +15,5 @@ export interface ImageAnalysisResponse {
   thought: string;
   tokenUsage: TokenUsage;
   metadata: Metadata;
+  optimizationMetrics?: ImageOptimizationMetrics;
 }
