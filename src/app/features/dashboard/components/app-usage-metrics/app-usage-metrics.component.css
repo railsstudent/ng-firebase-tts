@@ -1,0 +1,21 @@
+@reference "../../../../../styles.css";
+
+:host {
+  @apply block w-full;
+}
+
+.metrics-container {
+  @apply flex flex-col md:flex-row gap-4 mt-6;
+}
+
+.metrics-card {
+  @apply bg-slate-700/50 p-4 rounded-lg border border-slate-600 flex-1;
+}
+
+.usage-grid {
+  @apply flex flex-wrap justify-around gap-2;
+}
+
+.usage-item {
+  @apply text-(--color-text-secondary) italic font-mono text-sm tracking-wide;
+}

@@ -1,11 +1,12 @@
 import { ImageAnalysisResponse } from '@/core/interfaces/image-analysis.interface';
 import { Component, signal } from '@angular/core';
 import { AnalyzerPanelComponent } from './components/analyzer-panel/analyzer-panel.component';
+import { AppUsageMetricsComponent } from './components/app-usage-metrics/app-usage-metrics.component';
 import { ThoughtSummaryComponent } from './components/thought-summary/thought-summary.component';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [ThoughtSummaryComponent, AnalyzerPanelComponent],
+  imports: [ThoughtSummaryComponent, AnalyzerPanelComponent, AppUsageMetricsComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })

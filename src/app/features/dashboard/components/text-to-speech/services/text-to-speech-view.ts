@@ -1,3 +1,4 @@
+import { PERCENT } from '@/core/constants/image.constant';
 import {
   DEFAULT_AUDIO_TYPE,
   DEFAULT_PLAYBACK_RATE,
@@ -65,9 +66,8 @@ export class TextToSpeechViewService {
   }
 
   private calculateRandomPlaybackRate(min = MIN_PLAYBACK_RATE, max = MAX_PLAYBACK_RATE) {
-    const percent = 100;
     const rawRate = Math.random() * (max - min) + min;
-    return Math.round(rawRate * percent) / percent;
+    return Math.round(rawRate * PERCENT) / PERCENT;
   }
 
   private async handleStream({ prompt, voice, shouldWait = false }: FactConfig) {

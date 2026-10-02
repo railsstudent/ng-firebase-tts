@@ -42,6 +42,10 @@ When writing or refactoring TypeScript code, you MUST adhere to the following ru
    - PWA icons located in `public/icons/` (e.g. `icon-192.png`, `icon-512.png`) MUST strictly match their designated physical pixel dimensions (exactly 192x192 for `icon-192.png` and 512x512 for `icon-512.png`).
    - Never commit oversized or unscaled raw assets (such as 1024x1024 master images or multi-megabyte uncompressed files) into `public/`.
    - Always downscale images to their exact target resolutions (using CLI utilities like `sips -z <height> <width> <file>` on macOS) to ensure strict PWA compliance, minimal asset payloads, and optimal caching behavior.
+8. **Service & Pure Utility Design Boundaries**:
+   - **Core Data Services (`src/app/core/services/`)**: Thin orchestrators for SDK/backend interactions and atomic snapshot Signals (e.g. `readonly activeAudio = this.#activeAudio.asReadonly()`). Inject platform tokens using native `#` private state (`readonly #window = inject(WINDOW);`). Never access DOM `document` or global `window` directly, and never store presentation-only UI state or pass-through getters.
+   - **Pure Web Utilities (`src/app/core/utils/`)**: Stateless functions for CPU-heavy transformations, canvas operations, token arithmetic, and format conversions. Never hold state or inject Angular services; accept platform references explicitly (e.g. `win?: Window | null`).
+   - **Strict `eslint.config.mjs` Compliance**: All authored code must comply on initial generation (max 3 parameters using typed `options` objects for $\ge 3$, max 40 lines per function, complexity $\le$ 10, no magic numbers, and absolute `@/` imports).
 
 ## Agent skills
 
@@ -54,6 +58,16 @@ Issues and specs live as local markdown files under `.scratch/`. See `docs/agent
 Domain documentation layout is single-context. See `docs/agents/domain.md`.
 
 ## Documentation & MCP Research Protocols
+
+### Pre-Implementation Discovery Protocol
+
+Before authoring new utilities, styles, or services, inspect existing project declarations first:
+
+- **Design Tokens**: Inspect `@theme` in `src/styles.css` for existing tokens (e.g. `text-(--color-text-secondary)`) instead of using raw Tailwind palette classes.
+- **Platform Injections**: Inspect `src/app/core/constants/navigator.const.ts` for existing injection tokens (`WINDOW`, `NAVIGATOR`) instead of writing ad-hoc `typeof` checks.
+- **Architectural Decisions**: Inspect `docs/adr/` for relevant domain specifications and design decisions.
+
+### Framework & Library Research Protocols
 
 When researching framework/platform APIs, architecture, or resolving errors:
 

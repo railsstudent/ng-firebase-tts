@@ -46,7 +46,7 @@ describe('VisionService', () => {
     );
   });
 
-  it('should successfully parse complete response including thoughts, structured JSON, citations, and token usage', async () => {
+  it('should successfully parse complete response including thoughts, structured JSON, citations, token usage, and optimization metrics', async () => {
     const mockImageAnalysis = {
       altText: 'A beautiful sunset over the mountains',
       tags: ['sunset', 'mountains', 'scenery'],
@@ -118,6 +118,7 @@ describe('VisionService', () => {
     ]);
     expect(result.metadata.searchQueries).toEqual(['blue sunset mars reason']);
     expect(result.metadata.renderedContent).toBe('Google Search for blue sunset Mars');
+    expect(result.optimizationMetrics).toBeDefined();
   });
 
   it('should throw an error if generateContent returns an invalid or empty response', async () => {
@@ -125,63 +126,5 @@ describe('VisionService', () => {
 
     const fakeFile = new File([''], 'test-image.png', { type: 'image/png' });
     await expect(service.generateAltText(fakeFile)).rejects.toThrow('No text generated.');
-  });
-
-  describe('file conversion error handling', () => {
-    let originalFileReader: typeof FileReader;
-    let mockAction: ((reader: MockFileReader) => void) | null = null;
-
-    class MockFileReader {
-      public onloadend: (() => void) | null = null;
-      public onerror: ((err: unknown) => void) | null = null;
-      public error: Error | null = null;
-      public result: string | null = null;
-
-      readAsDataURL(): void {
-        if (mockAction) {
-          mockAction(this);
-        }
-      }
-    }
-
-    beforeEach(() => {
-      originalFileReader = globalThis.FileReader;
-      mockAction = null;
-      vi.stubGlobal('FileReader', MockFileReader);
-    });
-
-    afterEach(() => {
-      vi.stubGlobal('FileReader', originalFileReader);
-    });
-
-    it('should reject when FileReader encounters a read error', async () => {
-      mockAction = (reader) => {
-        reader.error = new Error('Disk read failure');
-        reader.onerror?.(new Error('Disk read failure'));
-      };
-
-      const file = new File([''], 'test.png', { type: 'image/png' });
-      await expect(service.generateAltText(file)).rejects.toThrow('Disk read failure');
-    });
-
-    it('should reject when FileReader returns a null result', async () => {
-      mockAction = (reader) => {
-        reader.result = null;
-        reader.onloadend?.();
-      };
-
-      const file = new File([''], 'test.png', { type: 'image/png' });
-      await expect(service.generateAltText(file)).rejects.toThrow('FileReader returned null result');
-    });
-
-    it('should reject when FileReader result lacks base64 comma separator', async () => {
-      mockAction = (reader) => {
-        reader.result = 'invalid-data-url-no-comma';
-        reader.onloadend?.();
-      };
-
-      const file = new File([''], 'test.png', { type: 'image/png' });
-      await expect(service.generateAltText(file)).rejects.toThrow('FileReader result is not in expected format');
-    });
   });
 });

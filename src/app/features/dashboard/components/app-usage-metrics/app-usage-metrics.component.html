@@ -1,0 +1,42 @@
+<div class="metrics-container">
+  @if (tokenUsage(); as usage) {
+    <div class="metrics-card">
+      <h3 class="section-title">Text Generation Token Usage</h3>
+      <div class="usage-grid">
+        <p class="usage-item">
+          <span>Input: </span><span>{{ usage.input || 0 }}</span>
+        </p>
+        <p class="usage-item">
+          <span>Output: </span><span>{{ usage.output || 0 }}</span>
+        </p>
+        <p class="usage-item">
+          <span>Thought: </span><span>{{ usage.thought || 0 }}</span>
+        </p>
+        <p class="usage-item">
+          <span>Total: </span><span>{{ usage.total || 0 }}</span>
+        </p>
+      </div>
+    </div>
+  }
+
+  @if (optimizationMetrics()) {
+    @let metrics = formattedMetrics();
+    <div class="metrics-card">
+      <h3 class="section-title">Image Optimization Efficiency</h3>
+      <div class="usage-grid">
+        <p class="usage-item">
+          <span>Original Size: </span><span>{{ metrics.originalSize }}</span>
+        </p>
+        <p class="usage-item">
+          <span>Optimized Size: </span><span>{{ metrics.optimizedSize }}</span>
+        </p>
+        <p class="usage-item">
+          <span>Payload Saved: </span><span>{{ metrics.payloadSaved }}</span>
+        </p>
+        <p class="usage-item">
+          <span>Tokens Saved: </span><span>{{ metrics.tokensSaved }}</span>
+        </p>
+      </div>
+    </div>
+  }
+</div>

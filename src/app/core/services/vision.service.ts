@@ -1,6 +1,8 @@
+import { WINDOW } from '@/core/constants/navigator.const';
 import { ImageAnalysis, ImageAnalysisResponse } from '@/core/interfaces/image-analysis.interface';
 import { ImageAnalysisSchema } from '@/core/schemas/image-analysis.schema';
 import { ConfigService } from '@/core/services/config.service';
+import { preprocessImageForVision } from '@/core/utils/image.util';
 import { inject, Service } from '@angular/core';
 import {
   AI,
@@ -12,9 +14,6 @@ import {
   UsageMetadata,
   WebGroundingChunk,
 } from 'firebase/ai';
-
-const NOT_FOUND_INDEX = -1;
-const PAYLOAD_OFFSET = 1;
 
 const SAFETY_SETTINGS: SafetySetting[] = [
   {
@@ -37,6 +36,7 @@ const SAFETY_SETTINGS: SafetySetting[] = [
 
 @Service()
 export class VisionService {
+  readonly #window = inject(WINDOW);
   readonly #configService = inject(ConfigService);
 
   async generateAltText(image: File): Promise<ImageAnalysisResponse> {
@@ -44,7 +44,14 @@ export class VisionService {
       throw Error('image is required to generate texts.');
     }
 
-    const imagePart = await this.fileToGenerativePart(image);
+    const { data, mimeType, optimizationMetrics } = await preprocessImageForVision(image, this.#window);
+    const imagePart = {
+      inlineData: {
+        data,
+        mimeType,
+      },
+    };
+
     const altTextPrompt = `
 You are asked to perform four tasks:
 Task 1: Generate 1 - 3 sentences of alternative texts for the image provided, max 300 words.
@@ -68,33 +75,10 @@ Task 4: Search for a surprising or obscure fact that interconnects the following
         thought,
         tokenUsage,
         metadata: citations,
+        optimizationMetrics,
       };
     }
     throw Error('No text generated.');
-  }
-
-  private async fileToGenerativePart(file: File): Promise<{ inlineData: { data: string; mimeType: string } }> {
-    const data = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result !== 'string') {
-          reject(new Error('FileReader returned null result'));
-          return;
-        }
-        const commaIndex = reader.result.indexOf(',');
-        if (commaIndex === NOT_FOUND_INDEX) {
-          reject(new Error('FileReader result is not in expected format'));
-          return;
-        }
-        resolve(reader.result.slice(commaIndex + PAYLOAD_OFFSET));
-      };
-      reader.onerror = () => reject(reader.error ?? new Error('Disk read failure'));
-      reader.readAsDataURL(file);
-    });
-
-    return {
-      inlineData: { data, mimeType: file.type },
-    };
   }
 
   private getGenerativeAIModel(backend: AI) {
@@ -109,11 +93,7 @@ Task 4: Search for a surprising or obscure fact that interconnects the following
         },
       },
       safetySettings: SAFETY_SETTINGS,
-      tools: [
-        {
-          googleSearch: {},
-        },
-      ],
+      tools: [{ googleSearch: {} }],
     });
   }
 
