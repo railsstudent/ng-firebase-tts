@@ -1,4 +1,4 @@
-export const SCENE_DICTIONARY = [
+const SCENE_DICTIONARY = [
   'A dimly lit, dusty library filled with ancient leather-bound books.\n' +
     'The air is thick with history. A scholarly archivist is leaning closely into a warm, vintage ribbon microphone.\n' +
     'They speak with an infectious, hushed intensity, eager to share a forgotten secret they just uncovered in a decaying manuscript.',

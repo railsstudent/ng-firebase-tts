@@ -72,19 +72,14 @@ export interface ImageAnalysisResponse {
 
 ---
 
-## File Structure, Methods & Signatures
+## Behavioral Requirements & Domain Contracts
 
-### 1. `src/app/core/utils/image.util.ts` (New Utility)
+### 1. Image Preprocessing Pipeline (`src/app/core/utils/image.util.ts`)
 
-- **`preprocessImage(file: File, maxDimension?: number, quality?: number): Promise<{ inlineData: { data: string; mimeType: string }; metrics: ImageOptimizationMetrics }>`**:
-  - Decodes `File` via `createImageBitmap(file, { imageOrientation: 'from-image' })`.
-  - Calculates target aspect-ratio-preserving dimensions bounded by `maxDimension` (default `768`).
-  - Draws to `OffscreenCanvas` (or `HTMLCanvasElement` fallback) and exports to `image/webp` (default `quality: 0.8`) with JPEG fallback.
-  - Returns clean Base64 data (without `data:...;base64,` header) and calculated `ImageOptimizationMetrics`.
-- **`calculateTargetDimensions(width: number, height: number, maxBound?: number): { targetWidth: number; targetHeight: number }`**:
-  - Pure dimension scaling helper.
-- **`calculateOptimizationMetrics(originalWidth: number, originalHeight: number, originalSizeBytes: number, optimizedWidth: number, optimizedHeight: number, optimizedSizeBytes: number): ImageOptimizationMetrics`**:
-  - Computes tile counts, token estimates ($768 \times 768$ grid $\times 258$ tokens), tokens saved, and byte savings percentage.
+- **Public Contract**: Provides `preprocessImageForVision(file: File, options?: CompressOptions)` and `formatFileSize(bytes: number)`.
+- **Dimension Bounding Rule**: Any image with width or height $> 768\text{px}$ must be scaled down preserving aspect ratio so that max dimension is $768\text{px}$. Images $\le 768\text{px}$ maintain original dimensions without upscaling.
+- **Canvas Compression Rule**: Renders image via browser canvas primitives (`createImageBitmap` + `OffscreenCanvas` with `HTMLCanvasElement` fallback) to `image/webp` (`quality: 0.8`) with fallback to `image/jpeg`. Returns raw Base64 data without data-URL header.
+- **Optimization Telemetry Rule**: Calculates deterministic `ImageOptimizationMetrics` comparing original dimensions/bytes with optimized output, including estimated token savings based on Gemini's $768\times 768$ tile formula (258 tokens per tile).
 
 ### 2. `src/app/core/services/vision.service.ts` (Modified Service)
 

@@ -28,3 +28,25 @@ Used by `/wayfinder`. The **map** is a file with one **child** file per ticket.
 - **Frontier**: scan `.scratch/<effort>/issues/` for files that are open, unblocked, and unclaimed; first by number wins.
 - **Claim**: set `Status: claimed` and save before any work.
 - **Resolve**: append the answer under an `## Answer` heading, set `Status: resolved`, then append a context pointer (gist + link) to the map's Decisions-so-far in `map.md`.
+
+## Spec Authoring & Document Boundaries
+
+To keep codebase abstractions clean and prevent dead exports, follow strict separation between product requirements, architectural decisions, and implementation tickets:
+
+### 1. `spec.md` (Product Specification)
+
+- **Purpose**: Defines **what** the feature accomplishes and **why**.
+- **What Belongs**: Problem statement, user stories, domain data models/interfaces (`src/app/shared/interfaces/`), behavioral rules (e.g. mathematical formulas, dimension constraints, compression quality), and user-observable acceptance criteria.
+- **What is Forbidden**: Do NOT include code-level function signatures, parameter lists, private service methods, or internal helper function names (e.g., avoid listing `calculateImageTokens(...)`). Leave code decomposition to the implementation phase.
+
+### 2. `docs/adr/` (Architectural Decision Records)
+
+- **Purpose**: Captures architectural decisions, trade-offs, and technology choices (e.g., using browser Canvas APIs for client-side compression vs. server-side functions).
+
+### 3. Implementation Grilling & Tickets (`issues/NN-<slug>.md`)
+
+- **Workflow**: Use `spec.md` and the `ADR` as inputs to grill and plan the technical design.
+- **Purpose**: Deconstructs the feature into concrete engineering tasks:
+  - Defining the minimal public API surface (single public entry points for services and utilities).
+  - Designing internal, unexported module helpers and `private` service methods.
+  - Formulating the TDD test matrix that tests observable public behavior rather than internal helpers.

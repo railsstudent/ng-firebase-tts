@@ -22,7 +22,7 @@ const ONE_DECIMAL_PLACE = 1;
 const NOT_FOUND_INDEX = -1;
 const PAYLOAD_OFFSET = 1;
 
-export function calculateTargetDimensions(dimensions: Dimensions, maxDim: number = MAX_IMAGE_DIMENSION): Dimensions {
+function calculateTargetDimensions(dimensions: Dimensions, maxDim: number = MAX_IMAGE_DIMENSION): Dimensions {
   const { width, height } = dimensions;
   if (width <= 0 || height <= 0) {
     return { width: maxDim, height: maxDim };
@@ -45,13 +45,13 @@ export function calculateTargetDimensions(dimensions: Dimensions, maxDim: number
   };
 }
 
-export function calculateImageTokens(dimensions: Dimensions): number {
+function calculateImageTokens(dimensions: Dimensions): number {
   const horizontalTiles = Math.max(1, Math.ceil(dimensions.width / GEMINI_TILE_SIZE));
   const verticalTiles = Math.max(1, Math.ceil(dimensions.height / GEMINI_TILE_SIZE));
   return horizontalTiles * verticalTiles * TOKENS_PER_IMAGE_TILE;
 }
 
-export function calculateOptimizationMetrics(params: OptimizationMetricsParams): ImageOptimizationMetrics {
+function calculateOptimizationMetrics(params: OptimizationMetricsParams): ImageOptimizationMetrics {
   const estimatedOriginalTokens = calculateImageTokens(params.originalDimensions);
   const actualImageTokens = calculateImageTokens(params.optimizedDimensions);
   const tokensSaved = Math.max(0, estimatedOriginalTokens - actualImageTokens);

@@ -1,4 +1,4 @@
-import { buildAudioPrompt, SCENE_DICTIONARY } from './audio-prompt.util';
+import { buildAudioPrompt } from './audio-prompt.util';
 
 describe('audio-prompt.util', () => {
   it('should correctly format a prompt with custom scene and emotion/pace tags', () => {
@@ -27,16 +27,7 @@ describe('audio-prompt.util', () => {
 
     const result = buildAudioPrompt(data);
 
-    // Should contain one of the SCENE_DICTIONARY scenes
-    const matchesDictionaryScene = SCENE_DICTIONARY.some((scene) => {
-      const sanitized = scene
-        .trim()
-        .replace(/\r?\n/g, '\\n')
-        .replace(/^[#\s]+/gm, '');
-      return result.includes(sanitized);
-    });
-
-    expect(matchesDictionaryScene).toBe(true);
+    expect(result).toMatch(/## Scene:\n\S+/);
     expect(result).toContain('[calm] [slow] Another fact.');
   });
 

@@ -6,3 +6,5 @@ while read -r local_ref local_oid remote_ref remote_oid; do
     break
   fi
 done
+
+npm run knip

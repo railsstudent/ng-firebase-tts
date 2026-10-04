@@ -3,7 +3,7 @@ import { Routes } from '@angular/router';
 import { ConfigService } from './core/services/config.service';
 import { HomeComponent } from './features/home/home.component';
 
-export const ROUTE_PATHS = {
+const ROUTE_PATHS = {
   HOME: 'home',
   DASHBOARD: 'dashboard',
 } as const;
@@ -13,18 +13,18 @@ export type RouteKey = keyof typeof ROUTE_PATHS;
 export type AppRoute = `/${(typeof ROUTE_PATHS)[RouteKey]}`;
 
 export const APP_LINKS: Record<RouteKey, AppRoute> = {
-  HOME: '/home',
-  DASHBOARD: '/dashboard',
+  HOME: `/${ROUTE_PATHS.HOME}`,
+  DASHBOARD: `/${ROUTE_PATHS.DASHBOARD}`,
 };
 
 export const routes: Routes = [
   {
-    path: 'home',
+    path: ROUTE_PATHS.HOME,
     title: 'Home',
     component: HomeComponent,
   },
   {
-    path: 'dashboard',
+    path: ROUTE_PATHS.DASHBOARD,
     title: 'Firebase TTS',
     providers: [provideEnvironmentInitializer(() => inject(ConfigService).initialize())],
     loadComponent: () => import('./features/dashboard/dashboard.component'),
@@ -32,10 +32,10 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: 'home',
+    redirectTo: ROUTE_PATHS.HOME,
   },
   {
     path: '**',
-    redirectTo: 'home',
+    redirectTo: ROUTE_PATHS.HOME,
   },
 ];
