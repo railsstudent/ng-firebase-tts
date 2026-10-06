@@ -157,4 +157,4 @@ export interface ImageAnalysisResponse {
 ## Related Documents
 
 - **ADR**: `docs/adr/0011-client-side-image-preprocessing-for-vision-ai.md`
-- **Glossary**: `CONTEXT.md`
+- **Glossary**: `GLOSSARY.md`
