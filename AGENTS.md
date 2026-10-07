@@ -9,6 +9,7 @@ This file provides context, rules, and guidance for AI assistants working on thi
 
 Follow this directory layout and architectural pattern when adding new files:
 
+- **`firebase/`**: Contains all Firebase CLI configurations (`firebase.json`, Remote Config templates, prebuild scripts). Scripts in `package.json` copy `firebase/firebase.json` to the root ephemerally during execution (`cp firebase/firebase.json .; ...; rm firebase.json`) to keep the root directory clean.
 - **`src/app/core/`**: Core feature logic, singleton services, guards, and startup initializers.
 - **`src/app/features/`**: Feature-specific components, routing, and modules (e.g., dashboard, settings).
 - **`src/app/shared/`**: Reusable components, directives, pipes, domain models, and shared utilities.
@@ -44,8 +45,9 @@ When writing or refactoring TypeScript code, you MUST adhere to the following ru
    - Always downscale images to their exact target resolutions (using CLI utilities like `sips -z <height> <width> <file>` on macOS) to ensure strict PWA compliance, minimal asset payloads, and optimal caching behavior.
 8. **Service & Pure Utility Design Boundaries**:
    - **Core Data Services (`src/app/core/services/`)**: Thin orchestrators for SDK/backend interactions and atomic snapshot Signals (e.g. `readonly activeAudio = this.#activeAudio.asReadonly()`). Inject platform tokens using native `#` private state (`readonly #window = inject(WINDOW);`). Internal helper methods must use TypeScript's `private` keyword. Never broaden method visibility or expose internal helpers for unit testing; test services strictly through their public API surface. Never access DOM `document` or global `window` directly, and never store presentation-only UI state or pass-through getters.
+   - **Dynamic SDK Loading & Type-Narrowing Helpers**: For dynamic module loading and initialization caching, follow the `ensure<Feature>()` pattern established in `src/app/core/services/config.service.ts` (`ensureAppCheck`, `loadFirebase`) without IIFEs. Helper methods must return narrowed non-nullable context objects (e.g. `Promise<{ auth: Auth; sdk: FirebaseAuthSdk }>`) throwing descriptive errors on failure rather than relying on non-null assertion `!` operators.
    - **Pure Web Utilities (`src/app/core/utils/`)**: Stateless functions for CPU-heavy transformations, canvas operations, token arithmetic, and format conversions. Only export public functions intended for consuming components and services; keep intermediate calculations, token arithmetic, and internal formatting helpers as unexported module functions. Never hold state or inject Angular services; accept platform references explicitly (e.g. `win?: Window | null`).
-   - **Strict `eslint.config.mjs` Compliance**: All authored code must comply on initial generation (max 3 parameters using typed `options` objects for $\ge 3$, max 40 lines per function, complexity $\le$ 10, no magic numbers, and absolute `@/` imports).
+   - **Strict `eslint.config.mjs` Compliance**: All authored code must comply on initial generation (zero `!` non-null assertions, max 3 parameters using typed `options` objects for $\ge 3$, max 40 lines per function, complexity $\le$ 10, no magic numbers, and absolute `@/` imports).
 
 ## Agent skills
 

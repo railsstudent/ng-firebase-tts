@@ -87,6 +87,7 @@ export default defineConfig([
       'no-magic-numbers': 'off',
       '@typescript-eslint/no-magic-numbers': ['error', { ignoreArrayIndexes: true, ignore: [0, 1, 2] }],
       '@typescript-eslint/no-floating-promises': ['error'],
+      '@typescript-eslint/no-non-null-assertion': ['error'],
     },
   },
   {

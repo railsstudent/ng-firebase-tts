@@ -26,7 +26,8 @@
     "chrome:debug": "node scripts/chrome-debug.mjs start",
     "chrome:debug:stop": "node scripts/chrome-debug.mjs stop",
     "chrome:debug:status": "node scripts/chrome-debug.mjs status",
-    "knip": "knip --production"
+    "knip": "knip --production",
+    "firebase:deploy": "cp firebase/firebase.json .; firebase deploy --only apphosting; rm firebase.json"
   },
   "private": true,
   "packageManager": "npm@12.2.0",
