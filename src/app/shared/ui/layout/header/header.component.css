@@ -1,11 +1,20 @@
 @reference "../../../../../styles.css";
 
+.header-home-btn,
+.header-sign-out-btn {
+  @apply absolute top-1/2 -translate-y-1/2 p-2 rounded-lg text-(--color-text-muted) hover:text-(--color-text-primary) hover:bg-(--color-surface-hover)/60 focus:outline-none focus:ring-2 focus:ring-(--color-primary-hover) active:scale-95 transition-all flex items-center justify-center;
+}
+
 .app-header {
   @apply relative flex items-center justify-center text-center mb-6 sm:mb-8 min-h-[4rem];
 }
 
 .header-home-btn {
-  @apply absolute left-0 top-1/2 -translate-y-1/2 p-2 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all flex items-center justify-center;
+  @apply left-0;
+}
+
+.header-sign-out-btn {
+  @apply right-0;
 }
 
 .header-title {

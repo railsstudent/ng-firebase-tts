@@ -101,6 +101,11 @@ When researching framework/platform APIs, architecture, or resolving errors:
 3. **General Third-Party Tools (Tailwind v4, Vitest, etc.)**:
    - Use web search directly for libraries outside the official Angular / Firebase MCP knowledge bases.
 
+4. **Stitch UI Generation (`stitch` MCP)**:
+   - **Single-Shot Invariant**: Always execute `generate_screen_from_text`, `generate_variants`, or `edit_screens` **exactly once** per target design. Never execute parallel calls or retry loops.
+   - **60s Timeout Handling**: High-fidelity multi-component screens take 75–90 seconds on the backend. A 60-second client fetch timeout (`fetch failed`) is a client wait limit, NOT a backend failure.
+   - **Deterministic Polling**: **Never reissue generation commands on timeout**. Wait 25–30 seconds, then poll `list_screens` (or `get_screen`) to retrieve the finished screen ID, screenshot, and HTML download URLs.
+
 ## Testing & Command Verification Loop
 
 When editing, creating, or testing files in this repository, you MUST follow these constraints:

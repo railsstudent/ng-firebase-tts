@@ -10,6 +10,9 @@
     "template": "remote-config-template.json"
   },
   "emulators": {
+    "auth": {
+      "port": 9099
+    },
     "apphosting": {
       "port": 5005,
       "rootDirectory": "..",

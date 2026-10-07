@@ -1,21 +1,24 @@
-import { APP_LINKS } from '@/app.routes';
+import { APP_LINKS } from '@/core/constants/routes.const';
+import { AuthService } from '@/core/services/auth.service';
 import { HomeIconComponent } from '@/shared/ui/icons/home-icon.component';
-import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { SignOutIconComponent } from '@/shared/ui/icons/sign-out-icon.component';
+import { Component, inject } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-header',
-  imports: [HomeIconComponent, RouterLink],
-  template: `
-    <header class="app-header">
-      <a [routerLink]="homeLink" class="header-home-btn" aria-label="Go to Home Screen">
-        <app-home-icon />
-      </a>
-      <h1 class="header-title">Firebase AI Logic Obscure Fact Speech Generator</h1>
-    </header>
-  `,
+  imports: [HomeIconComponent, RouterLink, SignOutIconComponent],
+  templateUrl: './header.component.html',
   styleUrl: './header.component.css',
 })
 export class HeaderComponent {
   readonly homeLink = APP_LINKS.HOME;
+  readonly #authService = inject(AuthService);
+  readonly #router = inject(Router);
+  readonly isAuthenticated = this.#authService.isAuthenticated;
+
+  async onSignOut(): Promise<void> {
+    await this.#authService.signOut();
+    await this.#router.navigate([APP_LINKS.HOME]);
+  }
 }

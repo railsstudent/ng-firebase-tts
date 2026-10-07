@@ -20,7 +20,8 @@
   @apply text-sm sm:text-base text-(--color-text-muted) max-w-lg leading-relaxed;
 }
 
-.btn-launch {
+.btn-launch,
+.btn-sign-in {
   @apply px-8 py-3.5 text-base shadow-lg shadow-indigo-500/20 flex items-center justify-center;
 }
 

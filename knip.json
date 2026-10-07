@@ -2,6 +2,9 @@
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": ["src/main.ts!"],
   "project": ["src/app/**/*.ts!"],
+  "rules": {
+    "cycles": "error"
+  },
   "ignoreBinaries": ["ng"],
   "ignoreDependencies": ["@firebase/ai"]
 }

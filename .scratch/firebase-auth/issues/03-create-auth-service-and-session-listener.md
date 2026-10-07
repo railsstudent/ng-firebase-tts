@@ -18,12 +18,14 @@ Implement the core singleton `AuthenticationService` managing dynamic `firebase/
 
 1. **Define `AuthCredentials` Interface**:
    - File: `src/app/shared/interfaces/auth-credentials.interface.ts`
+
    ```typescript
    export interface AuthCredentials {
      readonly email: string;
      readonly password: string;
    }
    ```
+
 2. **`AuthenticationService` Implementation**:
    - Inject `ConfigService` and `WINDOW`.
    - State: `readonly #isAuthenticated = signal<boolean>(false);`

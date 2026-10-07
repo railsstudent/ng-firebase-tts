@@ -11,7 +11,8 @@
     "test": "ng test",
     "test:once": "ng test --watch=false",
     "test:coverage": "ng test --watch=false --coverage",
-    "lint": "ng lint",
+    "check:cycles": "knip --cycles --reporter cycles",
+    "lint": "ng lint && npm run check:cycles",
     "prepare": "husky",
     "format": "prettier --write \"**/*.{ts,js,mjs,json,html}\"",
     "cspell": "cspell --no-must-find-files --config cspell.config.mjs .",
@@ -27,7 +28,8 @@
     "chrome:debug:stop": "node scripts/chrome-debug.mjs stop",
     "chrome:debug:status": "node scripts/chrome-debug.mjs status",
     "knip": "knip --production",
-    "firebase:deploy": "cp firebase/firebase.json .; firebase deploy --only apphosting; rm firebase.json"
+    "firebase:deploy": "cp firebase/firebase.json .; firebase deploy --only apphosting; rm firebase.json",
+    "firebase:emulate:auth": "firebase --config firebase/firebase.json emulators:start --only auth"
   },
   "private": true,
   "packageManager": "npm@12.2.0",

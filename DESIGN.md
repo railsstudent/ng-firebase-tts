@@ -135,7 +135,7 @@ The **Firebase AI Logic Multimodal Speech Generator** is a focused AI studio web
 ## Icons & Visual Assets
 
 - **Inline SVGs only**: Zero third-party icon libraries or font packages.
-- All icons (`PhotoIcon`, `MicIcon`, `CheckIcon`, `SpinnerIcon`, `ArrowDropDownIcon`, `ExternalLinkIcon`) render as standalone Angular SVG components with `fill="currentColor"` or `stroke="currentColor"`.
+- All icons (`PhotoIcon`, `MicIcon`, `CheckIcon`, `SpinnerIcon`, `ArrowDropDownIcon`, `ExternalLinkIcon`, `ArrowRightIcon`, `SignOutIcon`, `HomeIcon`) render as standalone Angular SVG components with `fill="currentColor"` or `stroke="currentColor"`.
 
 ---
 
@@ -218,8 +218,13 @@ The **Firebase AI Logic Multimodal Speech Generator** is a focused AI studio web
   - Left-anchored link (`absolute left-0 top-1/2 -translate-y-1/2 p-2 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all`) housing `<app-home-icon />`.
   - Accessible label: `aria-label="Go to Home Screen"`.
   - Target: `routerLink="/home"`.
+- **Sign Out Action (`.header-sign-out-btn`)**:
+  - Right-anchored button (`absolute right-0 top-1/2 -translate-y-1/2 p-2 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all flex items-center justify-center`).
+  - Visibility: Rendered conditionally when `isAuthenticated()` is `true`.
+  - Element: `<button class="header-sign-out-btn" aria-label="Sign out">` housing a 24x24 `<app-sign-out-icon />` (`@apply app-icon`).
+  - Interaction: Signs out the user and redirects to the Home screen upon completion.
 - **Title (`h1`)**: `"Firebase AI Logic Obscure Fact Speech Generator"` (`text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight bg-gradient-to-r from-indigo-400 to-emerald-400 bg-clip-text text-transparent`).
-- **Constraints**: Strictly NO subtitles, secondary paragraphs, tabs, breadcrumbs, search bars, user avatars, or secondary dropdown menus. Only the designated left-anchored Home navigation button and centered `h1` title are permitted.
+- **Constraints**: Strictly NO subtitles, secondary paragraphs, tabs, breadcrumbs, search bars, user avatars, or secondary dropdown menus. Only the designated left-anchored Home navigation button, right-anchored conditional Sign-Out button, and centered `h1` title are permitted.
 
 ### 2. App Footer (`FooterComponent`)
 
@@ -343,10 +348,15 @@ The **Firebase AI Logic Multimodal Speech Generator** is a focused AI studio web
 - **Category Pill (`.home-badge`)**: `"Firebase AI Logic & Vertex AI"` (`text-xs uppercase font-bold tracking-widest text-indigo-400 bg-indigo-950/60 border border-indigo-800/60 px-3 py-1 rounded-full`).
 - **Headline (`.home-title`)**: `"Multimodal Vision & Real-Time Speech Studio"` (`text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-slate-100`).
 - **Description (`.home-description`)**: `"Analyze images with Gemini multimodal intelligence, discover grounded obscure facts, and generate real-time streaming audio with customizable voice personas."` (`text-sm sm:text-base text-slate-400 max-w-lg leading-relaxed`).
-- **Primary CTA Button (`.btn-launch`)**:
-  - Semantic link element with `[routerLink]="dashboard"` (typed `APP_LINKS.DASHBOARD`).
-  - Content: `"Launch Studio"` label accompanied by standalone `<app-arrow-right-icon>` (`ArrowRightIconComponent`, `aria-hidden="true"`) with micro-interaction hover translation (`group-hover:translate-x-1`).
-  - Styling: `@apply btn-primary px-8 py-3.5 text-base font-semibold shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2;`.
+- **Primary Dynamic Hero CTA Button (`.btn-launch` / `.btn-sign-in`)**:
+  - **Authenticated State**:
+    - Semantic link to Studio dashboard (`[routerLink]="dashboard"`).
+    - Content: `"Launch Studio"` label accompanied by standalone `<app-arrow-right-icon>` (`ArrowRightIconComponent`, `aria-hidden="true"`) with micro-interaction hover translation (`group-hover:translate-x-1`).
+    - Styling: `@apply btn-primary px-8 py-3.5 text-base font-semibold shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2;`.
+  - **Unauthenticated State**:
+    - Primary action button triggering the Sign-In modal dialog.
+    - Content: `"Sign In"` label with interactive hover and focus states (strictly NO right arrow icon).
+    - Styling: `@apply btn-primary px-8 py-3.5 text-base font-semibold shadow-lg shadow-indigo-500/20 flex items-center justify-center;`.
 - **Architecture & Capabilities Metadata Grid (`.home-features-grid`)**:
   - Clean key-value list with **zero status pills or badge chips**:
     - **Model Pipeline**: `Gemini 3.8 Flash`
@@ -354,7 +364,46 @@ The **Firebase AI Logic Multimodal Speech Generator** is a focused AI studio web
     - **Grounding**: `Google Search Tool`
   - Layout: 1-column stack on mobile (`grid-cols-1 gap-2.5`), 3-column row on desktop (`sm:grid-cols-3 sm:gap-4`).
 - **Strict Constraints**:
+  - Strictly NO right arrow icon or secondary icons on the unauthenticated `"Sign In"` CTA button (the arrow icon is strictly reserved for the authenticated `"Launch Studio"` button).
   - Strictly NO status pills, badges, or chip tags on list items (`Multimodal`, `Real-Time`, `Verified` tags are forbidden).
   - Strictly NO obsolete model names (must use modern `Gemini 3.8 Flash`).
   - Strictly NO isolated `min-h-screen` or independent background overrides; must seamlessly inherit `.app-shell` and `.app-container`.
   - Strictly NO marketing carousels, unstyled external links, or secondary sidebar menus.
+
+---
+
+### 13. Sign-In Modal Dialog (`SignInModalComponent`)
+
+- **Overlay & Backdrop**:
+  - Centered modal container over a semi-transparent blurred backdrop (`backdrop-blur-sm bg-black/40`).
+- **Modal Card Surface (`.modal-card`)**:
+  - Geometry: `rounded-2xl bg-(--color-surface-card) border border-(--color-surface-border) p-6 sm:p-8 max-w-md w-full shadow-2xl backdrop-blur-md flex flex-col gap-5`.
+- **Header (`.modal-header`)**:
+  - Layout: `flex items-center justify-between pb-2 border-b border-(--color-surface-border)/60`.
+  - Title (`#sign-in-dialog-title`): `"Sign In"` (`text-xl sm:text-2xl font-bold text-(--color-text-primary)`).
+  - Close Button (`.modal-close-btn`): Top-right button (`p-1.5 rounded-lg text-(--color-text-muted) hover:text-(--color-text-primary) hover:bg-slate-800/60 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all`) with `aria-label="Close dialog"`.
+- **Form Fields & Validation**:
+  - **Email Field**:
+    - Label: `"Email Address"` (`text-xs uppercase font-semibold tracking-wider text-(--color-text-muted) mb-1.5 block`).
+    - Input: `<input type="email" autocomplete="username">` (`w-full bg-slate-900 border border-slate-700 text-(--color-text-primary) rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all`).
+    - Validation Hint: Rendered below touched invalid field in `text-xs text-(--color-error-text) mt-1`.
+  - **Password Field**:
+    - Label: `"Password"` (`text-xs uppercase font-semibold tracking-wider text-(--color-text-muted) mb-1.5 block`).
+    - Input: `<input type="password" autocomplete="current-password">` (`w-full bg-slate-900 border border-slate-700 text-(--color-text-primary) rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all`).
+    - Validation Hint: Rendered below touched invalid field in `text-xs text-(--color-error-text) mt-1`.
+  - **Error Alert Banner (`.error-block`)**:
+    - Rendered conditionally on failed sign-in attempts: `@apply error-block mt-2 mb-2 text-sm` (`bg-(--color-error-bg) border border-(--color-error-border) text-(--color-error-text) px-4 py-3 rounded-lg relative`).
+- **Actions (`.modal-actions`)**:
+  - Submit Button (`.btn-submit`): Primary button **"Sign In"** (`@apply btn-primary w-full py-3 mt-2 flex items-center justify-center gap-2`).
+  - Loading State: Animated SVG spinner (`.spinner-icon animate-spin h-5 w-5`) rendered when `isLoading()` is `true`, disabling further submissions.
+- **Accessibility & Focus Contract**:
+  - ARIA: `role="dialog"`, `aria-modal="true"`, `aria-labelledby="sign-in-dialog-title"`.
+  - Traps keyboard focus within the dialog while open.
+  - Autofocuses the Email input upon opening.
+  - Pressing `Escape` or clicking the backdrop dismisses the dialog without side-effects.
+- **Strict Constraints**:
+  - Strictly NO third-party SSO buttons, badges, or provider links (e.g. Google, GitHub, Apple).
+  - Strictly NO "Forgot Password?" or password reset recovery links/flows.
+  - Strictly NO "Sign Up" / "Create Account" registration links, toggles, or secondary modes.
+  - Strictly NO biometric, WebAuthn, or Passkey options.
+  - Strictly NO secondary marketing footers, terms/privacy links, or external badges inside the dialog. Only the designated Header (Title + Close 'X' button), conditional Error block, Email field, Password field, and Primary "Sign In" button are permitted.

@@ -1,0 +1,11 @@
+<header class="app-header">
+  <a [routerLink]="homeLink" class="header-home-btn" aria-label="Go to Home Screen">
+    <app-home-icon />
+  </a>
+  <h1 class="header-title">Firebase AI Logic Obscure Fact Speech Generator</h1>
+  @if (isAuthenticated()) {
+    <button type="button" class="header-sign-out-btn" (click)="onSignOut()" aria-label="Sign out">
+      <app-sign-out-icon />
+    </button>
+  }
+</header>

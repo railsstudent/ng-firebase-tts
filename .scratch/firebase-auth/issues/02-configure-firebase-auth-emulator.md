@@ -1,12 +1,12 @@
 # 02-configure-firebase-auth-emulator
 
 Type: task
-Status: ready-for-agent
+Status: done
 Blocked by: None
 
 ## Description
 
-Configure local Firebase Authentication Emulator settings inside `firebase/firebase.json` and add an ephemeral copy-execute-cleanup script to `package.json` to enable offline, zero-cloud-cost testing of sign-in, session persistence, and sign-out flows during development.
+Configure local Firebase Authentication Emulator settings inside `firebase/firebase.json` and add a script to `package.json` using the native `--config firebase/firebase.json` flag to enable offline, zero-cloud-cost testing of sign-in, session persistence, and sign-out flows during development without root file copying or cleanup.
 
 ## Target Files
 
@@ -48,14 +48,14 @@ Configure local Firebase Authentication Emulator settings inside `firebase/fireb
    ```
 
 2. **Add NPM Script in `package.json`**:
-   - Add script using the project's existing ephemeral root copy pattern (mirroring `firebase:deploy`):
+   - Add/update script using the native Firebase `--config` flag:
 
      ```json
-     "firebase:emulate:auth": "cp firebase/firebase.json .; firebase emulators:start --only auth; rm firebase.json"
+     "firebase:emulate:auth": "firebase --config firebase/firebase.json emulators:start --only auth"
      ```
 
 ## Acceptance Criteria
 
-- [ ] `firebase/firebase.json` contains `"auth": { "port": 9099 }` alongside existing emulators.
-- [ ] `package.json` contains `"firebase:emulate:auth"`.
-- [ ] `npm run firebase:emulate:auth` starts the Auth Emulator on port 9099 and cleans up `firebase.json` upon exit.
+- [x] `firebase/firebase.json` contains `"auth": { "port": 9099 }` alongside existing emulators.
+- [x] `package.json` contains `"firebase:emulate:auth": "firebase --config firebase/firebase.json emulators:start --only auth"`.
+- [x] Running `npm run firebase:emulate:auth` starts the Auth Emulator on port 9099 without requiring root file copies or cleanup.

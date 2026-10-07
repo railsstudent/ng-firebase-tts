@@ -1,15 +1,26 @@
+import { AuthService } from '@/core/services/auth.service';
 import { HomeComponent } from '@/features/home/home.component';
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 
 describe('HomeComponent', () => {
   let fixture: ComponentFixture<HomeComponent>;
+  let isAuthenticatedSignal: ReturnType<typeof signal<boolean>>;
+  let mockAuthService: {
+    isAuthenticated: ReturnType<typeof signal<boolean>>;
+  };
 
   beforeEach(async () => {
+    isAuthenticatedSignal = signal<boolean>(false);
+    mockAuthService = {
+      isAuthenticated: isAuthenticatedSignal,
+    };
+
     await TestBed.configureTestingModule({
       imports: [HomeComponent],
-      providers: [provideRouter([])],
+      providers: [provideRouter([]), { provide: AuthService, useValue: mockAuthService }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(HomeComponent);
@@ -33,12 +44,31 @@ describe('HomeComponent', () => {
     expect(descEl.nativeElement.textContent.trim()).toContain('Analyze images with Gemini multimodal intelligence');
   });
 
-  it('should render the primary CTA launch button linking to dashboard with right arrow icon', () => {
+  it('should render the primary CTA sign-in button without arrow icon when unauthenticated', () => {
+    isAuthenticatedSignal.set(false);
+    fixture.detectChanges();
+
+    const signInBtn = fixture.debugElement.query(By.css('button.btn-sign-in'));
     const launchBtn = fixture.debugElement.query(By.css('a.btn-launch'));
+
+    expect(signInBtn).toBeTruthy();
+    expect(signInBtn.nativeElement.textContent.trim()).toBe('Sign In');
+    expect(signInBtn.query(By.css('app-arrow-right-icon'))).toBeNull();
+    expect(launchBtn).toBeNull();
+  });
+
+  it('should render the primary CTA launch button linking to dashboard with right arrow icon when authenticated', () => {
+    isAuthenticatedSignal.set(true);
+    fixture.detectChanges();
+
+    const launchBtn = fixture.debugElement.query(By.css('a.btn-launch'));
+    const signInBtn = fixture.debugElement.query(By.css('button.btn-sign-in'));
+
     expect(launchBtn).toBeTruthy();
     expect(launchBtn.attributes['href']).toBe('/dashboard');
     expect(launchBtn.nativeElement.textContent).toContain('Launch Studio');
     expect(launchBtn.query(By.css('app-arrow-right-icon'))).toBeTruthy();
+    expect(signInBtn).toBeNull();
   });
 
   it('should render the 3 capabilities metadata items without status badge pills', () => {

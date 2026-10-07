@@ -46,3 +46,4 @@ Thumbs.db
 # generated firebase configuration
 firebase.config.json
 
+firebase-debug.log

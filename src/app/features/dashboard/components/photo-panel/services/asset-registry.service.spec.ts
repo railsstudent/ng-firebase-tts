@@ -50,7 +50,7 @@ describe('AssetRegistry', () => {
 
     service.register(file2);
     expect(service.previewUrl()).toBe(`blob:http://localhost/${file2.size}`);
-    expect(revokeObjectUrlSpy).toHaveBeenCalledWith(firstUrl!);
+    expect(revokeObjectUrlSpy).toHaveBeenCalledWith(firstUrl ?? '');
   });
 
   it('should revoke the final active URL on destruction', () => {
@@ -61,6 +61,6 @@ describe('AssetRegistry', () => {
     // Destroy the injection context / service
     TestBed.resetTestingModule();
 
-    expect(revokeObjectUrlSpy).toHaveBeenCalledWith(activeUrl!);
+    expect(revokeObjectUrlSpy).toHaveBeenCalledWith(activeUrl ?? '');
   });
 });

@@ -9,10 +9,16 @@
       streaming audio with customizable voice personas.
     </p>
 
-    <a [routerLink]="dashboard" class="btn-primary btn-launch group">
-      <span>Launch Studio</span>
-      <app-arrow-right-icon class="btn-launch-icon" />
-    </a>
+    @if (isAuthenticated()) {
+      <a [routerLink]="dashboard" class="btn-primary btn-launch group">
+        <span>Launch Studio</span>
+        <app-arrow-right-icon class="btn-launch-icon" />
+      </a>
+    } @else {
+      <button type="button" class="btn-primary btn-sign-in">
+        <span>Sign In</span>
+      </button>
+    }
 
     <div class="home-features-grid">
       @for (feature of features; track feature.label) {

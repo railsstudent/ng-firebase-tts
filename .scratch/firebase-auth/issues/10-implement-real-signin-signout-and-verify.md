@@ -1,8 +1,8 @@
-# 09-implement-real-signin-signout-and-verify
+# 10-implement-real-signin-signout-and-verify
 
 Type: task
 Status: ready-for-agent
-Blocked by: 03-create-auth-service-and-session-listener, 04-create-auth-guard, 06-integrate-header-sign-out, 07-create-sign-in-modal-dialog, 08-update-home-auth-cta-and-modal-trigger
+Blocked by: 03-create-auth-service-and-session-listener, 04-create-auth-guard, 06-integrate-header-sign-out, 07-create-sign-in-modal-dialog, 09-wire-home-sign-in-modal-trigger
 
 ## Description
 

@@ -6,7 +6,7 @@ Blocked by: 01-update-design-contract-for-auth, 03-create-auth-service-and-sessi
 
 ## Description
 
-Build the accessible Sign-In Modal component using Angular CDK Dialog (`@angular/cdk/dialog`) and Angular Signal Forms (`@angular/forms/signals`) with live validation and error handling.
+Build the accessible Sign-In Modal component (`SignInModalComponent`) using Angular CDK Dialog (`@angular/cdk/dialog`) and Angular Signal Forms (`@angular/forms/signals`) with live validation and error handling, implementing the design contracts specified in Section 13 of `DESIGN.md` and the desktop and mobile Stitch screens.
 
 ## Target Files
 
@@ -15,16 +15,56 @@ Build the accessible Sign-In Modal component using Angular CDK Dialog (`@angular
 - `src/app/shared/ui/sign-in-modal/sign-in-modal.component.css` (New)
 - `src/app/shared/ui/sign-in-modal/sign-in-modal.component.spec.ts` (New)
 
-## Specifications & Requirements
+## Design & Visual Specifications
+
+1. **Design System Contract (`DESIGN.md` Section 13: Sign-In Modal Dialog)**:
+   - **Overlay & Backdrop**: Centered modal container over semi-transparent blurred backdrop (`backdrop-blur-sm bg-black/40`).
+   - **Modal Card Surface (`.modal-card`)**:
+     - Geometry: `rounded-2xl bg-(--color-surface-card) border border-(--color-surface-border) p-6 sm:p-8 max-w-md w-full shadow-2xl backdrop-blur-md flex flex-col gap-5`.
+   - **Header (`.modal-header`)**:
+     - Layout: `flex items-center justify-between pb-2 border-b border-(--color-surface-border)/60`.
+     - Title (`#sign-in-dialog-title`): `"Sign In"` (`text-xl sm:text-2xl font-bold text-(--color-text-primary)`).
+     - Close Button (`.modal-close-btn`): Top-right button (`p-1.5 rounded-lg text-(--color-text-muted) hover:text-(--color-text-primary) hover:bg-slate-800/60 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all`) with `aria-label="Close dialog"`.
+   - **Form Fields & Validation**:
+     - **Email Field**:
+       - Label: `"Email Address"` (`text-xs uppercase font-semibold tracking-wider text-(--color-text-muted) mb-1.5 block`).
+       - Input: `<input type="email" autocomplete="username">` (`w-full bg-slate-900 border border-slate-700 text-(--color-text-primary) rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all`).
+       - Validation Hint: Rendered below touched invalid field in `text-xs text-(--color-error-text) mt-1`.
+     - **Password Field**:
+       - Label: `"Password"` (`text-xs uppercase font-semibold tracking-wider text-(--color-text-muted) mb-1.5 block`).
+       - Input: `<input type="password" autocomplete="current-password">` (`w-full bg-slate-900 border border-slate-700 text-(--color-text-primary) rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all`).
+       - Validation Hint: Rendered below touched invalid field in `text-xs text-(--color-error-text) mt-1`.
+     - **Error Alert Banner (`.error-block`)**:
+       - Rendered conditionally on failed sign-in attempts: `@apply error-block mt-2 mb-2 text-sm` (`bg-(--color-error-bg) border border-(--color-error-border) text-(--color-error-text) px-4 py-3 rounded-lg relative`).
+   - **Actions (`.modal-actions`)**:
+     - Submit Button (`.btn-submit`): Primary button **"Sign In"** (`@apply btn-primary w-full py-3 mt-2 flex items-center justify-center gap-2`).
+     - Loading State: Animated SVG spinner (`.spinner-icon animate-spin h-5 w-5`) rendered when `isSubmitting()` is `true`, disabling further submissions.
+   - **Strict Constraints**:
+     - Strictly NO third-party SSO buttons, badges, or provider links (e.g. Google, GitHub, Apple).
+     - Strictly NO "Forgot Password?" or password reset recovery links/flows.
+     - Strictly NO "Sign Up" / "Create Account" registration links, toggles, or secondary modes.
+     - Strictly NO biometric, WebAuthn, or Passkey options.
+     - Strictly NO secondary marketing footers, terms/privacy links, or external badges inside the dialog. Only the designated Header (Title + Close 'X' button), conditional Error block, Email field, Password field, and Primary "Sign In" button are permitted.
+
+2. **Desktop Viewport Screen Contract (`Obsidian & Indigo AI Studio Home Screen with Sign-In Modal` - Screen ID: `57acb0b8ea9b41869ca631da97962637`)**:
+   - Centered `max-w-md` floating dialog over dimmed background overlay.
+   - Form inputs with crisp slate borders and focused electric indigo glow rings.
+
+3. **Mobile Viewport Screen Contract (`Firebase AI Logic Studio Mobile Sign-In Modal` - Screen ID: `3cdd32fdeb4e4c0b8d2cd236f382c8e2`)**:
+   - Full-width responsive dialog padded for mobile screens (`p-6 w-full max-w-sm sm:max-w-md mx-4`).
+   - Touch targets and font sizing optimized for mobile viewports.
+
+## Technical & Implementation Requirements
 
 1. **Dialog Lifecycle & Accessibility**:
    - Use `DialogRef<void, SignInModalComponent>` from `@angular/cdk/dialog`.
-   - Support Escape key and backdrop click to close.
-   - ARIA modal dialog markup (`role="dialog"`, `aria-labelledby`, `aria-modal="true"`).
-2. **Signal Forms Architecture**:
-   - Use modern `@angular/forms/signals` (strictly zero legacy `FormGroup`).
+   - Support `Escape` key and backdrop click dismissal.
+   - ARIA modal markup: `role="dialog"`, `aria-labelledby="sign-in-dialog-title"`, `aria-modal="true"`.
+   - Trap keyboard focus within the dialog; autofocus the email input on open.
+2. **Signal Forms Architecture (`@angular/forms/signals`)**:
    - Controls: `email` (required, valid email pattern) and `password` (required, minimum 6 characters).
    - Reactive validation hints displayed when fields are touched and invalid.
+   - Strictly NO legacy `FormGroup` / `FormControl` / `FormBuilder`.
 3. **Form Submission & State**:
    - State signals: `isSubmitting = signal(false);`, `errorMessage = signal<string | null>(null);`.
    - On valid submit:
@@ -32,12 +72,14 @@ Build the accessible Sign-In Modal component using Angular CDK Dialog (`@angular
      - Call `await this.authService.signIn({ email, password })`.
      - On success: close dialog (`this.dialogRef.close()`) and navigate to `/dashboard`.
      - On error: catch error, map to user-friendly message, set `errorMessage`.
-4. **Tailwind CSS v4 Styling**:
-   - `sign-in-modal.component.css` must include `@reference "../../../../../styles.css";` and use `@apply` utility classes.
+4. **Tailwind CSS v4 Component Styles (`sign-in-modal.component.css`)**:
+   - Include `@reference "../../../../../styles.css";` and use `@apply` utility classes for layout, surface cards, and buttons.
 
 ## Acceptance Criteria
 
-- [ ] Pure Signal Forms implementation with live field validation.
-- [ ] Keyboard accessible, focus trapped, and closes on Escape/backdrop.
+- [ ] Implemented as an accessible CDK Dialog with full keyboard focus trapping and Escape/backdrop dismissal.
+- [ ] Matches visual specifications from `DESIGN.md` Section 13, Desktop screen `57acb0b8ea9b41869ca631da97962637`, and Mobile screen `3cdd32fdeb4e4c0b8d2cd236f382c8e2`.
+- [ ] Pure Signal Forms implementation with live email/password field validation.
 - [ ] Displays friendly error alert when sign-in fails.
-- [ ] Unit tests cover validation rules, submission success, and error display.
+- [ ] Submitting successfully authenticates, closes the dialog, and navigates to `/dashboard`.
+- [ ] Unit tests cover validation rules, submission success, and error display with 100% assertion coverage.

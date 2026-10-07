@@ -1,6 +1,7 @@
-import { APP_LINKS } from '@/app.routes';
+import { APP_LINKS } from '@/core/constants/routes.const';
+import { AuthService } from '@/core/services/auth.service';
 import { ArrowRightIconComponent } from '@/shared/ui/icons/arrow-right-icon.component';
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 @Component({
@@ -11,6 +12,8 @@ import { RouterLink } from '@angular/router';
 })
 export class HomeComponent {
   readonly dashboard = APP_LINKS.DASHBOARD;
+  readonly #authService = inject(AuthService);
+  readonly isAuthenticated = this.#authService.isAuthenticated;
 
   readonly features = [
     { label: 'Model Pipeline', value: 'Gemini 3.8 Flash' },
