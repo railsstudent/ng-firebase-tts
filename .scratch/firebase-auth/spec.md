@@ -18,8 +18,8 @@ Provide a secure, streamlined client-side authentication experience powered by F
 4. As a user in the Sign-In modal, I want to enter my email and password with real-time validation feedback, so that I can see whether my inputs meet basic validity criteria before submitting.
 5. As a user submitting credentials, I want to see a loading indicator and disabled inputs during authentication, so that I know my request is processing.
 6. As a user entering invalid credentials or experiencing a network failure, I want to see an inline error message explaining the failure, so that I can correct my inputs and retry.
-7. As an authenticated user, I want the Sign-In modal to close immediately upon successful authentication, so that I return smoothly to the Home Screen.
-8. As an authenticated user on the Home Screen, I want to see the "Launch Studio" button instead of the "Sign In" button, so that I can enter the TTS Studio Workspace.
+7. As an authenticated user, I want the Sign-In modal to close immediately upon successful authentication and navigate directly to the workspace (`/dashboard`), so that I can immediately begin generating speech.
+8. As an authenticated user visiting or returning to the Home Screen, I want to see the "Launch Studio" button instead of the "Sign In" button, so that I can re-enter the TTS Studio Workspace.
 9. As an authenticated user viewing any page, I want to see an accessible Sign-Out icon button on the right edge of the application header, so that I have a clear landmark to end my session.
 10. As a keyboard user, I want to tab to the Sign-Out icon button and activate it with Enter/Space, so that I can sign out without requiring a mouse.
 11. As a screen reader user, I want the Sign-Out button to announce a clear descriptive label ("Sign out"), so that I understand its purpose.
@@ -79,7 +79,8 @@ All automated and manual verifications are formulated in natural language around
 
 ### 3. Authenticated State & Workspace Access
 
-- **Immediate State Transition**: When sign-in completes successfully, the modal must close automatically, the Home Screen must instantly switch the primary button from "Sign In" to "Launch Studio", and the Sign-Out icon button must appear in the top-right header.
+- **Immediate State Transition**: When sign-in completes successfully, the modal must close automatically and navigate the user directly into the multimodal TTS workspace (`/dashboard`).
+- **Returning to Home Screen**: When an authenticated user navigates back to the Home Screen (or refreshes the page), the Home Screen must display the "Launch Studio" button instead of "Sign In", and the Sign-Out icon button must appear in the top-right header.
 - **Entering the Studio**: When an authenticated user clicks "Launch Studio", the user must be smoothly navigated into the multimodal TTS workspace.
 
 ### 4. Session Persistence & Logout Privacy

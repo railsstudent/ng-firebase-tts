@@ -11,8 +11,8 @@ Implement the core singleton `AuthenticationService` managing dynamic `firebase/
 ## Target Files
 
 - `src/app/shared/interfaces/auth-credentials.interface.ts` (New)
-- `src/app/core/services/authentication.service.ts` (New)
-- `src/app/core/services/authentication.service.spec.ts` (New)
+- `src/app/core/services/auth.service.ts` (New)
+- `src/app/core/services/auth.service.spec.ts` (New)
 
 ## Specifications & Requirements
 

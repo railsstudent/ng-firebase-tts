@@ -38,7 +38,7 @@ Build the accessible Sign-In Modal component (`SignInModalComponent`) using Angu
        - Rendered conditionally on failed sign-in attempts: `@apply error-block mt-2 mb-2 text-sm` (`bg-(--color-error-bg) border border-(--color-error-border) text-(--color-error-text) px-4 py-3 rounded-lg relative`).
    - **Actions (`.modal-actions`)**:
      - Submit Button (`.btn-submit`): Primary button **"Sign In"** (`@apply btn-primary w-full py-3 mt-2 flex items-center justify-center gap-2`).
-     - Loading State: Animated SVG spinner (`.spinner-icon animate-spin h-5 w-5`) rendered when `isSubmitting()` is `true`, disabling further submissions.
+     - Loading State: Animated SVG spinner using `<app-spinner-icon svgClass="animate-spin h-5 w-5" />` (`@/shared/ui/icons/spinner-icon.component`) rendered when `signInForm().submitting()` is `true`, disabling further submissions.
    - **Strict Constraints**:
      - Strictly NO third-party SSO buttons, badges, or provider links (e.g. Google, GitHub, Apple).
      - Strictly NO "Forgot Password?" or password reset recovery links/flows.
@@ -66,14 +66,16 @@ Build the accessible Sign-In Modal component (`SignInModalComponent`) using Angu
    - Reactive validation hints displayed when fields are touched and invalid.
    - Strictly NO legacy `FormGroup` / `FormControl` / `FormBuilder`.
 3. **Form Submission & State**:
-   - State signals: `isSubmitting = signal(false);`, `errorMessage = signal<string | null>(null);`.
+   - Injections: `DialogRef<void, SignInModalComponent>` (`@angular/cdk/dialog`), `AuthService` (`@/core/services/auth.service`), `Router` (`@angular/router`).
+   - Imports: `AuthCredentials` from `@/core/interfaces/auth-credentials.interface`, `APP_LINKS` from `@/core/constants/routes.const`, `SpinnerIconComponent` from `@/shared/ui/icons/spinner-icon.component`.
+   - State signals: `errorMessage = signal<string | undefined>(undefined);`. Form submission state is managed natively via Signal Forms `signInForm().submitting()`.
    - On valid submit:
-     - Set `isSubmitting = true`, clear `errorMessage`.
-     - Call `await this.authService.signIn({ email, password })`.
-     - On success: close dialog (`this.dialogRef.close()`) and navigate to `/dashboard`.
-     - On error: catch error, map to user-friendly message, set `errorMessage`.
+     - Clear `errorMessage.set(undefined)`.
+     - Pass typed credentials: `await this.authService.signIn({ email, password })`.
+     - On success: close dialog (`this.dialogRef.close()`) and navigate to `/dashboard` (`await this.router.navigate([APP_LINKS.DASHBOARD])`).
+     - On error: catch error, map to user-friendly message, and set `errorMessage.set(message)`.
 4. **Tailwind CSS v4 Component Styles (`sign-in-modal.component.css`)**:
-   - Include `@reference "../../../../../styles.css";` and use `@apply` utility classes for layout, surface cards, and buttons.
+   - Include `@reference "../../../../styles.css";` and use `@apply` utility classes for layout, surface cards, and buttons.
 
 ## Acceptance Criteria
 
