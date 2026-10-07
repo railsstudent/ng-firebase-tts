@@ -127,3 +127,21 @@ _Avoid_: Notification box, update alert, modal reload popup
 **Asset Cache Manifest**:
 The pre-configured offline asset configuration (`ngsw-config.json`) defining the file patterns and caching strategies (prefetch or lazy) for static application shell resources.
 _Avoid_: App cache, cache list, offline manifest, raw SW config
+
+### Authentication & Session Management
+
+**Authentication Service**:
+The core singleton service (`AuthenticationService`) that manages user credentials, reactive authentication state (`isAuthenticated`), and lazy initialization of the Firebase Auth SDK.
+_Avoid_: Auth manager, login controller, session daemon
+
+**Sign-In Modal**:
+The accessible dialog overlay powered by `@angular/cdk/dialog` and Angular Signal Forms for authenticating users via Email and Password.
+_Avoid_: Login popup, credentials window, auth box
+
+**Sign-Out Action**:
+The accessible icon button in the application header that terminates the active user session and navigates to the Home Screen.
+_Avoid_: Logout link, exit button, kill session icon
+
+**User Session (`browserSessionPersistence`)**:
+The temporary authenticated state stored in browser session storage, bound to the lifetime of the active browser tab.
+_Avoid_: Token cache, permanent login, cookie session
