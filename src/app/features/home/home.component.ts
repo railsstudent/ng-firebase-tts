@@ -26,6 +26,10 @@ export class HomeComponent {
     { label: 'Grounding', value: 'Google Search Tool' },
   ];
 
+  constructor() {
+    this.#authService.ensureAuth().catch((error) => console.error('Failed to restore auth session:', error));
+  }
+
   async openSignInModal(): Promise<void> {
     if (this.#isOpeningModal || this.#dialogRef) {
       return;
@@ -44,9 +48,7 @@ export class HomeComponent {
         });
 
         this.#dialogRef = dialogRef;
-        dialogRef.closed.subscribe(() => {
-          this.#dialogRef = null;
-        });
+        dialogRef.closed.subscribe(() => (this.#dialogRef = null));
       });
     } finally {
       this.#isOpeningModal = false;

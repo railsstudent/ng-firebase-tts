@@ -43,6 +43,8 @@ export default defineConfig({
     'FOUT',
     'desynchronization',
     'EXIF',
+    'Contentful',
+    'lifecycles',
   ],
   ignorePaths: [
     'node_modules',

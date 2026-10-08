@@ -6,24 +6,29 @@ import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
+import { Subject } from 'rxjs';
 
 describe('HomeComponent', () => {
   let fixture: ComponentFixture<HomeComponent>;
   let isAuthenticatedSignal: ReturnType<typeof signal<boolean>>;
+  let dialogClosedSubject: Subject<unknown>;
   let mockAuthService: {
     isAuthenticated: ReturnType<typeof signal<boolean>>;
+    ensureAuth: ReturnType<typeof vi.fn>;
   };
   let mockDialog: {
     open: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(async () => {
+    dialogClosedSubject = new Subject<unknown>();
     isAuthenticatedSignal = signal<boolean>(false);
     mockAuthService = {
       isAuthenticated: isAuthenticatedSignal,
+      ensureAuth: vi.fn().mockResolvedValue({}),
     };
     mockDialog = {
-      open: vi.fn().mockReturnValue({ closed: { subscribe: vi.fn() } }),
+      open: vi.fn().mockReturnValue({ closed: dialogClosedSubject.asObservable() }),
     };
 
     await TestBed.configureTestingModule({
@@ -39,8 +44,23 @@ describe('HomeComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should create the home component', () => {
+  it('should create the home component and call ensureAuth to restore session', () => {
     expect(fixture.componentInstance).toBeTruthy();
+    expect(mockAuthService.ensureAuth).toHaveBeenCalledTimes(1);
+  });
+
+  it('should handle errors from ensureAuth gracefully without throwing', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const rejectionError = new Error('Auth initialization failed');
+    mockAuthService.ensureAuth.mockRejectedValue(rejectionError);
+
+    const errorFixture = TestBed.createComponent(HomeComponent);
+    errorFixture.detectChanges();
+
+    await Promise.resolve();
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to restore auth session:', rejectionError);
+    consoleErrorSpy.mockRestore();
   });
 
   it('should render the category badge, title, and description', () => {
@@ -137,5 +157,33 @@ describe('HomeComponent', () => {
     await Promise.all(openModalSpy.mock.results.map((r) => r.value));
 
     expect(mockDialog.open).toHaveBeenCalledTimes(1);
+  });
+
+  it('should reset dialog reference and allow reopening when dialog is closed', async () => {
+    isAuthenticatedSignal.set(false);
+    fixture.detectChanges();
+
+    const signInBtn = fixture.debugElement.query(By.css('button.btn-sign-in'));
+    expect(signInBtn).toBeTruthy();
+
+    const openModalSpy = vi.spyOn(fixture.componentInstance, 'openSignInModal');
+
+    // First click opens the dialog
+    signInBtn.nativeElement.click();
+    await openModalSpy.mock.results[0].value;
+    expect(mockDialog.open).toHaveBeenCalledTimes(1);
+
+    // Clicking while open does not open another dialog
+    signInBtn.nativeElement.click();
+    await openModalSpy.mock.results[1].value;
+    expect(mockDialog.open).toHaveBeenCalledTimes(1);
+
+    // Dialog emits closed event
+    dialogClosedSubject.next(undefined);
+
+    // Clicking again now opens a new dialog
+    signInBtn.nativeElement.click();
+    await openModalSpy.mock.results[2].value;
+    expect(mockDialog.open).toHaveBeenCalledTimes(2);
   });
 });
