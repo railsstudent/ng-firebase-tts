@@ -1,15 +1,18 @@
 # 07-create-sign-in-modal-dialog
 
 Type: task
-Status: ready-for-agent
+Status: done
 Blocked by: 01-update-design-contract-for-auth, 03-create-auth-service-and-session-listener
 
 ## Description
 
-Build the accessible Sign-In Modal component (`SignInModalComponent`) using Angular CDK Dialog (`@angular/cdk/dialog`) and Angular Signal Forms (`@angular/forms/signals`) with live validation and error handling, implementing the design contracts specified in Section 13 of `DESIGN.md` and the desktop and mobile Stitch screens.
+Build the accessible Sign-In Modal component (`SignInModalComponent`) and its accompanying standalone close icon (`CloseIconComponent`) using Angular CDK Dialog (`@angular/cdk/dialog`) and Angular Signal Forms (`@angular/forms/signals`) with live validation and error handling, implementing the design contracts specified in Section 13 of `DESIGN.md` and the desktop and mobile Stitch screens.
 
 ## Target Files
 
+- `src/app/shared/ui/icons/close-icon.component.ts` (New)
+- `src/app/shared/ui/icons/close-icon.component.spec.ts` (New)
+- `src/app/shared/ui/sign-in-modal/schemas/sign-in.schema.ts` (New)
 - `src/app/shared/ui/sign-in-modal/sign-in-modal.component.ts` (New)
 - `src/app/shared/ui/sign-in-modal/sign-in-modal.component.html` (New)
 - `src/app/shared/ui/sign-in-modal/sign-in-modal.component.css` (New)
@@ -24,7 +27,7 @@ Build the accessible Sign-In Modal component (`SignInModalComponent`) using Angu
    - **Header (`.modal-header`)**:
      - Layout: `flex items-center justify-between pb-2 border-b border-(--color-surface-border)/60`.
      - Title (`#sign-in-dialog-title`): `"Sign In"` (`text-xl sm:text-2xl font-bold text-(--color-text-primary)`).
-     - Close Button (`.modal-close-btn`): Top-right button (`p-1.5 rounded-lg text-(--color-text-muted) hover:text-(--color-text-primary) hover:bg-slate-800/60 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all`) with `aria-label="Close dialog"`.
+     - Close Button (`.modal-close-btn`): Top-right button (`p-1.5 rounded-lg text-(--color-text-muted) hover:text-(--color-text-primary) hover:bg-slate-800/60 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all`) with `aria-label="Close dialog"`, housing `<app-close-icon />`.
    - **Form Fields & Validation**:
      - **Email Field**:
        - Label: `"Email Address"` (`text-xs uppercase font-semibold tracking-wider text-(--color-text-muted) mb-1.5 block`).
@@ -56,32 +59,39 @@ Build the accessible Sign-In Modal component (`SignInModalComponent`) using Angu
 
 ## Technical & Implementation Requirements
 
-1. **Dialog Lifecycle & Accessibility**:
+1. **Close Icon Component (`CloseIconComponent`)**:
+   - Standalone component in `src/app/shared/ui/icons/close-icon.component.ts`.
+   - Selector: `app-close-icon`.
+   - Stylesheet: `styleUrl: './icon.css'` (`@apply app-icon`).
+   - SVG Blueprint: `viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full" aria-hidden="true"`.
+   - SVG Paths: `<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>`.
+2. **Dialog Lifecycle & Accessibility**:
    - Use `DialogRef<void, SignInModalComponent>` from `@angular/cdk/dialog`.
    - Support `Escape` key and backdrop click dismissal.
    - ARIA modal markup: `role="dialog"`, `aria-labelledby="sign-in-dialog-title"`, `aria-modal="true"`.
    - Trap keyboard focus within the dialog; autofocus the email input on open.
-2. **Signal Forms Architecture (`@angular/forms/signals`)**:
+3. **Signal Forms Architecture (`@angular/forms/signals`)**:
    - Controls: `email` (required, valid email pattern) and `password` (required, minimum 6 characters).
    - Reactive validation hints displayed when fields are touched and invalid.
    - Strictly NO legacy `FormGroup` / `FormControl` / `FormBuilder`.
-3. **Form Submission & State**:
+4. **Form Submission & State**:
    - Injections: `DialogRef<void, SignInModalComponent>` (`@angular/cdk/dialog`), `AuthService` (`@/core/services/auth.service`), `Router` (`@angular/router`).
-   - Imports: `AuthCredentials` from `@/core/interfaces/auth-credentials.interface`, `APP_LINKS` from `@/core/constants/routes.const`, `SpinnerIconComponent` from `@/shared/ui/icons/spinner-icon.component`.
+   - Imports: `CloseIconComponent` from `@/shared/ui/icons/close-icon.component`, `SpinnerIconComponent` from `@/shared/ui/icons/spinner-icon.component`, `AuthCredentials` from `@/core/interfaces/auth-credentials.interface`, `APP_LINKS` from `@/core/constants/routes.const`.
    - State signals: `errorMessage = signal<string | undefined>(undefined);`. Form submission state is managed natively via Signal Forms `signInForm().submitting()`.
    - On valid submit:
      - Clear `errorMessage.set(undefined)`.
      - Pass typed credentials: `await this.authService.signIn({ email, password })`.
      - On success: close dialog (`this.dialogRef.close()`) and navigate to `/dashboard` (`await this.router.navigate([APP_LINKS.DASHBOARD])`).
      - On error: catch error, map to user-friendly message, and set `errorMessage.set(message)`.
-4. **Tailwind CSS v4 Component Styles (`sign-in-modal.component.css`)**:
+5. **Tailwind CSS v4 Component Styles (`sign-in-modal.component.css`)**:
    - Include `@reference "../../../../styles.css";` and use `@apply` utility classes for layout, surface cards, and buttons.
 
 ## Acceptance Criteria
 
-- [ ] Implemented as an accessible CDK Dialog with full keyboard focus trapping and Escape/backdrop dismissal.
-- [ ] Matches visual specifications from `DESIGN.md` Section 13, Desktop screen `57acb0b8ea9b41869ca631da97962637`, and Mobile screen `3cdd32fdeb4e4c0b8d2cd236f382c8e2`.
-- [ ] Pure Signal Forms implementation with live email/password field validation.
-- [ ] Displays friendly error alert when sign-in fails.
-- [ ] Submitting successfully authenticates, closes the dialog, and navigates to `/dashboard`.
-- [ ] Unit tests cover validation rules, submission success, and error display with 100% assertion coverage.
+- [x] `CloseIconComponent` created as a zero-dependency SVG standalone component in `src/app/shared/ui/icons/` matching the project icon standard with unit test coverage.
+- [x] Implemented as an accessible CDK Dialog with full keyboard focus trapping and Escape/backdrop dismissal.
+- [x] Matches visual specifications from `DESIGN.md` Section 13, Desktop screen `57acb0b8ea9b41869ca631da97962637`, and Mobile screen `3cdd32fdeb4e4c0b8d2cd236f382c8e2`.
+- [x] Pure Signal Forms implementation with live email/password field validation.
+- [x] Displays friendly error alert when sign-in fails.
+- [x] Submitting successfully authenticates, closes the dialog, and navigates to `/dashboard`.
+- [x] Unit tests cover validation rules, submission success, and error display with 100% assertion coverage.

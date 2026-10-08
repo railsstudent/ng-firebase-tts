@@ -1,5 +1,7 @@
 import { AuthService } from '@/core/services/auth.service';
 import { HomeComponent } from '@/features/home/home.component';
+import { SignInModalComponent } from '@/shared/ui/sign-in-modal/sign-in-modal.component';
+import { Dialog } from '@angular/cdk/dialog';
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
@@ -11,16 +13,26 @@ describe('HomeComponent', () => {
   let mockAuthService: {
     isAuthenticated: ReturnType<typeof signal<boolean>>;
   };
+  let mockDialog: {
+    open: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(async () => {
     isAuthenticatedSignal = signal<boolean>(false);
     mockAuthService = {
       isAuthenticated: isAuthenticatedSignal,
     };
+    mockDialog = {
+      open: vi.fn().mockReturnValue({ closed: { subscribe: vi.fn() } }),
+    };
 
     await TestBed.configureTestingModule({
       imports: [HomeComponent],
-      providers: [provideRouter([]), { provide: AuthService, useValue: mockAuthService }],
+      providers: [
+        provideRouter([]),
+        { provide: AuthService, useValue: mockAuthService },
+        { provide: Dialog, useValue: mockDialog },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(HomeComponent);
@@ -84,5 +96,46 @@ describe('HomeComponent', () => {
     // Assert strictly no badge pills or chips in feature items
     const badgePills = fixture.debugElement.queryAll(By.css('.feature-item .badge, .feature-item .chip'));
     expect(badgePills.length).toBe(0);
+  });
+
+  it('should open SignInModalComponent dialog with proper backdrop configuration when Sign In button is clicked', async () => {
+    isAuthenticatedSignal.set(false);
+    fixture.detectChanges();
+
+    const signInBtn = fixture.debugElement.query(By.css('button.btn-sign-in'));
+    expect(signInBtn).toBeTruthy();
+
+    const openModalSpy = vi.spyOn(fixture.componentInstance, 'openSignInModal');
+
+    signInBtn.nativeElement.click();
+
+    expect(openModalSpy).toHaveBeenCalledTimes(1);
+    await openModalSpy.mock.results[0].value;
+
+    expect(mockDialog.open).toHaveBeenCalledWith(
+      SignInModalComponent,
+      expect.objectContaining({
+        backdropClass: ['backdrop-blur-sm', 'bg-black/40'],
+      }),
+    );
+  });
+
+  it('should only open one dialog when Sign In button is clicked multiple times rapidly', async () => {
+    isAuthenticatedSignal.set(false);
+    fixture.detectChanges();
+
+    const signInBtn = fixture.debugElement.query(By.css('button.btn-sign-in'));
+    expect(signInBtn).toBeTruthy();
+
+    const openModalSpy = vi.spyOn(fixture.componentInstance, 'openSignInModal');
+
+    // Simulate rapid double click
+    signInBtn.nativeElement.click();
+    signInBtn.nativeElement.click();
+
+    expect(openModalSpy).toHaveBeenCalledTimes(2);
+    await Promise.all(openModalSpy.mock.results.map((r) => r.value));
+
+    expect(mockDialog.open).toHaveBeenCalledTimes(1);
   });
 });

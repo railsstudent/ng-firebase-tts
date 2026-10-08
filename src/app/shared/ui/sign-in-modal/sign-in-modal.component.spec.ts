@@ -1,7 +1,9 @@
 import { APP_LINKS } from '@/core/constants/routes.const';
 import { AuthService } from '@/core/services/auth.service';
+import { SpinnerIconComponent } from '@/shared/ui/icons/spinner-icon.component';
 import { SignInModalComponent } from '@/shared/ui/sign-in-modal/sign-in-modal.component';
 import { DialogRef } from '@angular/cdk/dialog';
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter, Router } from '@angular/router';
@@ -11,17 +13,24 @@ describe('SignInModalComponent', () => {
   let mockDialogRef: {
     close: ReturnType<typeof vi.fn>;
   };
+  let isAuthenticatedSignal: ReturnType<typeof signal<boolean>>;
   let mockAuthService: {
+    isAuthenticated: ReturnType<typeof signal<boolean>>;
     signIn: ReturnType<typeof vi.fn>;
   };
   let router: Router;
 
   beforeEach(async () => {
+    isAuthenticatedSignal = signal<boolean>(false);
     mockDialogRef = {
       close: vi.fn(),
     };
     mockAuthService = {
-      signIn: vi.fn().mockResolvedValue(undefined),
+      isAuthenticated: isAuthenticatedSignal,
+      signIn: vi.fn().mockImplementation(async () => {
+        isAuthenticatedSignal.set(true);
+        return true;
+      }),
     };
 
     await TestBed.configureTestingModule({
@@ -99,8 +108,33 @@ describe('SignInModalComponent', () => {
   });
 
   describe('Validation & Error Handling', () => {
-    it('should display error block when errorMessage is present on failed sign-in', async () => {
+    it('should display error block when errorMessage is present on rejected sign-in', async () => {
       mockAuthService.signIn.mockRejectedValueOnce(new Error('Invalid credentials'));
+
+      const emailInput = fixture.debugElement.query(By.css('input[type="email"]'));
+      const passwordInput = fixture.debugElement.query(By.css('input[type="password"]'));
+      const submitBtn = fixture.debugElement.query(By.css('button[type="submit"]'));
+
+      emailInput.nativeElement.value = 'user@example.com';
+      emailInput.nativeElement.dispatchEvent(new Event('input'));
+      passwordInput.nativeElement.value = 'validPassword123';
+      passwordInput.nativeElement.dispatchEvent(new Event('input'));
+
+      submitBtn.nativeElement.click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const errorBlock = fixture.debugElement.query(By.css('.error-block'));
+      expect(errorBlock).toBeTruthy();
+      expect(mockDialogRef.close).not.toHaveBeenCalled();
+      expect(router.navigate).not.toHaveBeenCalled();
+    });
+
+    it('should display error block when signIn resolves but isAuthenticated remains false', async () => {
+      mockAuthService.signIn.mockImplementationOnce(async () => {
+        isAuthenticatedSignal.set(false);
+        return false;
+      });
 
       const emailInput = fixture.debugElement.query(By.css('input[type="email"]'));
       const passwordInput = fixture.debugElement.query(By.css('input[type="password"]'));
@@ -143,6 +177,34 @@ describe('SignInModalComponent', () => {
       });
       expect(mockDialogRef.close).toHaveBeenCalledTimes(1);
       expect(router.navigate).toHaveBeenCalledWith([APP_LINKS.DASHBOARD]);
+    });
+
+    it('should render SpinnerIconComponent while sign-in request is submitting', async () => {
+      let resolveSignIn: (() => void) | undefined;
+      const signInPromise = new Promise<void>((resolve) => {
+        resolveSignIn = resolve;
+      });
+      mockAuthService.signIn.mockReturnValueOnce(signInPromise);
+
+      const emailInput = fixture.debugElement.query(By.css('input[type="email"]'));
+      const passwordInput = fixture.debugElement.query(By.css('input[type="password"]'));
+      const submitBtn = fixture.debugElement.query(By.css('button[type="submit"]'));
+
+      emailInput.nativeElement.value = 'valid.user@example.com';
+      emailInput.nativeElement.dispatchEvent(new Event('input'));
+      passwordInput.nativeElement.value = 'securePassword123';
+      passwordInput.nativeElement.dispatchEvent(new Event('input'));
+
+      submitBtn.nativeElement.click();
+      fixture.detectChanges();
+
+      const spinner = fixture.debugElement.query(By.directive(SpinnerIconComponent));
+      expect(spinner).toBeTruthy();
+      expect(submitBtn.nativeElement.disabled).toBe(true);
+
+      resolveSignIn?.();
+      await fixture.whenStable();
+      fixture.detectChanges();
     });
   });
 });

@@ -1,1 +1,41 @@
-@reference "../../../../../styles.css";
+@reference "../../../../styles.css";
+
+.modal-card {
+  @apply rounded-2xl bg-(--color-surface-card) border border-(--color-surface-border) p-6 sm:p-8 max-w-md w-full shadow-2xl backdrop-blur-md flex flex-col gap-5;
+}
+
+.modal-header {
+  @apply flex items-center justify-between pb-2 border-b border-(--color-surface-border)/60;
+}
+
+.modal-title {
+  @apply text-xl sm:text-2xl font-bold text-(--color-text-primary);
+}
+
+.modal-close-btn {
+  @apply p-1.5 rounded-lg text-(--color-text-muted) hover:text-(--color-text-primary) hover:bg-(--color-surface-hover)/60 focus:outline-none focus:ring-2 focus:ring-(--color-primary-hover) transition-all flex items-center justify-center;
+}
+
+.error-block {
+  @apply mt-2 mb-2 text-sm;
+}
+
+.modal-form {
+  @apply flex flex-col gap-4;
+}
+
+.form-label {
+  @apply text-xs uppercase font-semibold tracking-wider text-(--color-text-muted) mb-1.5 block;
+}
+
+.form-input {
+  @apply w-full bg-(--color-app-bg) border border-(--color-surface-border) text-(--color-text-primary) rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-(--color-primary-hover) transition-all;
+}
+
+.error-hint {
+  @apply text-xs text-(--color-error-text) mt-1 block;
+}
+
+.btn-submit {
+  @apply btn-primary w-full py-3 mt-2 flex items-center justify-center gap-2;
+}

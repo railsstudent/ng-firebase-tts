@@ -1,1 +1,57 @@
-<p>sign-in-modal works!</p>
+<div role="dialog" aria-modal="true" aria-labelledby="sign-in-dialog-title" class="modal-card">
+  <div class="modal-header">
+    <h2 id="sign-in-dialog-title" class="modal-title">Sign In</h2>
+    <button type="button" class="modal-close-btn" (click)="onClose()" aria-label="Close dialog">
+      <app-close-icon />
+    </button>
+  </div>
+
+  @if (errorMessage(); as msg) {
+    <div class="error-block" role="alert">
+      {{ msg }}
+    </div>
+  }
+
+  <form [formRoot]="signInForm" class="modal-form">
+    <label for="sign-in-email" class="form-label">
+      Email Address
+      <input
+        id="sign-in-email"
+        type="email"
+        autocomplete="username"
+        class="form-input"
+        [formField]="signInForm.email"
+      />
+      @if (signInForm.email().touched() && signInForm.email().invalid()) {
+        @for (error of signInForm.email().errors(); track error) {
+          <span class="error-hint">{{ error.message }}</span>
+        }
+      }
+    </label>
+
+    <label for="sign-in-password" class="form-label">
+      Password
+      <input
+        id="sign-in-password"
+        type="password"
+        autocomplete="current-password"
+        class="form-input"
+        [formField]="signInForm.password"
+      />
+      @if (signInForm.password().touched() && signInForm.password().invalid()) {
+        @for (error of signInForm.password().errors(); track error) {
+          <span class="error-hint">{{ error.message }}</span>
+        }
+      }
+    </label>
+
+    <button type="submit" class="btn-submit" [disabled]="signInForm().submitting()">
+      @if (signInForm().submitting()) {
+        <app-spinner-icon svgClass="animate-spin h-5 w-5" />
+        <span>Signing in...</span>
+      } @else {
+        <span>Sign In</span>
+      }
+    </button>
+  </form>
+</div>
