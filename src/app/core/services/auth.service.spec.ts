@@ -9,6 +9,7 @@ import {
   getAuth,
   onAuthStateChanged,
   setPersistence,
+  signInWithEmailAndPassword,
 } from 'firebase/auth';
 
 interface EnsureAuthResult {
@@ -194,6 +195,26 @@ describe('AuthService', () => {
     await service.signIn({ email: 'user@example.com', password: 'ValidPassword123' });
 
     expect(service.isAuthenticated()).toBe(true);
+  });
+
+  it('should reset user to null and not call signInWithEmailAndPassword if email is empty', async () => {
+    const service = configureTestBed();
+
+    await service.signIn({ email: '', password: 'ValidPassword123' });
+
+    expect(signInWithEmailAndPassword).not.toHaveBeenCalled();
+    expect(service.user()).toBeNull();
+    expect(service.isAuthenticated()).toBe(false);
+  });
+
+  it('should reset user to null and not call signInWithEmailAndPassword if password is empty', async () => {
+    const service = configureTestBed();
+
+    await service.signIn({ email: 'user@example.com', password: '' });
+
+    expect(signInWithEmailAndPassword).not.toHaveBeenCalled();
+    expect(service.user()).toBeNull();
+    expect(service.isAuthenticated()).toBe(false);
   });
 
   it('should reset authentication state when signOut is invoked', async () => {

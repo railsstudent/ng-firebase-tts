@@ -9,11 +9,11 @@ const AUTH_EMULATOR_URL = 'http://127.0.0.1:9099';
 
 @Service()
 export class AuthService {
-  #window = inject(WINDOW);
-  #configService = inject(ConfigService);
-  #destroyRef$ = inject(DestroyRef);
+  readonly #window = inject(WINDOW);
+  readonly #configService = inject(ConfigService);
+  readonly #destroyRef$ = inject(DestroyRef);
 
-  #user = signal<User | null>(null);
+  readonly #user = signal<User | null>(null);
   user = this.#user.asReadonly();
   isAuthenticated = computed(() => !!this.#user());
 

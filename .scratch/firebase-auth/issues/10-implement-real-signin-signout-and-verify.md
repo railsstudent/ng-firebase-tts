@@ -1,27 +1,32 @@
 # 10-implement-real-signin-signout-and-verify
 
 Type: task
-Status: ready-for-agent
+Status: done
 Blocked by: 03-create-auth-service-and-session-listener, 04-create-auth-guard, 06-integrate-header-sign-out, 07-create-sign-in-modal-dialog, 09-wire-home-sign-in-modal-trigger
 
 ## Description
 
-Wire real Firebase Web SDK operations (`signInWithEmailAndPassword`, `signOut`) into `AuthenticationService`, verify `browserSessionPersistence` against the local Auth Emulator, and execute the full integration verification suite.
+Wire real Firebase Web SDK operations (`signInWithEmailAndPassword`, `signOut`) into `AuthService`, verify `browserSessionPersistence` against the local Auth Emulator, and execute the full integration verification suite.
 
 ## Target Files
 
-- `src/app/core/services/authentication.service.ts`
-- `src/app/core/services/authentication.service.spec.ts`
+- `src/app/core/services/auth.service.ts`
+- `src/app/core/services/auth.service.spec.ts`
 - `src/app/core/guards/auth.guard.spec.ts`
 
 ## Specifications & Requirements
 
-1. **Wire Real Firebase SDK Operations in `AuthenticationService`**:
-   - In `signIn(credentials: AuthCredentials)`:
+1. **Wire Real Firebase SDK Operations in `AuthService`**:
+   - In `signIn({ email, password }: AuthCredentials)`:
 
      ```typescript
+     if (!email || !password) {
+      this.#user.set(null);
+      return;
+     }
+
      const { auth, sdk } = await this.ensureAuth();
-     await sdk.signInWithEmailAndPassword(auth, credentials.email, credentials.password);
+     await sdk.signInWithEmailAndPassword(auth, email, password);
      ```
 
    - In `signOut()`:
@@ -31,7 +36,7 @@ Wire real Firebase Web SDK operations (`signInWithEmailAndPassword`, `signOut`) 
      await sdk.signOut(auth);
      ```
 
-   - Error mapping for common Firebase auth error codes (`auth/invalid-credential`, `auth/user-not-found`, `auth/wrong-password`, `auth/too-many-requests`).
+   - Generic non-technical error alert handled directly by `SignInModalComponent` per `spec.md`.
 2. **Local Emulator & Session Verification**:
    - Start local emulator: `npm run emulators:auth`.
    - Verify user sign-in persists in `sessionStorage` (`browserSessionPersistence`).
@@ -44,6 +49,6 @@ Wire real Firebase Web SDK operations (`signInWithEmailAndPassword`, `signOut`) 
 
 ## Acceptance Criteria
 
-- [ ] `signIn` and `signOut` interact with real Firebase Auth SDK / Emulator.
-- [ ] `browserSessionPersistence` validated across tab reloads and new windows.
-- [ ] 100% test pass rate with zero lint or build errors.
+- [x] `signIn` and `signOut` interact with real Firebase Auth SDK / Emulator.
+- [x] `browserSessionPersistence` validated across tab reloads and new windows.
+- [x] 100% test pass rate with zero lint or build errors.
