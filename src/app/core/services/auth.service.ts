@@ -3,7 +3,7 @@ import { AuthCredentials } from '@/core/interfaces/auth-credentials.interface';
 import { ConfigService } from '@/core/services/config.service';
 import { isLocalhost } from '@/core/utils/host.util';
 import { computed, DestroyRef, inject, Service, signal } from '@angular/core';
-import { connectAuthEmulator, type Auth, type User } from 'firebase/auth';
+import type { Auth, User } from 'firebase/auth';
 
 const AUTH_EMULATOR_URL = 'http://127.0.0.1:9099';
 
@@ -26,7 +26,7 @@ export class AuthService {
 
     const auth = authSdk.getAuth(firebaseApp);
     if (isLocalhost(this.#window)) {
-      connectAuthEmulator(auth, AUTH_EMULATOR_URL, { disableWarnings: true });
+      authSdk.connectAuthEmulator(auth, AUTH_EMULATOR_URL, { disableWarnings: true });
     }
 
     await authSdk.setPersistence(auth, authSdk.browserSessionPersistence);
@@ -59,22 +59,17 @@ export class AuthService {
   }
 
   async signIn({ email, password }: AuthCredentials) {
-    // Simulate authentication logic (replace with real authentication)
-    if (email && password) {
-      const { auth, sdk } = await this.ensureAuth();
-      const { user } = await sdk.signInWithEmailAndPassword(auth, email, password);
-      this.#user.set(user); // Set the user email as the authenticated user
-    } else {
+    if (!email || !password) {
       this.#user.set(null);
+      return;
     }
+
+    const { auth, sdk } = await this.ensureAuth();
+    await sdk.signInWithEmailAndPassword(auth, email, password);
   }
 
   async signOut() {
-    try {
-      const { auth, sdk } = await this.ensureAuth();
-      await sdk.signOut(auth);
-    } finally {
-      this.#user.set(null);
-    }
+    const { auth, sdk } = await this.ensureAuth();
+    await sdk.signOut(auth);
   }
 }

@@ -41,10 +41,15 @@ vi.mock('firebase/auth', () => ({
     return mockUnsubscribe;
   }),
   authStateReady: vi.fn().mockResolvedValue(undefined),
-  signInWithEmailAndPassword: vi.fn().mockResolvedValue({
-    user: { uid: 'test-uid-123', email: 'test@example.com' },
+  signInWithEmailAndPassword: vi.fn().mockImplementation(async () => {
+    const user = { uid: 'test-uid-123', email: 'test@example.com' } as User;
+    authStateCallback?.(user);
+    return { user };
   }),
-  signOut: vi.fn().mockResolvedValue(undefined),
+  signOut: vi.fn().mockImplementation(async () => {
+    authStateCallback?.(null);
+    return undefined;
+  }),
 }));
 
 describe('AuthService', () => {

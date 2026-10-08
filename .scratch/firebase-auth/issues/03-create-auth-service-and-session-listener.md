@@ -1,7 +1,7 @@
 # 03-create-auth-service-and-session-listener
 
 Type: task
-Status: ready-for-agent
+Status: done
 Blocked by: 02-configure-firebase-auth-emulator
 
 ## Description
@@ -42,7 +42,7 @@ Implement the core singleton `AuthenticationService` managing dynamic `firebase/
    - **Injections & Backing State** (using native `#` private fields):
      - `readonly #configService = inject(ConfigService);`
      - `readonly #window = inject(WINDOW);`
-     - `readonly #destroyRef = inject(DestroyRef);`
+     - `readonly #destroyRef$ = inject(DestroyRef);`
      - `readonly #user = signal<User | null>(null);`
      - `#auth: Auth | null = null;`
      - `#authSdk: typeof import('firebase/auth') | null = null;`
@@ -61,10 +61,10 @@ Implement the core singleton `AuthenticationService` managing dynamic `firebase/
        - On localhost (`isLocalhost(this.#window)`), connects to emulator: `authSdk.connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true })`.
        - Sets tab-scoped persistence: `await authSdk.setPersistence(auth, authSdk.browserSessionPersistence)`.
        - Binds `const unsubscribe = authSdk.onAuthStateChanged(auth, user => this.#user.set(user))`.
-       - Registers cleanup: `this.#destroyRef.onDestroy(unsubscribe)`.
+       - Registers cleanup: `this.#destroyRef$.onDestroy(unsubscribe)`.
        - Awaits `await auth.authStateReady()` to settle initial session state.
        - Caches `#auth = auth` and `#authSdk = authSdk`.
-     - `private async ensureAuth(): Promise<{ auth: Auth; sdk: typeof import('firebase/auth') }>`:
+     - `async ensureAuth(): Promise<{ auth: Auth; sdk: typeof import('firebase/auth') }>`:
        - Idempotently caches `#authReady ??= this.loadAuth()`.
        - Awaits `#authReady`.
        - Validates and returns `{ auth: this.#auth, sdk: this.#authSdk }` without non-null assertions.
@@ -81,11 +81,11 @@ Implement the core singleton `AuthenticationService` managing dynamic `firebase/
 - [x] `isLocalhost` extracted to `@/core/utils/host.util` with unit tests covering IPv4, IPv6, localhost, production domains, and SSR null windows.
 - [x] `ConfigService.getApp()` exposed with self-initializing promise resolution.
 - [x] `ConfigService` refactored to use `isLocalhost(this.#window)`.
-- [ ] `AuthService` decorated with `@Service()` from `@angular/core`.
-- [ ] Dynamic import guarantees zero `firebase/auth` code in the initial cold bundle.
-- [ ] Connects to Auth Emulator on localhost using `isLocalhost(this.#window)`.
-- [ ] `user` signal tracks authenticated user; `isAuthenticated` is computed from `user()`.
-- [ ] `user` and `isAuthenticated` signals react to `onAuthStateChanged`.
-- [ ] `onAuthStateChanged` unsubscribe callback registered with `DestroyRef.onDestroy`.
-- [ ] Initial session state settled using `auth.authStateReady()`.
-- [ ] Unit tests verify initialization, emulator hook, `user` signal, cleanup, and sign in / sign out.
+- [x] `AuthService` decorated with `@Service()` from `@angular/core`.
+- [x] Dynamic import guarantees zero `firebase/auth` code in the initial cold bundle.
+- [x] Connects to Auth Emulator on localhost using `isLocalhost(this.#window)`.
+- [x] `user` signal tracks authenticated user; `isAuthenticated` is computed from `user()`.
+- [x] `user` and `isAuthenticated` signals react to `onAuthStateChanged`.
+- [x] `onAuthStateChanged` unsubscribe callback registered with `DestroyRef.onDestroy`.
+- [x] Initial session state settled using `auth.authStateReady()`.
+- [x] Unit tests verify initialization, emulator hook, `user` signal, cleanup, and sign in / sign out.
