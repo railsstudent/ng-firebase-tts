@@ -1,6 +1,6 @@
 import { DeferBlockState, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { App } from './app';
+import { AppComponent } from './app.component';
 
 import { WINDOW } from '@/core/constants/navigator.const';
 import { SwUpdate } from '@angular/service-worker';
@@ -9,7 +9,7 @@ import { EMPTY } from 'rxjs';
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [App],
+      imports: [AppComponent],
       providers: [
         provideRouter([]),
         {
@@ -34,20 +34,20 @@ describe('App', () => {
   });
 
   it('should create the app', () => {
-    const fixture = TestBed.createComponent(App);
+    const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
     expect(app).toBeTruthy();
   });
 
   it('should render title', async () => {
-    const fixture = TestBed.createComponent(App);
+    const fixture = TestBed.createComponent(AppComponent);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('h1')?.textContent).toContain('Firebase AI Logic Obscure Fact Speech Generator');
   });
 
   it('should defer pwa-update-banner and resolve upon idle defer block completion', async () => {
-    const fixture = TestBed.createComponent(App);
+    const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
 
     const deferBlocks = await fixture.getDeferBlocks();

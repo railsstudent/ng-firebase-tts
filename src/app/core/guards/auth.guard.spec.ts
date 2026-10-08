@@ -8,6 +8,7 @@ import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree } from '@a
 describe('canActivateDashboard', () => {
   let isAuthenticatedSignal: ReturnType<typeof signal<boolean>>;
   let mockAuthService: {
+    ensureAuth: ReturnType<typeof vi.fn>;
     isAuthenticated: ReturnType<typeof signal<boolean>>;
   };
   let mockRouter: {
@@ -20,6 +21,7 @@ describe('canActivateDashboard', () => {
   beforeEach(() => {
     isAuthenticatedSignal = signal<boolean>(false);
     mockAuthService = {
+      ensureAuth: vi.fn().mockResolvedValue({}),
       isAuthenticated: isAuthenticatedSignal,
     };
     mockRouter = {
@@ -34,19 +36,28 @@ describe('canActivateDashboard', () => {
     });
   });
 
-  it('should allow navigation when authenticated', () => {
+  it('should call ensureAuth before checking authentication', async () => {
     isAuthenticatedSignal.set(true);
 
-    const result = TestBed.runInInjectionContext(() => canActivateDashboard(mockRoute, mockState));
+    const result = await TestBed.runInInjectionContext(() => canActivateDashboard(mockRoute, mockState));
+
+    expect(mockAuthService.ensureAuth).toHaveBeenCalledTimes(1);
+    expect(result).toBe(true);
+  });
+
+  it('should allow navigation when authenticated', async () => {
+    isAuthenticatedSignal.set(true);
+
+    const result = await TestBed.runInInjectionContext(() => canActivateDashboard(mockRoute, mockState));
 
     expect(result).toBe(true);
     expect(mockRouter.createUrlTree).not.toHaveBeenCalled();
   });
 
-  it('should return home UrlTree when unauthenticated', () => {
+  it('should return home UrlTree when unauthenticated', async () => {
     isAuthenticatedSignal.set(false);
 
-    const result = TestBed.runInInjectionContext(() => canActivateDashboard(mockRoute, mockState));
+    const result = await TestBed.runInInjectionContext(() => canActivateDashboard(mockRoute, mockState));
 
     expect(mockRouter.createUrlTree).toHaveBeenCalledWith([APP_LINKS.HOME]);
     expect(result).toBe(mockUrlTree);
