@@ -226,9 +226,30 @@ describe('ConfigService', () => {
     });
   });
 
-  it('should reject if getAiBackend() is called before initialize()', async () => {
+  it('should resolve getApp() and self-initialize if called before initialize()', async () => {
     const service = configureTestBed();
-    await expect(service.getAiBackend()).rejects.toThrow('Firebase App has not been initialized yet.');
+    const app = await service.getApp();
+
+    expect(initializeApp).toHaveBeenCalledWith(firebaseConfig.app);
+    expect(app).toBeDefined();
+    expect(app.name).toBe('[DEFAULT]');
+  });
+
+  it('should deduplicate concurrent getApp() calls and return the same FirebaseApp instance', async () => {
+    const service = configureTestBed();
+    const [app1, app2] = await Promise.all([service.getApp(), service.getApp()]);
+
+    expect(initializeApp).toHaveBeenCalledTimes(1);
+    expect(app1).toBe(app2);
+  });
+
+  it('should reject getApp() if Firebase initialization fails', async () => {
+    vi.mocked(initializeApp).mockImplementationOnce(() => {
+      throw new Error('Initialization error');
+    });
+
+    const service = configureTestBed();
+    await expect(service.getApp()).rejects.toThrow('Firebase App initialization failed');
   });
 
   it('should return valid ai instance and initialize App Check JIT with concurrency lock', async () => {

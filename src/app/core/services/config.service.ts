@@ -1,5 +1,6 @@
 import { WINDOW } from '@/core/constants/navigator.const';
 import { AppRemoteConfig } from '@/core/interfaces/app-remote-config.interface';
+import { isLocalhost } from '@/core/utils/host.util';
 import firebaseConfig from '@/public/firebase.config.json';
 import remoteConfigDefaults from '@/public/remote-config-defaults.json';
 import { inject, isDevMode, Service } from '@angular/core';
@@ -11,7 +12,6 @@ const MILLISECONDS = 1000;
 const ONE_HOUR_IN_MILLISECONDS = SECONDS * SECONDS * MILLISECONDS;
 const DEV_TIMEOUT = 1000;
 const PROD_TIMEOUT = 2000;
-const LOCAL_DOMAINS = ['localhost', '127.0.0.1', '::1', '[::1]'];
 
 @Service()
 export class ConfigService {
@@ -35,10 +35,6 @@ export class ConfigService {
 
   #isOnline(): boolean {
     return this.#window?.navigator?.onLine ?? true;
-  }
-
-  #isLocalhost(): boolean {
-    return !!this.#window && LOCAL_DOMAINS.includes(this.#window.location.hostname);
   }
 
   #configureAppCheckDebugToken(isLocalhost: boolean): void {
@@ -65,26 +61,32 @@ export class ConfigService {
     return this.#appCheck;
   }
 
-  async getAiBackend(): Promise<AI> {
-    if (this.#ai) {
-      return this.#ai;
-    }
+  async getApp(): Promise<FirebaseApp> {
+    this.initialize();
 
-    /* initialized the firebase app and fetch remote config in the background once */
     if (this.#appReady) {
       await this.#appReady;
     }
 
     if (!this.#app) {
-      throw new Error('Firebase App has not been initialized yet.');
+      throw new Error('Firebase App initialization failed');
+    }
+    return this.#app;
+  }
+
+  async getAiBackend(): Promise<AI> {
+    if (this.#ai) {
+      return this.#ai;
     }
 
+    const app = await this.getApp();
+
     if (this.#isOnline() && firebaseConfig.recaptchaEnterpriseKey) {
-      await this.ensureAppCheck(this.#isLocalhost());
+      await this.ensureAppCheck(isLocalhost(this.#window));
     }
 
     const { getAI, AgentPlatformBackend } = await import('firebase/ai');
-    this.#ai = getAI(this.#app, {
+    this.#ai = getAI(app, {
       backend: new AgentPlatformBackend(this.#appConfig.vertexAILocation),
       useLimitedUseAppCheckTokens: this.#appConfig.useLimitedUseAppCheckTokens,
     });
