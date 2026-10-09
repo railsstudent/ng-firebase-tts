@@ -4,8 +4,8 @@ import {
   MAX_PLAYBACK_RATE,
   MIN_PLAYBACK_RATE,
   PERCENT,
-} from '@/core/constants/text-to-speech.constant';
-import { recordStreamChunks, toWavBlob } from '@/core/utils/audio.util';
+} from '@/core/speech';
+import { recordStreamChunks, toWavBlob } from '@/core/speech/audio.util';
 import { revokeBlobURL } from '@/core/utils/blob.util';
 import { GeneratedAudioRecord } from '@/features/dashboard/components/text-to-speech/interfaces/audio.interface';
 import { FactConfig } from '@/features/dashboard/interfaces/fact-config.interface';
@@ -15,11 +15,11 @@ import { DestroyRef, inject, Injectable, injectAsync, signal } from '@angular/co
 @Injectable()
 export class TextToSpeechViewService {
   readonly #asyncSpeechService = injectAsync(() =>
-    import('@/core/services/text-to-speech.service').then((m) => m.TextToSpeechService),
+    import('@/core/speech/text-to-speech.service').then((m) => m.TextToSpeechService),
   );
 
   readonly #asyncAudioPlayerService = injectAsync(() =>
-    import('@/core/services/audio-player.service').then((m) => m.AudioPlayerService),
+    import('@/core/speech/audio-player.service').then((m) => m.AudioPlayerService),
   );
 
   readonly #destroyRef$ = inject(DestroyRef);

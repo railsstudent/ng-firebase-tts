@@ -1,8 +1,8 @@
-import { AudioStreamChunk, SpeechChunkData, SpeechPrompt } from '@/core/interfaces/text-to-speech.interface';
 import { ConfigService } from '@/core/services/config.service';
-import { decodeAudioChunk, toWavBlob } from '@/core/utils/audio.util';
 import { inject, Service } from '@angular/core';
 import { GenerateContentResponse, GenerativeModel, getGenerativeModel, ResponseModality } from 'firebase/ai';
+import { decodeAudioChunk, toWavBlob } from './audio.util';
+import { AudioStreamChunk, SpeechChunkData, SpeechPrompt } from './text-to-speech.interface';
 
 @Service()
 export class TextToSpeechService {

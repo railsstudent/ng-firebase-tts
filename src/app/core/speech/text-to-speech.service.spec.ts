@@ -1,6 +1,6 @@
 import { ConfigService } from '@/core/services/config.service';
-import { TextToSpeechService } from '@/core/services/text-to-speech.service';
 import { TestBed } from '@angular/core/testing';
+import { TextToSpeechService } from './text-to-speech.service';
 
 interface MockGenerativeModel {
   generateContent: ReturnType<typeof vi.fn>;

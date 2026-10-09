@@ -1,8 +1,5 @@
-import { DEFAULT_PLAYBACK_RATE } from '@/core/constants/text-to-speech.constant';
-import { AudioStreamChunk } from '@/core/interfaces/text-to-speech.interface';
-import { AudioPlayerService } from '@/core/services/audio-player.service';
 import { ConfigService } from '@/core/services/config.service';
-import { TextToSpeechService } from '@/core/services/text-to-speech.service';
+import { AudioPlayerService, AudioStreamChunk, DEFAULT_PLAYBACK_RATE, TextToSpeechService } from '@/core/speech';
 import { TextToSpeechViewService } from '@/features/dashboard/components/text-to-speech/services/text-to-speech-view';
 import { Injector } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
