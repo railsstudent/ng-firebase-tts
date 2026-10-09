@@ -1,5 +1,5 @@
 import { Metadata } from '@/core/interfaces/grounding.interface';
-import { afterRenderEffect, Component, computed, ElementRef, inject, input, Renderer2, signal } from '@angular/core';
+import { afterRenderEffect, Component, computed, ElementRef, inject, input, Renderer2 } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 
 @Component({
@@ -10,16 +10,13 @@ import { DomSanitizer } from '@angular/platform-browser';
 export class GroundingComponent {
   metadata = input<Metadata | undefined>(undefined);
 
-  sanitizer = inject(DomSanitizer);
-  renderer2 = inject(Renderer2);
-  document = inject(ElementRef);
-
-  isLoading = signal(false);
-  audioUrl = signal<string | undefined>(undefined);
+  #sanitizer = inject(DomSanitizer);
+  #renderer2 = inject(Renderer2);
+  #elementRef = inject(ElementRef);
 
   safeRenderedContent = computed(() => {
     const unsafeContent = this.metadata()?.renderedContent;
-    return unsafeContent ? this.sanitizer.bypassSecurityTrustHtml(unsafeContent) : '';
+    return unsafeContent ? this.#sanitizer.bypassSecurityTrustHtml(unsafeContent) : '';
   });
 
   constructor() {
@@ -33,17 +30,17 @@ export class GroundingComponent {
   }
 
   private styleSources() {
-    const nativeElement = this.document.nativeElement;
+    const nativeElement = this.#elementRef.nativeElement;
 
     if (nativeElement && nativeElement instanceof HTMLElement) {
       const firstCarousel = nativeElement.getElementsByClassName('carousel')?.item(0);
       if (firstCarousel) {
-        this.renderer2.setStyle(firstCarousel, 'white-space', 'normal');
+        this.#renderer2.setStyle(firstCarousel, 'white-space', 'normal');
         const tags = firstCarousel.getElementsByTagName('a');
         for (const tag of tags) {
-          this.renderer2.setStyle(tag, 'margin-bottom', '0.5rem');
-          this.renderer2.setAttribute(tag, 'target', '_blank');
-          this.renderer2.setAttribute(tag, 'rel', 'noopener noreferrer');
+          this.#renderer2.setStyle(tag, 'margin-bottom', '0.5rem');
+          this.#renderer2.setAttribute(tag, 'target', '_blank');
+          this.#renderer2.setAttribute(tag, 'rel', 'noopener noreferrer');
         }
       }
     }
