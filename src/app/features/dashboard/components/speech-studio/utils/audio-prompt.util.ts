@@ -1,3 +1,9 @@
+import { AudioPromptData } from '@/features/dashboard/interfaces/audio-prompt-data.interface';
+
+export interface AudioPrompt extends AudioPromptData {
+  transcript: string;
+}
+
 const SCENE_DICTIONARY = [
   'A dimly lit, dusty library filled with ancient leather-bound books.\n' +
     'The air is thick with history. A scholarly archivist is leaning closely into a warm, vintage ribbon microphone.\n' +
@@ -16,34 +22,18 @@ const SCENE_DICTIONARY = [
     'A brilliant but eccentric scientist is pacing back and forth, speaking rapidly and enthusiastically into a headset microphone, excited to explain a complex phenomenon.',
 ];
 
-import { AudioPrompt } from '@/features/dashboard/components/obscure-fact/interfaces/audio-prompt.interface';
-
 function sanitizeScene(text: string): string {
-  return (
-    (text || '')
-      .trim()
-      // 1. Replace actual newlines with literal '\n' characters
-      .replace(/\r?\n/g, '\\n')
-      // 2. Remove any markdown headers that might have been injected
-      .replace(/^[#\s]+/gm, '')
-  );
+  return (text || '')
+    .trim()
+    .replace(/\r?\n/g, '\\n')
+    .replace(/^[#\s]+/gm, '');
 }
 
 function sanitizeTranscript(text: string): string {
-  return (
-    (text || '')
-      .trim()
-      // 1. Replace actual newlines with literal '\n' characters
-      .replace(/\r?\n/g, '\\n')
-      // 2. Neutralize potential markdown header injections (e.g. '##')
-      // that could trick the parser into ending the transcript block.
-      .replace(/^#+/gm, '')
-      // 3. Ensure we don't have triple quotes inside that would break our delimiter
-      .replace(/"""/g, '"')
-  );
+  return (text || '').trim().replace(/\r?\n/g, '\\n').replace(/^#+/gm, '').replace(/"""/g, '"');
 }
 
-function makeTag(value: string) {
+function makeTag(value: string): string {
   const trimmedValue = value.trim();
   return trimmedValue ? `[${trimmedValue}] ` : '';
 }
@@ -56,7 +46,7 @@ function insertAudioTagsToTranscript({ transcript, pace, emotion }: AudioPrompt)
   return parts
     .map((text, i, arr) => {
       if (i % 2 !== 0) {
-        return ''; // Skip delimiters
+        return '';
       }
       const delimiter = arr[i + 1] || '';
       return text.trim() ? `${audioTags}${text.trim()}${delimiter}` : delimiter;
@@ -69,7 +59,6 @@ function insertAudioTagsToTranscript({ transcript, pace, emotion }: AudioPrompt)
  */
 export function buildAudioPrompt(data: AudioPrompt): string {
   const randomIndex = Math.floor(Math.random() * SCENE_DICTIONARY.length);
-  console.debug('[AudioPrompt] Selected scene index:', randomIndex);
   const selectedScene = SCENE_DICTIONARY[randomIndex];
 
   const trimmedScene = (data.scene || '').trim() || selectedScene;
@@ -77,7 +66,7 @@ export function buildAudioPrompt(data: AudioPrompt): string {
 
   const transcript = insertAudioTagsToTranscript(data);
 
-  const prompt = `## Scene:
+  return `## Scene:
 ${escapedScene}
 
 ## Transcript:
@@ -85,8 +74,4 @@ ${escapedScene}
 ${transcript}
 """
 `;
-
-  console.debug('[AudioPrompt] Constructed audio prompt:', prompt);
-
-  return prompt;
 }

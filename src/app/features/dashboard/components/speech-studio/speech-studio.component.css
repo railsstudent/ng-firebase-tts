@@ -1,5 +1,9 @@
 @reference "../../../../../styles.css";
 
+.obscure-fact-text {
+  @apply text-(--color-primary-accent) italic mb-4 text-lg;
+}
+
 .audio-customize-container {
   @apply bg-(--color-surface-card) backdrop-blur-sm p-6 rounded-xl border border-(--color-surface-border) shadow-xl mb-6;
 }
@@ -26,4 +30,28 @@
 
 .form-field-group-full {
   @apply flex flex-col gap-1.5 md:col-span-2;
+}
+
+.btn-container {
+  @apply flex justify-evenly gap-4;
+}
+
+.btn-audio {
+  @apply mt-6 flex items-center justify-center px-4 py-2 btn-primary shadow-md;
+}
+
+.spinner-icon {
+  @apply animate-spin h-5 w-5;
+}
+
+.playback-figure {
+  @apply mt-6 p-4 bg-slate-900/40 border border-(--color-surface-border) rounded-xl flex flex-col gap-2;
+}
+
+.playback-caption {
+  @apply text-sm font-medium text-(--color-text-muted);
+}
+
+.playback-audio {
+  @apply w-full outline-none;
 }

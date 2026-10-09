@@ -26,8 +26,8 @@
 
     @let fact = parsed?.fact;
     @defer (when fact) {
-      <app-obscure-fact [interestingFact]="fact" />
-    } @placeholder {
+      <app-speech-studio [interestingFact]="fact" />
+    } @placeholder (minimum 200ms) {
       <div class="section-wrapper">
         <h3 class="section-title">A surprising or obscure fact about the tags</h3>
         <p class="empty-message mb-2">Upload an image to discover an obscure fact and generate speech.</p>

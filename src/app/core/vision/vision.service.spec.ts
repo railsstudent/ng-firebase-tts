@@ -39,10 +39,12 @@ describe('VisionService', () => {
               thinkingLevel: ThinkingLevel.LOW,
             },
             getAiBackend: vi.fn().mockResolvedValue({
+              backendType: 'VERTEX',
               app: {
                 options: {
                   apiKey: 'test-api-key',
                   projectId: 'test-project-id',
+                  appId: 'test-app-id',
                 },
               },
             }),

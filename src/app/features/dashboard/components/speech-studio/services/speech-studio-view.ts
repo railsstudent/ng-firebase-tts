@@ -7,13 +7,13 @@ import {
 } from '@/core/speech';
 import { recordStreamChunks, toWavBlob } from '@/core/speech/audio.util';
 import { revokeBlobURL } from '@/core/utils/blob.util';
-import { GeneratedAudioRecord } from '@/features/dashboard/components/text-to-speech/interfaces/audio.interface';
+import { GeneratedAudioRecord } from '@/features/dashboard/components/speech-studio/interfaces/audio.interface';
 import { FactConfig } from '@/features/dashboard/interfaces/fact-config.interface';
 import { GenerateSpeechMode } from '@/features/dashboard/types/generate-speech-mode.type';
 import { DestroyRef, inject, Injectable, injectAsync, signal } from '@angular/core';
 
 @Injectable()
-export class TextToSpeechViewService {
+export class SpeechStudioViewService {
   readonly #asyncSpeechService = injectAsync(() =>
     import('@/core/speech/text-to-speech.service').then((m) => m.TextToSpeechService),
   );
@@ -36,9 +36,7 @@ export class TextToSpeechViewService {
   }
 
   private setGeneratedAudioRecord(blob: Blob, prompt: string, voice: string) {
-    // Clean up any existing Blob URL to prevent memory leaks
     revokeBlobURL(this.#activeAudio()?.url);
-
     const url = URL.createObjectURL(blob);
     this.#activeAudio.set({ url, prompt, voice });
   }

@@ -1,110 +1,129 @@
-import { ConfigService } from '@/core/services/config.service';
-import { AudioPlayerService, AudioStreamChunk, DEFAULT_PLAYBACK_RATE, TextToSpeechService } from '@/core/speech';
-import { TextToSpeechViewService } from '@/features/dashboard/components/text-to-speech/services/text-to-speech-view';
+import { AudioPlayerService } from '@/core/speech/audio-player.service';
+import { AudioStreamChunk } from '@/core/speech/text-to-speech.interface';
+import { TextToSpeechService } from '@/core/speech/text-to-speech.service';
 import { Injector } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { SpeechStudioViewService } from './speech-studio-view';
 
-async function* createStreamGenerator(items: AudioStreamChunk[]): AsyncGenerator<AudioStreamChunk, void, unknown> {
-  for (const item of items) {
-    yield item;
+async function* createStreamGenerator(chunks: AudioStreamChunk[]): AsyncGenerator<AudioStreamChunk, void, unknown> {
+  for (const chunk of chunks) {
+    yield chunk;
   }
 }
 
 async function* createErrorStreamGenerator(
-  chunk: AudioStreamChunk,
-  error: Error,
+  chunks: AudioStreamChunk[],
+  errorToThrow: Error,
 ): AsyncGenerator<AudioStreamChunk, void, unknown> {
-  yield chunk;
-  throw error;
+  for (const chunk of chunks) {
+    yield chunk;
+  }
+  throw errorToThrow;
 }
 
-const mockSpeechService = {
-  synthesize: vi.spyOn(TextToSpeechService.prototype, 'synthesize'),
-  synthesizeStream: vi.spyOn(TextToSpeechService.prototype, 'synthesizeStream'),
-};
+describe('SpeechStudioViewService', () => {
+  let service: SpeechStudioViewService;
 
-const mockAudioPlayerService = {
-  playStream: vi.spyOn(AudioPlayerService.prototype, 'playStream').mockResolvedValue(undefined),
-  processChunk: vi.spyOn(AudioPlayerService.prototype, 'processChunk').mockImplementation(() => undefined),
-  stopAll: vi.spyOn(AudioPlayerService.prototype, 'stopAll').mockResolvedValue(undefined),
-  awaitPlaybackComplete: vi.spyOn(AudioPlayerService.prototype, 'awaitPlaybackComplete').mockResolvedValue(undefined),
-};
+  let mockSpeechService: {
+    synthesize: ReturnType<typeof vi.fn>;
+    synthesizeStream: ReturnType<typeof vi.fn>;
+  };
 
-describe('TextToSpeechViewService', () => {
-  let service: TextToSpeechViewService;
+  let mockAudioPlayerService: {
+    playStream: ReturnType<typeof vi.fn>;
+    stopAll: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(() => {
-    vi.clearAllMocks();
-    mockAudioPlayerService.playStream.mockResolvedValue(undefined);
-    mockAudioPlayerService.awaitPlaybackComplete.mockResolvedValue(undefined);
+    mockSpeechService = {
+      synthesize: vi.fn(),
+      synthesizeStream: vi.fn(),
+    };
+
+    mockAudioPlayerService = {
+      playStream: vi.fn().mockResolvedValue(undefined),
+      stopAll: vi.fn().mockResolvedValue(undefined),
+    };
+
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url');
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
 
     TestBed.configureTestingModule({
       providers: [
-        TextToSpeechViewService,
-        {
-          provide: ConfigService,
-          useValue: {
-            appConfig: { geminiTTSModelName: 'gemini-2.0-flash-exp' },
-          },
-        },
+        SpeechStudioViewService,
+        { provide: TextToSpeechService, useValue: mockSpeechService },
+        { provide: AudioPlayerService, useValue: mockAudioPlayerService },
       ],
     });
 
-    service = TestBed.inject(TextToSpeechViewService);
+    service = TestBed.inject(SpeechStudioViewService);
   });
 
-  it('should be created and expose initial state with default playbackRate independently of AudioPlayerService', () => {
-    expect(service).toBeTruthy();
-    expect(service.playbackRate()).toBe(DEFAULT_PLAYBACK_RATE);
-    expect(service.activeAudio()).toBeUndefined();
-    expect(service.loadingMode()).toBe('idle');
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  describe('Initial State', () => {
+    it('should initialize with default state values', () => {
+      expect(service.activeAudio()).toBeUndefined();
+      expect(service.playbackRate()).toBe(1);
+      expect(service.loadingMode()).toBe('idle');
+    });
   });
 
   describe('generateSpeech - Sync Mode', () => {
-    it('should generate speech in sync mode and set the audio URL and activeAudio record', async () => {
-      const mockBlob = new Blob(['pcm bytes'], { type: 'audio/pcm' });
+    it('should synthesize audio and set activeAudio in sync mode', async () => {
+      const mockBlob = new Blob(['wav-data'], { type: 'audio/wav' });
       mockSpeechService.synthesize.mockResolvedValue(mockBlob);
-      vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:sync-url');
 
-      const config = { prompt: 'Sync prompt', voice: 'Kore', fact: 'Interesting fact' };
+      const config = { prompt: 'Test prompt', voice: 'Kore', fact: 'Interesting fact' };
       await service.generateSpeech('sync', config);
 
-      expect(mockSpeechService.synthesize).toHaveBeenCalledWith({ text: 'Sync prompt', voice: 'Kore' });
+      expect(mockSpeechService.synthesize).toHaveBeenCalledWith({
+        text: 'Test prompt',
+        voice: 'Kore',
+      });
       expect(service.activeAudio()).toEqual({
-        url: 'blob:sync-url',
-        prompt: 'Sync prompt',
+        url: 'blob:mock-url',
+        prompt: 'Test prompt',
         voice: 'Kore',
       });
       expect(service.loadingMode()).toBe('idle');
     });
 
-    it('should catch exceptions, clean up playback, preserve previous valid activeAudio, and throw error', async () => {
-      // First successful run
-      const mockBlob = new Blob(['pcm bytes'], { type: 'audio/pcm' });
+    it('should revoke previous blob URL when setting a new activeAudio record', async () => {
+      const revokeSpy = vi.spyOn(URL, 'revokeObjectURL');
+      vi.spyOn(URL, 'createObjectURL').mockReturnValueOnce('blob:url-1').mockReturnValueOnce('blob:url-2');
+
+      const mockBlob = new Blob(['data'], { type: 'audio/wav' });
       mockSpeechService.synthesize.mockResolvedValue(mockBlob);
-      vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:initial-valid-url');
-      await service.generateSpeech('sync', { prompt: 'Initial prompt', voice: 'Kore', fact: 'Fact 1' });
-      expect(service.activeAudio()?.url).toBe('blob:initial-valid-url');
 
-      // Second failed run
-      mockSpeechService.synthesize.mockRejectedValue(new Error('Sync failure'));
-      vi.spyOn(URL, 'revokeObjectURL');
+      const config1 = { prompt: 'Prompt 1', voice: 'Kore', fact: 'Fact 1' };
+      await service.generateSpeech('sync', config1);
+      expect(service.activeAudio()?.url).toBe('blob:url-1');
 
-      const config = { prompt: 'Failed prompt', voice: 'Aoede', fact: 'Fact 2' };
+      const config2 = { prompt: 'Prompt 2', voice: 'Aoede', fact: 'Fact 2' };
+      await service.generateSpeech('sync', config2);
+
+      expect(revokeSpy).toHaveBeenCalledWith('blob:url-1');
+      expect(service.activeAudio()?.url).toBe('blob:url-2');
+    });
+
+    it('should handle synthesis errors in sync mode, clean up player, and throw error', async () => {
+      mockSpeechService.synthesize.mockRejectedValue(new Error('Network error'));
+
+      const config = { prompt: 'Test prompt', voice: 'Kore', fact: 'Interesting fact' };
       await expect(service.generateSpeech('sync', config)).rejects.toThrow('Error generating speech (Sync).');
 
       expect(mockAudioPlayerService.stopAll).toHaveBeenCalled();
-      // Verifying error preservation: previous active audio is preserved
-      expect(service.activeAudio()).toEqual({
-        url: 'blob:initial-valid-url',
-        prompt: 'Initial prompt',
-        voice: 'Kore',
-      });
+      expect(service.activeAudio()).toBeUndefined();
+      expect(service.loadingMode()).toBe('idle');
     });
   });
 
   describe('generateSpeech - Stream Mode', () => {
-    it('should generate speech in stream mode and set the audio URL from accumulated chunks', async () => {
+    it('should collect stream chunks, convert to WAV Blob, and set activeAudio in stream mode', async () => {
       mockSpeechService.synthesizeStream.mockReturnValue(
         createStreamGenerator([
           {
@@ -115,7 +134,6 @@ describe('TextToSpeechViewService', () => {
         ]),
       );
       mockAudioPlayerService.playStream.mockImplementation(async (stream) => {
-        // Iterate to consume generator in test
         for await (const chunk of stream) {
           void chunk;
         }
@@ -153,11 +171,13 @@ describe('TextToSpeechViewService', () => {
     it('should handle streaming exceptions, clean up, and throw error', async () => {
       mockSpeechService.synthesizeStream.mockReturnValue(
         createErrorStreamGenerator(
-          {
-            decodedData: new Uint8Array([1, 2]),
-            sampleRate: 24000,
-            mimeType: 'audio/l16; rate=24000; channels=1',
-          },
+          [
+            {
+              decodedData: new Uint8Array([1, 2]),
+              sampleRate: 24000,
+              mimeType: 'audio/l16; rate=24000; channels=1',
+            },
+          ],
           new Error('Stream interrupted'),
         ),
       );
@@ -290,7 +310,7 @@ describe('TextToSpeechViewService', () => {
       const injector = TestBed.inject(Injector);
       const getSpy = vi.spyOn(injector, 'get');
 
-      TestBed.runInInjectionContext(() => new TextToSpeechViewService());
+      TestBed.runInInjectionContext(() => new SpeechStudioViewService());
 
       expect(getSpy).not.toHaveBeenCalledWith(TextToSpeechService);
       expect(getSpy).not.toHaveBeenCalledWith(AudioPlayerService);
@@ -302,14 +322,12 @@ describe('TextToSpeechViewService', () => {
       const revokeSpy = vi.spyOn(URL, 'revokeObjectURL');
       vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:destroy-url');
 
-      // Set internal state by simulating a successful sync speak
       mockSpeechService.synthesize.mockResolvedValue(new Blob([]));
       const config = { prompt: 'Prompt', voice: 'Kore', fact: 'Fact' };
 
       await service.generateSpeech('sync', config);
       expect(service.activeAudio()?.url).toBe('blob:destroy-url');
 
-      // Resetting/destroying the testing module triggers DestroyRef.onDestroy
       TestBed.resetTestingModule();
       expect(revokeSpy).toHaveBeenCalledWith('blob:destroy-url');
     });

@@ -39,9 +39,12 @@ describe('TextToSpeechService', () => {
 
   beforeEach(() => {
     mockAI = {
+      backendType: 'VERTEX',
       app: {
         options: {
           apiKey: 'test-api-key',
+          projectId: 'test-project-id',
+          appId: 'test-app-id',
         },
       },
     };
