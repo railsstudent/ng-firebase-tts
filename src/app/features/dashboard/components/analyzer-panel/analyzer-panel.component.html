@@ -1,11 +1,39 @@
 <div class="panel-grid">
-  <!-- Left Side: Uploader and Image Preview -->
-  <app-photo-panel
-    [(analysis)]="analysis"
-    [(error)]="error"
-    [isLoading]="isLoading()"
-    (emitFile)="handleGenerateClick($event)"
-  />
+  <!-- Left Side: Uploader, Tags, and Obscure Fact -->
+  <div>
+    @let imageAnalysis = analysis();
+    @let parsed = imageAnalysis?.parsed;
+
+    <app-photo-picker
+      [previewUrl]="previewUrl()"
+      [isLoading]="isLoading()"
+      [acceptedFileTypes]="acceptedTypes"
+      (fileChange)="handleFileChange($event)"
+      (generate)="handleGenerateClick()"
+      (removeFile)="handleFileChange(undefined)"
+    />
+
+    @let tags = parsed?.tags || [];
+    @let hasTags = tags.length > 0;
+    @defer (when hasTags) {
+      <app-tags-display [tags]="tags" />
+    } @placeholder {
+      <div class="section-wrapper">
+        <h2 class="section-title">Suggested Tags</h2>
+        <p class="empty-message">No tags were generated for this image.</p>
+      </div>
+    }
+
+    @let fact = parsed?.fact;
+    @defer (when fact) {
+      <app-obscure-fact [interestingFact]="fact" />
+    } @placeholder {
+      <div class="section-wrapper">
+        <h3 class="section-title">A surprising or obscure fact about the tags</h3>
+        <p class="empty-message mb-2">Upload an image to discover an obscure fact and generate speech.</p>
+      </div>
+    }
+  </div>
 
   @defer (when isLoading() || error() || analysis()) {
     <!-- Right Side: Results -->
