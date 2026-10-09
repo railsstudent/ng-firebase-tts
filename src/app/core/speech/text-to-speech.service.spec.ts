@@ -12,20 +12,10 @@ const mockModel: MockGenerativeModel = {
   generateContentStream: vi.fn(),
 };
 
-// Mock getGenerativeModel while preserving original exports of 'firebase/ai'
-vi.mock('firebase/ai', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('firebase/ai')>();
-  return Object.assign({}, actual, {
-    getGenerativeModel: () => mockModel,
-  });
-});
-
-vi.mock('@firebase/ai', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@firebase/ai')>();
-  return Object.assign({}, actual, {
-    getGenerativeModel: () => mockModel,
-  });
-});
+vi.mock('firebase/ai', () => ({
+  getGenerativeModel: vi.fn(() => mockModel),
+  ResponseModality: { AUDIO: 'AUDIO' },
+}));
 
 describe('TextToSpeechService', () => {
   let service: TextToSpeechService;

@@ -1,20 +1,21 @@
+import { SpeechModeConfig } from '@/features/dashboard/components/speech-studio/interfaces/audio.interface';
+import { FormFieldConfig } from '@/features/dashboard/components/speech-studio/interfaces/form-config.interface';
+import { SpeechStudioViewService } from '@/features/dashboard/components/speech-studio/services/speech-studio-view';
+import { buildAudioPrompt } from '@/features/dashboard/components/speech-studio/utils/audio-prompt.util';
 import { VoiceSelectorComponent } from '@/features/dashboard/components/voice-selector/voice-selector.component';
 import { DEFAULT_VOICE } from '@/features/dashboard/constants/voice-name.const';
 import { AudioPromptData } from '@/features/dashboard/interfaces/audio-prompt-data.interface';
 import { GenerateSpeechMode } from '@/features/dashboard/types/generate-speech-mode.type';
 import { ErrorDisplayComponent } from '@/shared/ui/error-display/error-display.component';
 import { SpinnerIconComponent } from '@/shared/ui/icons/spinner-icon.component';
-import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { form, FormField } from '@angular/forms/signals';
-import { SpeechStudioViewService } from './services/speech-studio-view';
-import { buildAudioPrompt } from './utils/audio-prompt.util';
 
 @Component({
   selector: 'app-speech-studio',
   templateUrl: './speech-studio.component.html',
   styleUrl: './speech-studio.component.css',
-  imports: [SpinnerIconComponent, NgTemplateOutlet, FormField, VoiceSelectorComponent, ErrorDisplayComponent],
+  imports: [SpinnerIconComponent, FormField, VoiceSelectorComponent, ErrorDisplayComponent],
   providers: [SpeechStudioViewService],
 })
 export class SpeechStudioComponent {
@@ -60,6 +61,52 @@ export class SpeechStudioComponent {
       trimmedPrompt === this.audioPrompt().trim().toLowerCase() && trimmedVoice === this.voice().trim().toLowerCase()
     );
   });
+
+  readonly speechButtonConfigs: SpeechModeConfig[] = [
+    {
+      mode: 'sync',
+      ariaLabel: 'Play Speech (Sync)',
+      buttonText: 'Play Speech (Sync)',
+    },
+    {
+      mode: 'stream',
+      ariaLabel: 'Play Speech (Stream)',
+      buttonText: 'Play Speech (Stream)',
+    },
+    {
+      mode: 'web_audio_api',
+      ariaLabel: 'Stream speech',
+      buttonText: 'Web Audio API',
+      getGenText: () => `Speak (Playback rate: ${this.#speechService.playbackRate()})`,
+    },
+  ];
+
+  readonly formFields: FormFieldConfig[] = [
+    {
+      id: 'scene',
+      label: 'Scene Description',
+      type: 'textarea',
+      field: this.audioPromptForm.scene,
+      placeholder: 'Describe the environment...',
+      groupClass: 'form-field-group-full',
+    },
+    {
+      id: 'emotion',
+      label: 'Vocal Emotion',
+      type: 'text',
+      field: this.audioPromptForm.emotion,
+      placeholder: 'e.g., panicked, whispers',
+      groupClass: 'form-field-group',
+    },
+    {
+      id: 'pace',
+      label: 'Speaking Pace',
+      type: 'text',
+      field: this.audioPromptForm.pace,
+      placeholder: 'e.g., very slow, rapid',
+      groupClass: 'form-field-group',
+    },
+  ];
 
   onVoiceChange(newVoice: string) {
     const voiceOption = newVoice ?? DEFAULT_VOICE;

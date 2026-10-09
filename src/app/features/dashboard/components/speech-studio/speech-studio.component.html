@@ -8,41 +8,27 @@
     <h3 class="audio-customize-title"><span>🎙️</span> Customize Audio Generation</h3>
 
     <div class="audio-customize-grid">
-      <!-- Scene -->
-      <div class="form-field-group-full">
-        <label for="scene" class="form-field-label">Scene Description</label>
-        <textarea
-          id="scene"
-          [formField]="audioPromptForm.scene"
-          placeholder="Describe the environment..."
-          class="form-field-textarea"
-        ></textarea>
-      </div>
-
-      <!-- Emotion -->
-      <div class="form-field-group">
-        <label for="emotion" class="form-field-label">Vocal Emotion</label>
-        <input
-          type="text"
-          id="emotion"
-          [formField]="audioPromptForm.emotion"
-          placeholder="e.g., panicked, whispers"
-          class="form-field-input"
-        />
-      </div>
-
-      <!-- Pace -->
-      <div class="form-field-group">
-        <label for="pace" class="form-field-label">Speaking Pace</label>
-        <input
-          type="text"
-          id="pace"
-          [formField]="audioPromptForm.pace"
-          placeholder="e.g., very slow, rapid"
-          class="form-field-input"
-        />
-      </div>
-
+      @for (f of formFields; track f.id) {
+        <div [class]="f.groupClass">
+          <label [for]="f.id" class="form-field-label">{{ f.label }}</label>
+          @if (f.type === 'textarea') {
+            <textarea
+              [id]="f.id"
+              [formField]="f.field"
+              [placeholder]="f.placeholder"
+              class="form-field-textarea"
+            ></textarea>
+          } @else {
+            <input
+              type="text"
+              [id]="f.id"
+              [formField]="f.field"
+              [placeholder]="f.placeholder"
+              class="form-field-input"
+            />
+          }
+        </div>
+      }
       <!-- Voice Option -->
       <app-voice-selector [selectedValue]="selectedValue()" (selectedValueChange)="onVoiceChange($event)" />
     </div>
@@ -52,28 +38,16 @@
 
   <div>
     <div class="btn-container">
-      <button (click)="generateSpeech('sync')" aria-label="Generate speech" [disabled]="isLoading()" class="btn-audio">
-        @let c = { isLoading: loadingMode() === 'sync', buttonText: 'Play Speech (Sync)' };
-        <ng-container [ngTemplateOutlet]="buttonTemplate" [ngTemplateOutletContext]="c" />
-      </button>
-      <button (click)="generateSpeech('stream')" aria-label="Stream speech" [disabled]="isLoading()" class="btn-audio">
-        @let c2 = { isLoading: loadingMode() === 'stream', buttonText: 'Play Speech (Stream)' };
-        <ng-container [ngTemplateOutlet]="buttonTemplate" [ngTemplateOutletContext]="c2" />
-      </button>
-      <button
-        (click)="generateSpeech('web_audio_api')"
-        aria-label="Stream speech"
-        [disabled]="isLoading()"
-        class="btn-audio"
-      >
-        @let c3 =
-          {
-            isLoading: loadingMode() === 'web_audio_api',
-            genText: `Speak (Playback rate: ${playbackRate()})`,
-            buttonText: `Web Audio API`,
-          };
-        <ng-container [ngTemplateOutlet]="buttonTemplate" [ngTemplateOutletContext]="c3" />
-      </button>
+      @for (c of speechButtonConfigs; track c.mode) {
+        <button (click)="generateSpeech(c.mode)" [aria-label]="c.ariaLabel" [disabled]="isLoading()" class="btn-audio">
+          @let isModeLoading = loadingMode() === c.mode;
+          @let genText = c.getGenText ? c.getGenText() : 'Generating Speech...';
+          @if (isModeLoading) {
+            <app-spinner-icon class="spinner-icon" />
+          }
+          {{ isModeLoading ? genText : c.buttonText }}
+        </button>
+      }
     </div>
   </div>
 
@@ -83,11 +57,4 @@
       <audio controls [src]="url" [playbackRate]="'1.25'" class="playback-audio"></audio>
     </figure>
   }
-
-  <ng-template #buttonTemplate let-isLoading="isLoading" let-buttonText="buttonText" let-genText="genText">
-    @if (isLoading) {
-      <app-spinner-icon class="spinner-icon" />
-    }
-    {{ isLoading ? genText || 'Generating Speech...' : buttonText }}
-  </ng-template>
 </div>
