@@ -1,6 +1,6 @@
+import { AuthCredentials } from '@/core/auth/auth-credentials.interface';
+import { AuthService } from '@/core/auth/auth.service';
 import { APP_LINKS } from '@/core/constants/routes.const';
-import { AuthCredentials } from '@/core/interfaces/auth-credentials.interface';
-import { AuthService } from '@/core/services/auth.service';
 import { CloseIconComponent } from '@/shared/ui/icons/close-icon.component';
 import { SpinnerIconComponent } from '@/shared/ui/icons/spinner-icon.component';
 import { signInSchemaValidation } from '@/shared/ui/sign-in-modal/schemas/sign-in.schema';

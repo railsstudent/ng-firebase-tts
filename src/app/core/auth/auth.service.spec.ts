@@ -1,5 +1,5 @@
+import { AuthService } from '@/core/auth/auth.service';
 import { WINDOW } from '@/core/constants/navigator.const';
-import { AuthService } from '@/core/services/auth.service';
 import { ConfigService } from '@/core/services/config.service';
 import { TestBed } from '@angular/core/testing';
 import type { Auth, User } from 'firebase/auth';

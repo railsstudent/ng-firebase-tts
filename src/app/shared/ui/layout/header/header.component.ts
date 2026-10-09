@@ -1,5 +1,5 @@
+import { AuthService } from '@/core/auth/auth.service';
 import { APP_LINKS } from '@/core/constants/routes.const';
-import { AuthService } from '@/core/services/auth.service';
 import { HomeIconComponent } from '@/shared/ui/icons/home-icon.component';
 import { SignOutIconComponent } from '@/shared/ui/icons/sign-out-icon.component';
 import { Component, inject } from '@angular/core';

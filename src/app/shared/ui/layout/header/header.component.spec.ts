@@ -1,5 +1,5 @@
 import { APP_LINKS } from '@/core/constants/routes.const';
-import { AuthService } from '@/core/services/auth.service';
+import { AuthService } from '@/core/auth';
 import { HeaderComponent } from '@/shared/ui/layout/header/header.component';
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';

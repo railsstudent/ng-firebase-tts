@@ -1,5 +1,5 @@
+import { AuthCredentials } from '@/core/auth/auth-credentials.interface';
 import { WINDOW } from '@/core/constants/navigator.const';
-import { AuthCredentials } from '@/core/interfaces/auth-credentials.interface';
 import { ConfigService } from '@/core/services/config.service';
 import { isLocalhost } from '@/core/utils/host.util';
 import { computed, DestroyRef, inject, Service, signal } from '@angular/core';

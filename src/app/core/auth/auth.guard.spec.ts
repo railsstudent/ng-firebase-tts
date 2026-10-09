@@ -1,6 +1,6 @@
+import { canActivateDashboard } from '@/core/auth/auth.guard';
+import { AuthService } from '@/core/auth/auth.service';
 import { APP_LINKS } from '@/core/constants/routes.const';
-import { canActivateDashboard } from '@/core/guards/auth.guard';
-import { AuthService } from '@/core/services/auth.service';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree } from '@angular/router';

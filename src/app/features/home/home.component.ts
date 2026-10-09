@@ -1,5 +1,5 @@
 import { APP_LINKS } from '@/core/constants/routes.const';
-import { AuthService } from '@/core/services/auth.service';
+import { AuthService } from '@/core/auth/auth.service';
 import { ArrowRightIconComponent } from '@/shared/ui/icons/arrow-right-icon.component';
 import type { SignInModalComponent } from '@/shared/ui/sign-in-modal/sign-in-modal.component';
 import type { DialogRef } from '@angular/cdk/dialog';

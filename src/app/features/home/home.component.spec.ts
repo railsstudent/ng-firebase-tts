@@ -1,4 +1,4 @@
-import { AuthService } from '@/core/services/auth.service';
+import { AuthService } from '@/core/auth';
 import { HomeComponent } from '@/features/home/home.component';
 import { SignInModalComponent } from '@/shared/ui/sign-in-modal/sign-in-modal.component';
 import { Dialog } from '@angular/cdk/dialog';

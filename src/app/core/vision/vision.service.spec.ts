@@ -42,6 +42,7 @@ describe('VisionService', () => {
               app: {
                 options: {
                   apiKey: 'test-api-key',
+                  projectId: 'test-project-id',
                 },
               },
             }),
