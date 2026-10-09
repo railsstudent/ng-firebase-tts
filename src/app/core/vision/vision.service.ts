@@ -1,8 +1,5 @@
 import { WINDOW } from '@/core/constants/navigator.const';
-import { ImageAnalysis, ImageAnalysisResponse } from '@/core/interfaces/image-analysis.interface';
-import { ImageAnalysisSchema } from '@/core/schemas/image-analysis.schema';
 import { ConfigService } from '@/core/services/config.service';
-import { preprocessImageForVision } from '@/core/utils/image.util';
 import { inject, Service } from '@angular/core';
 import {
   AI,
@@ -14,6 +11,9 @@ import {
   UsageMetadata,
   WebGroundingChunk,
 } from 'firebase/ai';
+import { ImageAnalysis, ImageAnalysisResponse } from './image-analysis.interface';
+import { ImageAnalysisSchema } from './image-analysis.schema';
+import { preprocessImageForVision } from './image.util';
 
 const SAFETY_SETTINGS: SafetySetting[] = [
   {
@@ -39,7 +39,7 @@ export class VisionService {
   readonly #window = inject(WINDOW);
   readonly #configService = inject(ConfigService);
 
-  async generateAltText(image: File): Promise<ImageAnalysisResponse> {
+  async analyzeImage(image: File): Promise<ImageAnalysisResponse> {
     if (!image) {
       throw Error('image is required to generate texts.');
     }

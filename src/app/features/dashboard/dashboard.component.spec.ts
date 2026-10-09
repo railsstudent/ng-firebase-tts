@@ -1,5 +1,4 @@
-import { ImageAnalysisResponse } from '@/core/interfaces/image-analysis.interface';
-import { VisionService } from '@/core/services/vision.service';
+import { ImageAnalysisResponse, VisionService } from '@/core/vision';
 import { ComponentFixture, DeferBlockState, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import DashboardComponent from './dashboard.component';
@@ -7,11 +6,11 @@ import DashboardComponent from './dashboard.component';
 describe('DashboardComponent', () => {
   let component: DashboardComponent;
   let fixture: ComponentFixture<DashboardComponent>;
-  let mockVisionService: { generateAltText: ReturnType<typeof vi.fn> };
+  let mockVisionService: { analyzeImage: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
     mockVisionService = {
-      generateAltText: vi.fn(),
+      analyzeImage: vi.fn(),
     };
 
     await TestBed.configureTestingModule({

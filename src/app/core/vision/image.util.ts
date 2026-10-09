@@ -6,7 +6,7 @@ import {
   PERCENT,
   TARGET_IMAGE_MIME,
   TOKENS_PER_IMAGE_TILE,
-} from '@/core/constants/image.constant';
+} from './image.constant';
 import {
   CompressedBlobResult,
   CompressOptions,
@@ -15,7 +15,7 @@ import {
   ImageProcessingResult,
   OptimizationMetricsParams,
   WindowWithCanvas,
-} from '@/core/interfaces/image-processing.interface';
+} from './image-processing.interface';
 
 const BASE_UNIT = 1024;
 const ONE_DECIMAL_PLACE = 1;

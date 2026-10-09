@@ -1,9 +1,9 @@
-import { PERCENT } from '@/core/constants/image.constant';
 import {
   DEFAULT_AUDIO_TYPE,
   DEFAULT_PLAYBACK_RATE,
   MAX_PLAYBACK_RATE,
   MIN_PLAYBACK_RATE,
+  PERCENT,
 } from '@/core/constants/text-to-speech.constant';
 import { recordStreamChunks, toWavBlob } from '@/core/utils/audio.util';
 import { revokeBlobURL } from '@/core/utils/blob.util';

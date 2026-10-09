@@ -10,7 +10,7 @@ This file provides context, rules, and guidance for AI assistants working on thi
 Follow this directory layout and architectural pattern when adding new files:
 
 - **`firebase/`**: Contains all Firebase CLI configurations (`firebase.json`, Remote Config templates, prebuild scripts). Scripts in `package.json` copy `firebase/firebase.json` to the root ephemerally during execution (`cp firebase/firebase.json .; ...; rm firebase.json`) to keep the root directory clean.
-- **`src/app/core/`**: Core feature logic, singleton services, guards, and startup initializers.
+- **`src/app/core/`**: Core domain logic, singleton services, guards, and startup initializers. Core business domains should be organized as cohesive domain packages (e.g., `src/app/core/vision/`, `src/app/core/speech/`, `src/app/core/auth/`) that present a clean, deep public interface via `index.ts` while collocating their private internal utilities, schemas, and domain-scoped interfaces.
 - **`src/app/features/`**: Feature-specific components, routing, and modules (e.g., dashboard, settings).
 - **`src/app/shared/`**: Reusable components, directives, pipes, domain models, and shared utilities.
   - **Shared Interfaces**: Core shared/domain TypeScript interfaces and model files (like `Expense` or `ToastMessage`) MUST be created inside `src/app/shared/interfaces/` as separate files using the naming convention `<domain-name>.interface.ts`. Never declare interfaces inline within service or utility files.

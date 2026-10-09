@@ -1,5 +1,5 @@
-import { ImageOptimizationMetrics } from '@/core/interfaces/image-processing.interface';
 import { TokenUsage } from '@/core/interfaces/token-usage.interface';
+import { ImageOptimizationMetrics } from '@/core/vision';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AppUsageMetricsComponent } from './app-usage-metrics.component';
 

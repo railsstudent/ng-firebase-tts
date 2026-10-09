@@ -1,4 +1,4 @@
-import { ImageAnalysisResponse } from '@/core/interfaces/image-analysis.interface';
+import { ImageAnalysisResponse } from '@/core/vision';
 import { Component, signal } from '@angular/core';
 import { AnalyzerPanelComponent } from './components/analyzer-panel/analyzer-panel.component';
 import { AppUsageMetricsComponent } from './components/app-usage-metrics/app-usage-metrics.component';

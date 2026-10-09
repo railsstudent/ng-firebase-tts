@@ -1,4 +1,4 @@
-import { ImageAnalysisResponse } from '@/core/interfaces/image-analysis.interface';
+import { ImageAnalysisResponse } from '@/core/vision';
 import { GroundingComponent } from '@/features/dashboard/components/grounding/grounding.component';
 import { RecommendationsDisplayComponent } from '@/features/dashboard/components/recommendations-display/recommendations.component';
 import { ErrorDisplayComponent } from '@/shared/ui/error-display/error-display.component';

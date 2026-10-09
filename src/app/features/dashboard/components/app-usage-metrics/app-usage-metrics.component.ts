@@ -1,6 +1,5 @@
-import { ImageOptimizationMetrics } from '@/core/interfaces/image-processing.interface';
 import { TokenUsage } from '@/core/interfaces/token-usage.interface';
-import { formatFileSize } from '@/core/utils/image.util';
+import { formatFileSize, ImageOptimizationMetrics } from '@/core/vision';
 import { Component, computed, input } from '@angular/core';
 
 @Component({

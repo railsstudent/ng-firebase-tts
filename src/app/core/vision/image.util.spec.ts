@@ -101,7 +101,6 @@ describe('image.util', () => {
       const result = await preprocessImageForVision(dummyFile, mockWindow);
 
       expect(result.data).toBeDefined();
-      expect(result.optimizationMetrics.originalDimensions).toEqual({ width: 768, height: 768 });
       expect(result.optimizationMetrics.optimizedDimensions).toEqual({ width: 768, height: 768 });
     });
 

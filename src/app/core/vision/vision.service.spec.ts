@@ -1,7 +1,7 @@
 import { ConfigService } from '@/core/services/config.service';
-import { VisionService } from '@/core/services/vision.service';
 import { TestBed } from '@angular/core/testing';
 import { ThinkingLevel } from 'firebase/ai';
+import { VisionService } from './vision.service';
 
 const mockAiModel = {
   generateContent: vi.fn().mockResolvedValue({ response: undefined }),
@@ -38,7 +38,13 @@ describe('VisionService', () => {
               geminiModelName: 'gemini-2.5-flash',
               thinkingLevel: ThinkingLevel.LOW,
             },
-            getAiBackend: vi.fn().mockResolvedValue({}),
+            getAiBackend: vi.fn().mockResolvedValue({
+              app: {
+                options: {
+                  apiKey: 'test-api-key',
+                },
+              },
+            }),
           },
         },
       ],
@@ -48,9 +54,7 @@ describe('VisionService', () => {
   });
 
   it('should throw an error if image file is not provided', async () => {
-    await expect(service.generateAltText(null as unknown as File)).rejects.toThrow(
-      'image is required to generate texts.',
-    );
+    await expect(service.analyzeImage(null as unknown as File)).rejects.toThrow('image is required to generate texts.');
   });
 
   it('should successfully parse complete response including thoughts, structured JSON, citations, token usage, and optimization metrics', async () => {
@@ -105,7 +109,7 @@ describe('VisionService', () => {
     });
 
     const fakeFile = new File(['hello-world'], 'test-image.png', { type: 'image/png' });
-    const result = await service.generateAltText(fakeFile);
+    const result = await service.analyzeImage(fakeFile);
 
     expect(generateContentCalled).toBe(true);
     expect(generateContentArgs).toBeDefined();
@@ -132,6 +136,6 @@ describe('VisionService', () => {
     mockAiModel.generateContent.mockResolvedValue(null);
 
     const fakeFile = new File([''], 'test-image.png', { type: 'image/png' });
-    await expect(service.generateAltText(fakeFile)).rejects.toThrow('No text generated.');
+    await expect(service.analyzeImage(fakeFile)).rejects.toThrow('No text generated.');
   });
 });

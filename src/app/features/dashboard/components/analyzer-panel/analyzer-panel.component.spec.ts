@@ -1,12 +1,11 @@
-import { ImageAnalysisResponse } from '@/core/interfaces/image-analysis.interface';
 import { ConfigService } from '@/core/services/config.service';
-import { VisionService } from '@/core/services/vision.service';
+import { ImageAnalysisResponse, VisionService } from '@/core/vision';
 import { AnalyzerPanelComponent } from '@/features/dashboard/components/analyzer-panel/analyzer-panel.component';
 import { ComponentFixture, DeferBlockBehavior, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
 const mockVisionService = {
-  generateAltText: vi.spyOn(VisionService.prototype, 'generateAltText'),
+  analyzeImage: vi.spyOn(VisionService.prototype, 'analyzeImage'),
 };
 
 describe('AnalyzerPanelComponent', () => {
@@ -39,7 +38,7 @@ describe('AnalyzerPanelComponent', () => {
 
   it('should create and defer VisionService resolution', () => {
     expect(component).toBeTruthy();
-    expect(mockVisionService.generateAltText).not.toHaveBeenCalled();
+    expect(mockVisionService.analyzeImage).not.toHaveBeenCalled();
   });
 
   // TEST CASE 1: Render child elements
@@ -111,13 +110,13 @@ describe('AnalyzerPanelComponent', () => {
       metadata: { citations: [], renderedContent: '', searchQueries: [] },
     };
 
-    mockVisionService.generateAltText.mockResolvedValue(mockResponse);
+    mockVisionService.analyzeImage.mockResolvedValue(mockResponse);
     component.handleFileChange(mockFile);
 
     await component.handleGenerateClick();
     fixture.detectChanges();
 
-    expect(mockVisionService.generateAltText).toHaveBeenCalledWith(mockFile);
+    expect(mockVisionService.analyzeImage).toHaveBeenCalledWith(mockFile);
     expect(component.isLoading()).toBe(false);
     expect(component.analysis()).toEqual(mockResponse);
     expect(component.error()).toBeUndefined();
@@ -126,13 +125,13 @@ describe('AnalyzerPanelComponent', () => {
   // TEST CASE 6: Failed generate flow
   it('should catch error and set error signal if visionService call throws', async () => {
     const mockFile = new File(['image'], 'mars.png', { type: 'image/png' });
-    mockVisionService.generateAltText.mockRejectedValue(new Error('Vertex AI Quota Exceeded'));
+    mockVisionService.analyzeImage.mockRejectedValue(new Error('Vertex AI Quota Exceeded'));
     component.handleFileChange(mockFile);
 
     await component.handleGenerateClick();
     fixture.detectChanges();
 
-    expect(mockVisionService.generateAltText).toHaveBeenCalledWith(mockFile);
+    expect(mockVisionService.analyzeImage).toHaveBeenCalledWith(mockFile);
     expect(component.isLoading()).toBe(false);
     expect(component.analysis()).toBeUndefined();
     expect(component.error()).toBe('Vertex AI Quota Exceeded');
@@ -141,7 +140,7 @@ describe('AnalyzerPanelComponent', () => {
   // TEST CASE 7: Async Service Dynamic Resolution Error
   it('should catch and set error message if dynamic vision service fails to load', async () => {
     const mockFile = new File(['image'], 'mars.png', { type: 'image/png' });
-    mockVisionService.generateAltText.mockRejectedValue(
+    mockVisionService.analyzeImage.mockRejectedValue(
       new TypeError('Failed to fetch dynamically imported VisionService'),
     );
     component.handleFileChange(mockFile);
@@ -156,10 +155,10 @@ describe('AnalyzerPanelComponent', () => {
 
   // TEST CASE 8: Lazy Execution Verification
   it('should not invoke VisionService during component instantiation, but only on handleGenerateClick', async () => {
-    expect(mockVisionService.generateAltText).not.toHaveBeenCalled();
+    expect(mockVisionService.analyzeImage).not.toHaveBeenCalled();
 
     const mockFile = new File(['image'], 'mars.png', { type: 'image/png' });
-    mockVisionService.generateAltText.mockResolvedValue({
+    mockVisionService.analyzeImage.mockResolvedValue({
       parsed: { alternativeText: 'Alt', recommendations: [], tags: [], fact: 'Fact' },
       thought: '',
       tokenUsage: { input: 1, output: 1, thought: 0, total: 2 },
@@ -168,7 +167,7 @@ describe('AnalyzerPanelComponent', () => {
     component.handleFileChange(mockFile);
 
     await component.handleGenerateClick();
-    expect(mockVisionService.generateAltText).toHaveBeenCalledOnce();
+    expect(mockVisionService.analyzeImage).toHaveBeenCalledOnce();
   });
 
   // TEST CASE 9: Undefined File Guard
@@ -176,7 +175,7 @@ describe('AnalyzerPanelComponent', () => {
     await component.handleGenerateClick();
     fixture.detectChanges();
 
-    expect(mockVisionService.generateAltText).not.toHaveBeenCalled();
+    expect(mockVisionService.analyzeImage).not.toHaveBeenCalled();
     expect(component.isLoading()).toBe(false);
     expect(component.analysis()).toBeUndefined();
     expect(component.error()).toBeUndefined();
@@ -185,7 +184,7 @@ describe('AnalyzerPanelComponent', () => {
   // TEST CASE 10: Non-Error Catch Fallback
   it('should fallback to generic error message if thrown value is not an instance of Error', async () => {
     const mockFile = new File(['image'], 'mars.png', { type: 'image/png' });
-    mockVisionService.generateAltText.mockRejectedValue('String rejection error');
+    mockVisionService.analyzeImage.mockRejectedValue('String rejection error');
     component.handleFileChange(mockFile);
 
     await component.handleGenerateClick();

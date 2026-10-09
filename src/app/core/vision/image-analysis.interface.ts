@@ -1,7 +1,7 @@
-import { Metadata } from './grounding.interface';
+import { Metadata } from '@/core/interfaces/grounding.interface';
+import { Recommendation } from '@/core/interfaces/recommendation.interface';
+import { TokenUsage } from '@/core/interfaces/token-usage.interface';
 import { ImageOptimizationMetrics } from './image-processing.interface';
-import { Recommendation } from './recommendation.interface';
-import { TokenUsage } from './token-usage.interface';
 
 export interface ImageAnalysis {
   alternativeText: string;

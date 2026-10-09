@@ -38,7 +38,13 @@ describe('TextToSpeechService', () => {
   let appConfigSpy: ReturnType<typeof vi.fn> & (() => Record<string, unknown>);
 
   beforeEach(() => {
-    mockAI = {};
+    mockAI = {
+      app: {
+        options: {
+          apiKey: 'test-api-key',
+        },
+      },
+    };
 
     // Standard mock configuration data matching the expected AppRemoteConfig type
     const configData = {

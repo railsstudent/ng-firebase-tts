@@ -1,4 +1,4 @@
-import { ImageAnalysisResponse } from '@/core/interfaces/image-analysis.interface';
+import { ImageAnalysisResponse } from '@/core/vision';
 import { AltTextPanel } from '@/features/dashboard/components/alt-text-panel/alt-text-panel';
 import { AssetRegistry } from '@/features/dashboard/components/analyzer-panel/services/asset-registry.service';
 import { ObscureFactComponent } from '@/features/dashboard/components/obscure-fact/obscure-fact.component';
@@ -17,7 +17,7 @@ const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/jpg', 'image/web
 })
 export class AnalyzerPanelComponent {
   readonly #assetRegistry = inject(AssetRegistry);
-  #asyncVisionService = injectAsync(() => import('@/core/services/vision.service').then((m) => m.VisionService));
+  #asyncVisionService = injectAsync(() => import('@/core/vision').then((m) => m.VisionService));
 
   analysis = model<ImageAnalysisResponse | undefined>(undefined);
   error = signal<string | undefined>(undefined);
@@ -40,7 +40,7 @@ export class AnalyzerPanelComponent {
 
     try {
       const service = await this.#asyncVisionService();
-      const results = await service.generateAltText(file);
+      const results = await service.analyzeImage(file);
       this.analysis.set(results);
     } catch (e: unknown) {
       if (e instanceof Error) {
