@@ -199,13 +199,13 @@ describe('PhotoPickerComponent', () => {
     const invalidFile = new File(['document'], 'doc.pdf', { type: 'application/pdf' });
 
     // Mock the file input element's files property
-    const inputEl = component.fileInputElement();
+    const inputEl = fixture.debugElement.query(By.css('#photo-picker-input')).nativeElement as HTMLInputElement;
     Object.defineProperty(inputEl, 'files', {
       value: [invalidFile],
       writable: true,
     });
 
-    component.onFileChange();
+    inputEl.dispatchEvent(new Event('change'));
     fixture.detectChanges();
 
     expect(emittedError).toBe('Invalid file type. Please select a JPG, JPEG, or PNG image.');
@@ -223,15 +223,46 @@ describe('PhotoPickerComponent', () => {
 
     const validFile = new File(['image'], 'mars.png', { type: 'image/png' });
 
-    const inputEl = component.fileInputElement();
+    const inputEl = fixture.debugElement.query(By.css('#photo-picker-input')).nativeElement as HTMLInputElement;
     Object.defineProperty(inputEl, 'files', {
       value: [validFile],
       writable: true,
     });
 
-    component.onFileChange();
+    inputEl.dispatchEvent(new Event('change'));
     fixture.detectChanges();
 
     expect(emittedFile).toEqual(validFile);
+  });
+
+  // TEST CASE 7: Remove Image Action
+  it('should emit removeFile event when clicking the Remove Image button in preview state', () => {
+    fixture.componentRef.setInput('previewUrl', 'blob:http://localhost/test-uuid');
+    fixture.detectChanges();
+
+    let emitted = false;
+    component.removeFile.subscribe(() => {
+      emitted = true;
+    });
+
+    const removeBtn = fixture.debugElement.query(By.css('button[aria-label="Remove the image"]'));
+    removeBtn.nativeElement.click();
+
+    expect(emitted).toBe(true);
+  });
+
+  // TEST CASE 8: Input Value Reset
+  it('should reset file input value after selection to allow re-selecting the same file', () => {
+    const inputEl = fixture.debugElement.query(By.css('#photo-picker-input')).nativeElement as HTMLInputElement;
+    const validFile = new File(['image'], 'mars.png', { type: 'image/png' });
+    Object.defineProperty(inputEl, 'files', {
+      value: [validFile],
+      writable: true,
+    });
+
+    inputEl.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    expect(inputEl.value).toBe('');
   });
 });

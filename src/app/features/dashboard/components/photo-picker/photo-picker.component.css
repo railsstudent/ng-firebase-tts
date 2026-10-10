@@ -9,7 +9,7 @@
 }
 
 .dropzone.drag-active {
-  @apply bg-(--color-surface-hover) border-(--color-primary-indigo) text-indigo-200 scale-102 shadow-indigo-500/20 shadow-md;
+  @apply bg-(--color-surface-hover) border-(--color-primary-indigo) text-(--color-primary-accent) scale-102 shadow-indigo-500/20 shadow-md;
 }
 
 .photo-icon {
@@ -42,4 +42,8 @@
 
 .spinner {
   @apply animate-spin h-5 w-5;
+}
+
+.btn-image-selector {
+  @apply bg-slate-900/50 text-white px-3 py-1.5 text-sm rounded-md hover:bg-slate-900/80 transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm;
 }

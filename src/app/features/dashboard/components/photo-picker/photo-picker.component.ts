@@ -1,6 +1,6 @@
 import { PhotoIconComponent } from '@/shared/ui/icons/photo-icon.component';
 import { SpinnerIconComponent } from '@/shared/ui/icons/spinner-icon.component';
-import { Component, computed, ElementRef, input, output, signal, viewChild } from '@angular/core';
+import { Component, computed, input, output, signal } from '@angular/core';
 
 @Component({
   selector: 'app-photo-picker',
@@ -22,37 +22,26 @@ export class PhotoPickerComponent {
 
   isDragActive = signal<boolean>(false);
 
-  fileInputRef = viewChild.required<ElementRef<HTMLInputElement>>('fileInput');
-  fileInputElement = computed(() => this.fileInputRef().nativeElement);
-
-  onFileChange() {
-    const file = this.fileInputElement().files?.[0];
+  onFileChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
     if (file) {
       this.validateAndProcessFile(file);
     }
-  }
-
-  triggerFileSelect() {
-    this.fileInputElement().click();
+    input.value = '';
   }
 
   clearSelectedFile() {
     this.removeFile.emit();
   }
 
-  onDragOver(event: DragEvent) {
+  handleDrag(event: DragEvent, isOver = true) {
     event.preventDefault();
-    this.isDragActive.set(true);
-  }
-
-  onDragLeave(event: DragEvent) {
-    event.preventDefault();
-    this.isDragActive.set(false);
+    this.isDragActive.set(isOver);
   }
 
   onDrop(event: DragEvent) {
-    event.preventDefault();
-    this.isDragActive.set(false);
+    this.handleDrag(event, false);
 
     const files = event.dataTransfer?.files;
     if (!files || files.length === 0) {

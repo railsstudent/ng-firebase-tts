@@ -69,10 +69,6 @@
   @apply inline-flex items-center justify-center shrink-0 w-5 h-5 select-none;
 }
 
-.btn-image-selector {
-  @apply bg-slate-900/50 text-white px-3 py-1.5 text-sm rounded-md hover:bg-slate-900/80 transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm;
-}
-
 .form-field-label {
   @apply text-xs font-bold text-(--color-text-muted) uppercase tracking-wider ml-1;
 }
