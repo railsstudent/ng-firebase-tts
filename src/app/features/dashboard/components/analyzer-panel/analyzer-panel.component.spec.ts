@@ -55,8 +55,11 @@ describe('AnalyzerPanelComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('A surprising or obscure fact about the tags');
   });
 
-  // TEST CASE 2: File Change - Valid File
-  it('should register valid file, set previewUrl, and reset analysis/error signals on handleFileChange', () => {
+  // TEST CASE 2: File Change - Valid File via Template Binding
+  it('should register valid file, set previewUrl, and reset analysis/error signals when photo-picker emits fileChange', () => {
+    const photoPicker = fixture.debugElement.query(By.css('app-photo-picker'));
+    expect(photoPicker).toBeTruthy();
+
     const mockFile = new File(['image'], 'mars.png', { type: 'image/png' });
     component.error.set('Previous error');
     component.analysis.set({
@@ -66,37 +69,57 @@ describe('AnalyzerPanelComponent', () => {
       metadata: { citations: [], renderedContent: '', searchQueries: [] },
     });
 
-    component.handleFileChange(mockFile);
+    photoPicker.triggerEventHandler('fileChange', mockFile);
+    fixture.detectChanges();
 
     expect(component.previewUrl()).toBeDefined();
     expect(component.error()).toBeUndefined();
     expect(component.analysis()).toBeUndefined();
   });
 
-  // TEST CASE 3: File Change - Invalid File Type
-  it('should set error signal and not register file when an invalid file type is provided', () => {
-    const invalidFile = new File(['content'], 'test.pdf', { type: 'application/pdf' });
+  // TEST CASE 3: Photo Picker Invalid File Event Binding
+  it('should set error signal when photo-picker emits invalidFile event', () => {
+    const photoPicker = fixture.debugElement.query(By.css('app-photo-picker'));
+    expect(photoPicker).toBeTruthy();
 
-    component.handleFileChange(invalidFile);
+    const errorMessage = 'Invalid file type. Please select a PNG, JPG, JPEG, or WEBP image.';
+    photoPicker.triggerEventHandler('invalidFile', errorMessage);
+    fixture.detectChanges();
 
-    expect(component.error()).toBe('Invalid file type. Please select a JPG, JPEG, or PNG image.');
-    expect(component.previewUrl()).toBeUndefined();
+    expect(component.error()).toBe(errorMessage);
   });
 
-  // TEST CASE 4: File Change - Remove/Undefined File
-  it('should clear registered file preview when handleFileChange is called with undefined', () => {
+  // TEST CASE 4: File Change - Remove/Undefined File via Template Binding
+  it('should clear registered file preview when photo-picker emits fileChange with undefined', () => {
+    const photoPicker = fixture.debugElement.query(By.css('app-photo-picker'));
+    expect(photoPicker).toBeTruthy();
+
     const mockFile = new File(['image'], 'mars.png', { type: 'image/png' });
-    component.handleFileChange(mockFile);
+    photoPicker.triggerEventHandler('fileChange', mockFile);
+    fixture.detectChanges();
     expect(component.previewUrl()).toBeDefined();
 
-    component.handleFileChange(undefined);
+    photoPicker.triggerEventHandler('fileChange', undefined);
+    fixture.detectChanges();
     expect(component.previewUrl()).toBeUndefined();
     expect(component.error()).toBeUndefined();
     expect(component.analysis()).toBeUndefined();
   });
 
-  // TEST CASE 5: Successful generate flow
+  // TEST CASE 5: Photo Picker Generate Event Binding
+  it('should trigger handleGenerateClick when photo-picker emits generate event', () => {
+    const photoPicker = fixture.debugElement.query(By.css('app-photo-picker'));
+    expect(photoPicker).toBeTruthy();
+    const handleGenerateSpy = vi.spyOn(component, 'handleGenerateClick').mockResolvedValue(undefined);
+
+    photoPicker.triggerEventHandler('generate');
+
+    expect(handleGenerateSpy).toHaveBeenCalledOnce();
+  });
+
+  // TEST CASE 6: Successful generate flow
   it('should dynamically load visionService and set analysis response on generate click success', async () => {
+    const photoPicker = fixture.debugElement.query(By.css('app-photo-picker'));
     const mockFile = new File(['image'], 'mars.png', { type: 'image/png' });
     const mockResponse: ImageAnalysisResponse = {
       parsed: {
@@ -111,7 +134,8 @@ describe('AnalyzerPanelComponent', () => {
     };
 
     mockVisionService.analyzeImage.mockResolvedValue(mockResponse);
-    component.handleFileChange(mockFile);
+    photoPicker.triggerEventHandler('fileChange', mockFile);
+    fixture.detectChanges();
 
     await component.handleGenerateClick();
     fixture.detectChanges();
@@ -122,11 +146,13 @@ describe('AnalyzerPanelComponent', () => {
     expect(component.error()).toBeUndefined();
   });
 
-  // TEST CASE 6: Failed generate flow
+  // TEST CASE 7: Failed generate flow
   it('should catch error and set error signal if visionService call throws', async () => {
+    const photoPicker = fixture.debugElement.query(By.css('app-photo-picker'));
     const mockFile = new File(['image'], 'mars.png', { type: 'image/png' });
     mockVisionService.analyzeImage.mockRejectedValue(new Error('Vertex AI Quota Exceeded'));
-    component.handleFileChange(mockFile);
+    photoPicker.triggerEventHandler('fileChange', mockFile);
+    fixture.detectChanges();
 
     await component.handleGenerateClick();
     fixture.detectChanges();
@@ -137,13 +163,15 @@ describe('AnalyzerPanelComponent', () => {
     expect(component.error()).toBe('Vertex AI Quota Exceeded');
   });
 
-  // TEST CASE 7: Async Service Dynamic Resolution Error
+  // TEST CASE 8: Async Service Dynamic Resolution Error
   it('should catch and set error message if dynamic vision service fails to load', async () => {
+    const photoPicker = fixture.debugElement.query(By.css('app-photo-picker'));
     const mockFile = new File(['image'], 'mars.png', { type: 'image/png' });
     mockVisionService.analyzeImage.mockRejectedValue(
       new TypeError('Failed to fetch dynamically imported VisionService'),
     );
-    component.handleFileChange(mockFile);
+    photoPicker.triggerEventHandler('fileChange', mockFile);
+    fixture.detectChanges();
 
     await component.handleGenerateClick();
     fixture.detectChanges();
@@ -153,10 +181,11 @@ describe('AnalyzerPanelComponent', () => {
     expect(component.error()).toContain('Failed to fetch dynamically imported VisionService');
   });
 
-  // TEST CASE 8: Lazy Execution Verification
+  // TEST CASE 9: Lazy Execution Verification
   it('should not invoke VisionService during component instantiation, but only on handleGenerateClick', async () => {
     expect(mockVisionService.analyzeImage).not.toHaveBeenCalled();
 
+    const photoPicker = fixture.debugElement.query(By.css('app-photo-picker'));
     const mockFile = new File(['image'], 'mars.png', { type: 'image/png' });
     mockVisionService.analyzeImage.mockResolvedValue({
       parsed: { alternativeText: 'Alt', recommendations: [], tags: [], fact: 'Fact' },
@@ -164,13 +193,14 @@ describe('AnalyzerPanelComponent', () => {
       tokenUsage: { input: 1, output: 1, thought: 0, total: 2 },
       metadata: { citations: [], renderedContent: '', searchQueries: [] },
     });
-    component.handleFileChange(mockFile);
+    photoPicker.triggerEventHandler('fileChange', mockFile);
+    fixture.detectChanges();
 
     await component.handleGenerateClick();
     expect(mockVisionService.analyzeImage).toHaveBeenCalledOnce();
   });
 
-  // TEST CASE 9: Undefined File Guard
+  // TEST CASE 10: Undefined File Guard
   it('should return early without initiating generation if no file is registered', async () => {
     await component.handleGenerateClick();
     fixture.detectChanges();
@@ -181,11 +211,13 @@ describe('AnalyzerPanelComponent', () => {
     expect(component.error()).toBeUndefined();
   });
 
-  // TEST CASE 10: Non-Error Catch Fallback
+  // TEST CASE 11: Non-Error Catch Fallback
   it('should fallback to generic error message if thrown value is not an instance of Error', async () => {
+    const photoPicker = fixture.debugElement.query(By.css('app-photo-picker'));
     const mockFile = new File(['image'], 'mars.png', { type: 'image/png' });
     mockVisionService.analyzeImage.mockRejectedValue('String rejection error');
-    component.handleFileChange(mockFile);
+    photoPicker.triggerEventHandler('fileChange', mockFile);
+    fixture.detectChanges();
 
     await component.handleGenerateClick();
     fixture.detectChanges();

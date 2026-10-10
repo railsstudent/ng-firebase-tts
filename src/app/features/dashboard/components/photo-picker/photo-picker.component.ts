@@ -1,6 +1,10 @@
 import { PhotoIconComponent } from '@/shared/ui/icons/photo-icon.component';
 import { SpinnerIconComponent } from '@/shared/ui/icons/spinner-icon.component';
-import { Component, computed, input, output, signal } from '@angular/core';
+import { Component, input, output, signal } from '@angular/core';
+import { ACCEPTED_IMAGE_TYPES } from './constants/photo-picker.const';
+import { formatAcceptedFormats } from './utils/photo-picker.util';
+
+const ACCEPTED_FORMATS_TEXT = formatAcceptedFormats(ACCEPTED_IMAGE_TYPES);
 
 @Component({
   selector: 'app-photo-picker',
@@ -11,16 +15,13 @@ import { Component, computed, input, output, signal } from '@angular/core';
 export class PhotoPickerComponent {
   previewUrl = input<string | undefined>(undefined);
   isLoading = input(false);
-  acceptedFileTypes = input.required<string[]>();
 
-  accepted = computed(() => this.acceptedFileTypes().join(', '));
-
-  fileChange = output<File>();
+  fileChange = output<File | undefined>();
   generate = output();
-  removeFile = output();
   invalidFile = output<string>();
 
   isDragActive = signal<boolean>(false);
+  readonly accepted = ACCEPTED_IMAGE_TYPES.join(', ');
 
   onFileChange(event: Event) {
     const input = event.target as HTMLInputElement;
@@ -29,10 +30,6 @@ export class PhotoPickerComponent {
       this.validateAndProcessFile(file);
     }
     input.value = '';
-  }
-
-  clearSelectedFile() {
-    this.removeFile.emit();
   }
 
   handleDrag(event: DragEvent, isOver = true) {
@@ -58,8 +55,8 @@ export class PhotoPickerComponent {
   }
 
   private validateAndProcessFile(file: File) {
-    if (!this.acceptedFileTypes().includes(file.type)) {
-      this.invalidFile.emit('Invalid file type. Please select a JPG, JPEG, or PNG image.');
+    if (!ACCEPTED_IMAGE_TYPES.includes(file.type as (typeof ACCEPTED_IMAGE_TYPES)[number])) {
+      this.invalidFile.emit(`Invalid file type. Please select a ${ACCEPTED_FORMATS_TEXT} image.`);
       return;
     }
 

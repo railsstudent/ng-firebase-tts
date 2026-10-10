@@ -1,13 +1,4 @@
 import {
-  FALLBACK_IMAGE_MIME,
-  GEMINI_TILE_SIZE,
-  IMAGE_COMPRESSION_QUALITY,
-  MAX_IMAGE_DIMENSION,
-  PERCENT,
-  TARGET_IMAGE_MIME,
-  TOKENS_PER_IMAGE_TILE,
-} from './image.constant';
-import {
   CompressedBlobResult,
   CompressOptions,
   Dimensions,
@@ -21,6 +12,13 @@ const BASE_UNIT = 1024;
 const ONE_DECIMAL_PLACE = 1;
 const NOT_FOUND_INDEX = -1;
 const PAYLOAD_OFFSET = 1;
+const MAX_IMAGE_DIMENSION = 768;
+const GEMINI_TILE_SIZE = 768;
+const TOKENS_PER_IMAGE_TILE = 258;
+const TARGET_IMAGE_MIME = 'image/webp';
+const FALLBACK_IMAGE_MIME = 'image/jpeg';
+const IMAGE_COMPRESSION_QUALITY = 0.8;
+const PERCENT = 100;
 
 function calculateTargetDimensions(dimensions: Dimensions, maxDim: number = MAX_IMAGE_DIMENSION): Dimensions {
   const { width, height } = dimensions;

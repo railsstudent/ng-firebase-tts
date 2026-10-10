@@ -6,8 +6,6 @@ import { SpeechStudioComponent } from '@/features/dashboard/components/speech-st
 import { TagsDisplayComponent } from '@/features/dashboard/components/tags-display/tags-display.component';
 import { Component, inject, injectAsync, model, signal } from '@angular/core';
 
-const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
-
 @Component({
   selector: 'app-analyzer-panel',
   imports: [PhotoPickerComponent, TagsDisplayComponent, SpeechStudioComponent, AltTextPanel],
@@ -24,8 +22,6 @@ export class AnalyzerPanelComponent {
   isLoading = signal(false);
 
   previewUrl = this.#assetRegistry.previewUrl.asReadonly();
-
-  readonly acceptedTypes = ACCEPTED_IMAGE_TYPES;
 
   async handleGenerateClick() {
     const file = this.#assetRegistry.file();
@@ -54,11 +50,6 @@ export class AnalyzerPanelComponent {
   }
 
   handleFileChange(file: File | undefined) {
-    if (file && !this.acceptedTypes.includes(file.type)) {
-      this.error.set('Invalid file type. Please select a JPG, JPEG, or PNG image.');
-      return;
-    }
-
     this.#assetRegistry.register(file);
     this.analysis.set(undefined);
     this.error.set(undefined);

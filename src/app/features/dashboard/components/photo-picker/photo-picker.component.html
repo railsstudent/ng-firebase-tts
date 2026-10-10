@@ -1,5 +1,5 @@
 <div class="upload-wrapper">
-  <input #fileInput type="file" (change)="onFileChange($event)" [attr.accept]="accepted()" class="hidden" />
+  <input #fileInput type="file" (change)="onFileChange($event)" [attr.accept]="accepted" class="hidden" />
   @if (!previewUrl()) {
     <button
       type="button"
@@ -26,7 +26,12 @@
         >
           Change Image
         </button>
-        <button type="button" (click)="clearSelectedFile()" aria-label="Remove the image" class="btn-image-selector">
+        <button
+          type="button"
+          (click)="fileChange.emit(undefined)"
+          aria-label="Remove the image"
+          class="btn-image-selector"
+        >
           Remove Image
         </button>
       </div>

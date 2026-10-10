@@ -17,7 +17,6 @@ describe('PhotoPickerComponent', () => {
     component = fixture.componentInstance;
 
     // Provide default inputs
-    fixture.componentRef.setInput('acceptedFileTypes', ['image/jpeg', 'image/png', 'image/jpg']);
     fixture.componentRef.setInput('isLoading', false);
     fixture.componentRef.setInput('previewUrl', undefined);
 
@@ -81,9 +80,6 @@ describe('PhotoPickerComponent', () => {
   // TEST CASE 1 (Option B): Drag Multiple Files - Strict Reject
   it('should reject multiple dropped files and emit invalidFile event', () => {
     let emittedError: string | undefined = undefined;
-    component.removeFile.subscribe(() => {
-      expect.unreachable('Should not emit removeFile');
-    });
     component.fileChange.subscribe(() => {
       expect.unreachable('Should not emit fileChange');
     });
@@ -149,7 +145,7 @@ describe('PhotoPickerComponent', () => {
     dropzone.dispatchEvent(dropEvent);
     fixture.detectChanges();
 
-    expect(emittedError).toBe('Invalid file type. Please select a JPG, JPEG, or PNG image.');
+    expect(emittedError).toBe('Invalid file type. Please select a JPEG, PNG, or WEBP image.');
   });
 
   // TEST CASE 3: Drag & Drop - Valid Single File
@@ -208,7 +204,7 @@ describe('PhotoPickerComponent', () => {
     inputEl.dispatchEvent(new Event('change'));
     fixture.detectChanges();
 
-    expect(emittedError).toBe('Invalid file type. Please select a JPG, JPEG, or PNG image.');
+    expect(emittedError).toBe('Invalid file type. Please select a JPEG, PNG, or WEBP image.');
   });
 
   // TEST CASE 6: Manual Selection - Valid Type
@@ -236,19 +232,19 @@ describe('PhotoPickerComponent', () => {
   });
 
   // TEST CASE 7: Remove Image Action
-  it('should emit removeFile event when clicking the Remove Image button in preview state', () => {
+  it('should emit fileChange with undefined when clicking the Remove Image button in preview state', () => {
     fixture.componentRef.setInput('previewUrl', 'blob:http://localhost/test-uuid');
     fixture.detectChanges();
 
-    let emitted = false;
-    component.removeFile.subscribe(() => {
-      emitted = true;
+    let emittedFile: File | undefined = new File([], 'temp');
+    component.fileChange.subscribe((file) => {
+      emittedFile = file;
     });
 
     const removeBtn = fixture.debugElement.query(By.css('button[aria-label="Remove the image"]'));
     removeBtn.nativeElement.click();
 
-    expect(emitted).toBe(true);
+    expect(emittedFile).toBeUndefined();
   });
 
   // TEST CASE 8: Input Value Reset

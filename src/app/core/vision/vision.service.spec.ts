@@ -1,31 +1,85 @@
 import { ConfigService } from '@/core/services/config.service';
 import { TestBed } from '@angular/core/testing';
-import { ThinkingLevel } from 'firebase/ai';
+import { getGenerativeModel, ThinkingLevel } from 'firebase/ai';
 import { VisionService } from './vision.service';
 
-const mockAiModel = {
-  generateContent: vi.fn().mockResolvedValue({ response: undefined }),
-};
-
-vi.mock('firebase/ai', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('firebase/ai')>();
-  return Object.assign({}, actual, {
-    getGenerativeModel: vi.fn(() => mockAiModel),
-  });
+const { mockAiModel, mockSchema } = vi.hoisted(() => {
+  const mockAiModel = {
+    generateContent: vi.fn().mockResolvedValue({ response: undefined }),
+  };
+  const mockSchema = {
+    object: vi.fn((def: unknown) => def),
+    array: vi.fn((def: unknown) => def),
+    string: vi.fn(() => ({ type: 'string' })),
+    integer: vi.fn(() => ({ type: 'integer' })),
+    number: vi.fn(() => ({ type: 'number' })),
+    boolean: vi.fn(() => ({ type: 'boolean' })),
+  };
+  return { mockAiModel, mockSchema };
 });
 
-vi.mock('@firebase/ai', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@firebase/ai')>();
-  return Object.assign({}, actual, {
-    getGenerativeModel: vi.fn(() => mockAiModel),
-  });
-});
+vi.mock('firebase/ai', () => ({
+  Schema: mockSchema,
+  getGenerativeModel: vi.fn(() => mockAiModel),
+  ThinkingLevel: { MINIMAL: 'MINIMAL', LOW: 'LOW', MEDIUM: 'MEDIUM', HIGH: 'HIGH' },
+  HarmCategory: {
+    HARM_CATEGORY_HATE_SPEECH: 'HARM_CATEGORY_HATE_SPEECH',
+    HARM_CATEGORY_SEXUALLY_EXPLICIT: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+    HARM_CATEGORY_HARASSMENT: 'HARM_CATEGORY_HARASSMENT',
+    HARM_CATEGORY_DANGEROUS_CONTENT: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+  },
+  HarmBlockThreshold: {
+    BLOCK_LOW_AND_ABOVE: 'BLOCK_LOW_AND_ABOVE',
+    BLOCK_MEDIUM_AND_ABOVE: 'BLOCK_MEDIUM_AND_ABOVE',
+    BLOCK_ONLY_HIGH: 'BLOCK_ONLY_HIGH',
+    BLOCK_NONE: 'BLOCK_NONE',
+    OFF: 'OFF',
+  },
+  ResponseModality: { TEXT: 'TEXT', IMAGE: 'IMAGE', AUDIO: 'AUDIO' },
+  SchemaType: {
+    STRING: 'string',
+    NUMBER: 'number',
+    INTEGER: 'integer',
+    BOOLEAN: 'boolean',
+    ARRAY: 'array',
+    OBJECT: 'object',
+  },
+}));
+
+vi.mock('@firebase/ai', () => ({
+  Schema: mockSchema,
+  getGenerativeModel: vi.fn(() => mockAiModel),
+  ThinkingLevel: { MINIMAL: 'MINIMAL', LOW: 'LOW', MEDIUM: 'MEDIUM', HIGH: 'HIGH' },
+  HarmCategory: {
+    HARM_CATEGORY_HATE_SPEECH: 'HARM_CATEGORY_HATE_SPEECH',
+    HARM_CATEGORY_SEXUALLY_EXPLICIT: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+    HARM_CATEGORY_HARASSMENT: 'HARM_CATEGORY_HARASSMENT',
+    HARM_CATEGORY_DANGEROUS_CONTENT: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+  },
+  HarmBlockThreshold: {
+    BLOCK_LOW_AND_ABOVE: 'BLOCK_LOW_AND_ABOVE',
+    BLOCK_MEDIUM_AND_ABOVE: 'BLOCK_MEDIUM_AND_ABOVE',
+    BLOCK_ONLY_HIGH: 'BLOCK_ONLY_HIGH',
+    BLOCK_NONE: 'BLOCK_NONE',
+    OFF: 'OFF',
+  },
+  ResponseModality: { TEXT: 'TEXT', IMAGE: 'IMAGE', AUDIO: 'AUDIO' },
+  SchemaType: {
+    STRING: 'string',
+    NUMBER: 'number',
+    INTEGER: 'integer',
+    BOOLEAN: 'boolean',
+    ARRAY: 'array',
+    OBJECT: 'object',
+  },
+}));
 
 describe('VisionService', () => {
   let service: VisionService;
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(getGenerativeModel).mockReturnValue(mockAiModel as unknown as ReturnType<typeof getGenerativeModel>);
     mockAiModel.generateContent.mockResolvedValue({ response: undefined });
 
     TestBed.configureTestingModule({

@@ -1,5 +1,6 @@
 import { ConfigService } from '@/core/services/config.service';
 import { TestBed } from '@angular/core/testing';
+import { GenerativeModel, getGenerativeModel } from 'firebase/ai';
 import { TextToSpeechService } from './text-to-speech.service';
 
 interface MockGenerativeModel {
@@ -7,12 +8,20 @@ interface MockGenerativeModel {
   generateContentStream: ReturnType<typeof vi.fn>;
 }
 
-const mockModel: MockGenerativeModel = {
-  generateContent: vi.fn(),
-  generateContentStream: vi.fn(),
-};
+const { mockModel } = vi.hoisted(() => {
+  const mockModel: MockGenerativeModel = {
+    generateContent: vi.fn(),
+    generateContentStream: vi.fn(),
+  };
+  return { mockModel };
+});
 
 vi.mock('firebase/ai', () => ({
+  getGenerativeModel: vi.fn(() => mockModel),
+  ResponseModality: { AUDIO: 'AUDIO' },
+}));
+
+vi.mock('@firebase/ai', () => ({
   getGenerativeModel: vi.fn(() => mockModel),
   ResponseModality: { AUDIO: 'AUDIO' },
 }));
@@ -28,6 +37,8 @@ describe('TextToSpeechService', () => {
   let appConfigSpy: ReturnType<typeof vi.fn> & (() => Record<string, unknown>);
 
   beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(getGenerativeModel).mockReturnValue(mockModel as unknown as GenerativeModel);
     mockAI = {
       backendType: 'VERTEX',
       app: {

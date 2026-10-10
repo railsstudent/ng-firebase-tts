@@ -7,10 +7,9 @@
     <app-photo-picker
       [previewUrl]="previewUrl()"
       [isLoading]="isLoading()"
-      [acceptedFileTypes]="acceptedTypes"
       (fileChange)="handleFileChange($event)"
       (generate)="handleGenerateClick()"
-      (removeFile)="handleFileChange(undefined)"
+      (invalidFile)="error.set($event)"
     />
 
     @let tags = parsed?.tags || [];
