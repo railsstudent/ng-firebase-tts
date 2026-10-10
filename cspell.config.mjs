@@ -25,7 +25,6 @@ export default defineConfig({
     'grantaccess',
     'Gapless',
     'prerendering',
-    'Sandboxing',
     'recaptcha',
     'sandboxed',
     'multimodal',
@@ -46,6 +45,7 @@ export default defineConfig({
     'Contentful',
     'lifecycles',
     'referrerpolicy',
+    'snarkdown',
   ],
   ignorePaths: [
     'node_modules',

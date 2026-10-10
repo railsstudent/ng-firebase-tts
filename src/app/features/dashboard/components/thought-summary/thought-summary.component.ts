@@ -1,5 +1,6 @@
 import { Component, computed, input } from '@angular/core';
-import { marked } from 'marked';
+import snarkdown from 'snarkdown';
+import dompurify from 'dompurify';
 
 @Component({
   selector: 'app-thought-summary',
@@ -9,5 +10,5 @@ import { marked } from 'marked';
 export class ThoughtSummaryComponent {
   thought = input('');
 
-  htmlThought = computed(() => marked(this.thought().replace('\n\n', '<br />')));
+  htmlThought = computed(() => dompurify.sanitize(snarkdown(this.thought().replaceAll('\n\n', '<br />'))));
 }

@@ -199,7 +199,7 @@ describe('PhotoPickerComponent', () => {
     const invalidFile = new File(['document'], 'doc.pdf', { type: 'application/pdf' });
 
     // Mock the file input element's files property
-    const inputEl = fixture.debugElement.query(By.css('#photo-picker-input')).nativeElement as HTMLInputElement;
+    const inputEl = fixture.debugElement.query(By.css('input[type="file"]')).nativeElement as HTMLInputElement;
     Object.defineProperty(inputEl, 'files', {
       value: [invalidFile],
       writable: true,
@@ -223,7 +223,7 @@ describe('PhotoPickerComponent', () => {
 
     const validFile = new File(['image'], 'mars.png', { type: 'image/png' });
 
-    const inputEl = fixture.debugElement.query(By.css('#photo-picker-input')).nativeElement as HTMLInputElement;
+    const inputEl = fixture.debugElement.query(By.css('input[type="file"]')).nativeElement as HTMLInputElement;
     Object.defineProperty(inputEl, 'files', {
       value: [validFile],
       writable: true,
@@ -253,7 +253,7 @@ describe('PhotoPickerComponent', () => {
 
   // TEST CASE 8: Input Value Reset
   it('should reset file input value after selection to allow re-selecting the same file', () => {
-    const inputEl = fixture.debugElement.query(By.css('#photo-picker-input')).nativeElement as HTMLInputElement;
+    const inputEl = fixture.debugElement.query(By.css('input[type="file"]')).nativeElement as HTMLInputElement;
     const validFile = new File(['image'], 'mars.png', { type: 'image/png' });
     Object.defineProperty(inputEl, 'files', {
       value: [validFile],
@@ -264,5 +264,37 @@ describe('PhotoPickerComponent', () => {
     fixture.detectChanges();
 
     expect(inputEl.value).toBe('');
+  });
+
+  // TEST CASE 9: Seam 1 - Dropzone button activation triggers file input click
+  it('should trigger file input click when dropzone button is clicked or activated', () => {
+    const inputEl = fixture.debugElement.query(By.css('input[type="file"]')).nativeElement as HTMLInputElement;
+    const clickSpy = vi.spyOn(inputEl, 'click');
+
+    const dropzoneBtn = fixture.debugElement.query(By.css('button.dropzone'));
+    expect(dropzoneBtn).toBeTruthy();
+    expect(dropzoneBtn.nativeElement.tagName.toLowerCase()).toBe('button');
+    expect(dropzoneBtn.nativeElement.getAttribute('type')).toBe('button');
+    expect(inputEl.classList.contains('hidden')).toBe(true);
+
+    dropzoneBtn.nativeElement.click();
+    expect(clickSpy).toHaveBeenCalledTimes(1);
+  });
+
+  // TEST CASE 10: Seam 2 - Change Image button activation triggers file input click
+  it('should trigger file input click when Change Image button is clicked or activated in preview state', () => {
+    fixture.componentRef.setInput('previewUrl', 'blob:http://localhost/test-uuid');
+    fixture.detectChanges();
+
+    const inputEl = fixture.debugElement.query(By.css('input[type="file"]')).nativeElement as HTMLInputElement;
+    const clickSpy = vi.spyOn(inputEl, 'click');
+
+    const changeBtn = fixture.debugElement.query(By.css('button[aria-label="Select a new image"]'));
+    expect(changeBtn).toBeTruthy();
+    expect(changeBtn.nativeElement.tagName.toLowerCase()).toBe('button');
+    expect(changeBtn.nativeElement.getAttribute('type')).toBe('button');
+
+    changeBtn.nativeElement.click();
+    expect(clickSpy).toHaveBeenCalledTimes(1);
   });
 });

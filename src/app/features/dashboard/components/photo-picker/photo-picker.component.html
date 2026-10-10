@@ -1,14 +1,9 @@
 <div class="upload-wrapper">
-  <input
-    type="file"
-    id="photo-picker-input"
-    (change)="onFileChange($event)"
-    [attr.accept]="accepted()"
-    class="hidden"
-  />
+  <input #fileInput type="file" (change)="onFileChange($event)" [attr.accept]="accepted()" class="hidden" />
   @if (!previewUrl()) {
-    <label
-      for="photo-picker-input"
+    <button
+      type="button"
+      (click)="fileInput.click()"
       (dragover)="handleDrag($event)"
       (dragleave)="handleDrag($event, false)"
       (drop)="onDrop($event)"
@@ -18,18 +13,19 @@
       <app-photo-icon class="photo-icon pointer-events-none" />
       <p class="upload-title pointer-events-none">Click to upload an image</p>
       <p class="upload-subtitle pointer-events-none">PNG, JPG, JPEG or WEBP</p>
-    </label>
+    </button>
   } @else {
     <div class="preview-container group">
       <img [src]="previewUrl()!" alt="Selected preview" class="preview-image" />
       <div class="action-overlay">
-        <label
-          for="photo-picker-input"
+        <button
+          type="button"
+          (click)="fileInput.click()"
           aria-label="Select a new image"
-          class="mb-2 btn-image-selector cursor-pointer text-center"
+          class="mb-2 btn-image-selector"
         >
           Change Image
-        </label>
+        </button>
         <button type="button" (click)="clearSelectedFile()" aria-label="Remove the image" class="btn-image-selector">
           Remove Image
         </button>
