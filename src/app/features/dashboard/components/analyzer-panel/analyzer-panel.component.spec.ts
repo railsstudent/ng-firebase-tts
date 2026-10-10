@@ -1,6 +1,6 @@
 import { ConfigService } from '@/core/services/config.service';
 import { ImageAnalysisResponse, VisionService } from '@/core/vision';
-import { AnalyzerPanelComponent } from '@/features/dashboard/components/analyzer-panel/analyzer-panel.component';
+import { AnalyzerPanelComponent } from './analyzer-panel.component';
 import { ComponentFixture, DeferBlockBehavior, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 

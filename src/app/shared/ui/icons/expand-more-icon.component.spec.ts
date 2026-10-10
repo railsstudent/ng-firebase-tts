@@ -1,4 +1,4 @@
-import { ExpandMoreIconComponent } from '@/shared/ui/icons/expand-more-icon.component';
+import { ExpandMoreIconComponent } from './expand-more-icon.component';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 

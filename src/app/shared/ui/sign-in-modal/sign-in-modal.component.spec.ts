@@ -1,7 +1,7 @@
 import { AuthService } from '@/core/auth';
 import { APP_LINKS } from '@/core/constants/routes.const';
 import { SpinnerIconComponent } from '@/shared/ui/icons/spinner-icon.component';
-import { SignInModalComponent } from '@/shared/ui/sign-in-modal/sign-in-modal.component';
+import { SignInModalComponent } from './sign-in-modal.component';
 import { DialogRef } from '@angular/cdk/dialog';
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';

@@ -1,4 +1,4 @@
-import { ThoughtSummaryComponent } from '@/features/dashboard/components/thought-summary/thought-summary.component';
+import { ThoughtSummaryComponent } from './thought-summary.component';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 

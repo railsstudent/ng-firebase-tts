@@ -1,5 +1,5 @@
-import { canActivateDashboard } from '@/core/auth/auth.guard';
-import { AuthService } from '@/core/auth/auth.service';
+import { canActivateDashboard } from './auth.guard';
+import { AuthService } from './auth.service';
 import { APP_LINKS } from '@/core/constants/routes.const';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';

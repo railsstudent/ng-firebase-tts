@@ -1,5 +1,5 @@
 import { PwaUpdateService } from '@/core/services/pwa-update.service';
-import { PwaUpdateBanner } from '@/pwa-update-banner';
+import { PwaUpdateBanner } from './pwa-update-banner';
 import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';

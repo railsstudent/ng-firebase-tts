@@ -1,7 +1,7 @@
-import { SpeechModeConfig } from '@/features/dashboard/components/speech-studio/interfaces/audio.interface';
-import { FormFieldConfig } from '@/features/dashboard/components/speech-studio/interfaces/form-config.interface';
-import { SpeechStudioViewService } from '@/features/dashboard/components/speech-studio/services/speech-studio-view';
-import { buildAudioPrompt } from '@/features/dashboard/components/speech-studio/utils/audio-prompt.util';
+import { SpeechModeConfig } from './interfaces/audio.interface';
+import { FormFieldConfig } from './interfaces/form-config.interface';
+import { SpeechStudioViewService } from './services/speech-studio-view';
+import { buildAudioPrompt } from './utils/audio-prompt.util';
 import { VoiceSelectorComponent } from '@/features/dashboard/components/voice-selector/voice-selector.component';
 import { DEFAULT_VOICE } from '@/features/dashboard/constants/voice-name.const';
 import { AudioPromptData } from '@/features/dashboard/interfaces/audio-prompt-data.interface';

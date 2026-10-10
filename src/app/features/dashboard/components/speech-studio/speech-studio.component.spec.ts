@@ -1,4 +1,4 @@
-import { GeneratedAudioRecord } from '@/features/dashboard/components/speech-studio/interfaces/audio.interface';
+import { GeneratedAudioRecord } from './interfaces/audio.interface';
 import { GenerateSpeechMode } from '@/features/dashboard/types/generate-speech-mode.type';
 import { signal, Signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';

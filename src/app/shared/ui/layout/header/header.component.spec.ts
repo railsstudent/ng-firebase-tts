@@ -1,6 +1,6 @@
 import { APP_LINKS } from '@/core/constants/routes.const';
 import { AuthService } from '@/core/auth';
-import { HeaderComponent } from '@/shared/ui/layout/header/header.component';
+import { HeaderComponent } from './header.component';
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';

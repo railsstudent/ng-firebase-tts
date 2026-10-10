@@ -3,7 +3,7 @@ import { AuthService } from '@/core/auth/auth.service';
 import { APP_LINKS } from '@/core/constants/routes.const';
 import { CloseIconComponent } from '@/shared/ui/icons/close-icon.component';
 import { SpinnerIconComponent } from '@/shared/ui/icons/spinner-icon.component';
-import { signInSchemaValidation } from '@/shared/ui/sign-in-modal/schemas/sign-in.schema';
+import { signInSchemaValidation } from './schemas/sign-in.schema';
 import { DialogRef } from '@angular/cdk/dialog';
 import { Component, inject, signal } from '@angular/core';
 import { FieldTree, form, FormField, FormRoot } from '@angular/forms/signals';

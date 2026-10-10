@@ -1,8 +1,5 @@
-import {
-  SORTED_VOICE_MAP,
-  SORTED_VOICE_OPTIONS,
-} from '@/features/dashboard/components/voice-selector/constants/voice-options.const';
-import { VoiceSelectorComponent } from '@/features/dashboard/components/voice-selector/voice-selector.component';
+import { SORTED_VOICE_MAP, SORTED_VOICE_OPTIONS } from './constants/voice-options.const';
+import { VoiceSelectorComponent } from './voice-selector.component';
 import { DEFAULT_VOICE } from '@/features/dashboard/constants/voice-name.const';
 import { ComponentHarness } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';

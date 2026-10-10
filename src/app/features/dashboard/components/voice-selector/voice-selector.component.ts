@@ -1,7 +1,4 @@
-import {
-  SORTED_VOICE_MAP,
-  SORTED_VOICE_OPTIONS,
-} from '@/features/dashboard/components/voice-selector/constants/voice-options.const';
+import { SORTED_VOICE_MAP, SORTED_VOICE_OPTIONS } from './constants/voice-options.const';
 import { DEFAULT_VOICE } from '@/features/dashboard/constants/voice-name.const';
 import { ArrowDropDownIconComponent } from '@/shared/ui/icons/arrow-drop-down-icon.component';
 import { CheckIconComponent } from '@/shared/ui/icons/check-icon.component';

@@ -1,4 +1,4 @@
-import { CloseIconComponent } from '@/shared/ui/icons/close-icon.component';
+import { CloseIconComponent } from './close-icon.component';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 

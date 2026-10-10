@@ -1,4 +1,4 @@
-import { CheckIconComponent } from '@/shared/ui/icons/check-icon.component';
+import { CheckIconComponent } from './check-icon.component';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 

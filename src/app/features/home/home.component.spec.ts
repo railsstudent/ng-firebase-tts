@@ -1,5 +1,5 @@
 import { AuthService } from '@/core/auth';
-import { HomeComponent } from '@/features/home/home.component';
+import { HomeComponent } from './home.component';
 import { SignInModalComponent } from '@/shared/ui/sign-in-modal/sign-in-modal.component';
 import { Dialog } from '@angular/cdk/dialog';
 import { signal } from '@angular/core';

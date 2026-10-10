@@ -1,6 +1,6 @@
 import { ImageAnalysisResponse } from '@/core/vision';
 import { AltTextPanel } from '@/features/dashboard/components/alt-text-panel/alt-text-panel';
-import { AssetRegistry } from '@/features/dashboard/components/analyzer-panel/services/asset-registry.service';
+import { AssetRegistry } from './services/asset-registry.service';
 import { PhotoPickerComponent } from '@/features/dashboard/components/photo-picker/photo-picker.component';
 import { SpeechStudioComponent } from '@/features/dashboard/components/speech-studio/speech-studio.component';
 import { TagsDisplayComponent } from '@/features/dashboard/components/tags-display/tags-display.component';

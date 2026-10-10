@@ -1,4 +1,4 @@
-import { GroundingComponent } from '@/features/dashboard/components/grounding/grounding.component';
+import { GroundingComponent } from './grounding.component';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By, SafeHtml } from '@angular/platform-browser';
 

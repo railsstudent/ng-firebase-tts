@@ -1,4 +1,4 @@
-import { ArrowDropDownIconComponent } from '@/shared/ui/icons/arrow-drop-down-icon.component';
+import { ArrowDropDownIconComponent } from './arrow-drop-down-icon.component';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 

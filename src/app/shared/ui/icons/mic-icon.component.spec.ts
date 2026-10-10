@@ -1,4 +1,4 @@
-import { MicIconComponent } from '@/shared/ui/icons/mic-icon.component';
+import { MicIconComponent } from './mic-icon.component';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 

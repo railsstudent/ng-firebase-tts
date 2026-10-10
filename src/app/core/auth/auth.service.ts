@@ -1,4 +1,4 @@
-import { AuthCredentials } from '@/core/auth/auth-credentials.interface';
+import { AuthCredentials } from './auth-credentials.interface';
 import { WINDOW } from '@/core/constants/navigator.const';
 import { ConfigService } from '@/core/services/config.service';
 import { isLocalhost } from '@/core/utils/host.util';

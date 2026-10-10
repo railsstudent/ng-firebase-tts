@@ -1,6 +1,6 @@
 import { WINDOW } from '@/core/constants/navigator.const';
 import { PWA_CHECK_INTERVAL } from '@/core/constants/pwa.constant';
-import { PwaUpdateService } from '@/core/services/pwa-update.service';
+import { PwaUpdateService } from './pwa-update.service';
 import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { SwUpdate, UnrecoverableStateEvent, VersionReadyEvent } from '@angular/service-worker';

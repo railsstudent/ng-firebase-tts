@@ -1,4 +1,4 @@
-import { AuthService } from '@/core/auth/auth.service';
+import { AuthService } from './auth.service';
 import { WINDOW } from '@/core/constants/navigator.const';
 import { ConfigService } from '@/core/services/config.service';
 import { createMockConfigService } from '@/testing/config.mock';

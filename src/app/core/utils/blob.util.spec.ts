@@ -1,4 +1,4 @@
-import { revokeBlobURL } from '@/core/utils/blob.util';
+import { revokeBlobURL } from './blob.util';
 import { vi } from 'vitest';
 
 describe('blob.util', () => {

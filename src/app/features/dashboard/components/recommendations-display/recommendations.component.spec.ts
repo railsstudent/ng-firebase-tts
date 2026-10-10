@@ -1,4 +1,4 @@
-import { RecommendationsDisplayComponent } from '@/features/dashboard/components/recommendations-display/recommendations.component';
+import { RecommendationsDisplayComponent } from './recommendations.component';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
