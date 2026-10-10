@@ -1,4 +1,4 @@
-import { ConfigService } from '@/core/services/config.service';
+import { ConfigService } from '@/core/firebase/config.service';
 import { inject, Service } from '@angular/core';
 import { GenerateContentResponse, GenerativeModel, getGenerativeModel, ResponseModality } from 'firebase/ai';
 import { decodeAudioChunk, toWavBlob } from './audio.util';

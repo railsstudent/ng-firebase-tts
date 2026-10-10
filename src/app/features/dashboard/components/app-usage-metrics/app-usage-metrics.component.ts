@@ -1,5 +1,4 @@
-import { TokenUsage } from '@/core/interfaces/token-usage.interface';
-import { formatFileSize, ImageOptimizationMetrics } from '@/core/vision';
+import { formatFileSize, ImageOptimizationMetrics, TokenUsage } from '@/core/vision';
 import { Component, computed, input } from '@angular/core';
 
 @Component({

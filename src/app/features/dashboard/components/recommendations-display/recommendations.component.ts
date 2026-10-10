@@ -1,4 +1,4 @@
-import { Recommendation } from '@/core/interfaces/recommendation.interface';
+import { Recommendation } from '@/core/vision';
 import { ExpandMoreIconComponent } from '@/shared/ui/icons/expand-more-icon.component';
 import { AccordionContent, AccordionGroup, AccordionPanel, AccordionTrigger } from '@angular/aria/accordion';
 import { Component, input } from '@angular/core';

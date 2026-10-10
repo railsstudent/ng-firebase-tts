@@ -1,4 +1,4 @@
-import { ConfigService } from '@/core/services/config.service';
+import { ConfigService } from '@/core/firebase/config.service';
 import { createTtsResponseMock, createTtsStreamMock, getMockTtsModel } from '@/testing/ai-model.mock';
 import { createMockConfigService } from '@/testing/config.mock';
 import { TestBed } from '@angular/core/testing';

@@ -1,11 +1,11 @@
 import { WINDOW } from '@/core/constants/navigator.const';
-import { AppRemoteConfig } from '@/core/interfaces/app-remote-config.interface';
-import { isLocalhost } from '@/core/utils/host.util';
 import firebaseConfig from '@/public/firebase.config.json';
 import remoteConfigDefaults from '@/public/remote-config-defaults.json';
 import { inject, isDevMode, Service } from '@angular/core';
 import type { AI, ThinkingLevel } from 'firebase/ai';
 import type { FirebaseApp } from 'firebase/app';
+import { AppRemoteConfig } from './app-remote-config.interface';
+import { isLocalhost } from './host.util';
 
 const SECONDS = 60;
 const MILLISECONDS = 1000;

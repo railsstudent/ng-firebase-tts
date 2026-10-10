@@ -1,4 +1,4 @@
-import { ConfigService } from '@/core/services/config.service';
+import { ConfigService } from '@/core/firebase/config.service';
 import { ImageAnalysisResponse, VisionService } from '@/core/vision';
 import { AnalyzerPanelComponent } from './analyzer-panel.component';
 import { ComponentFixture, DeferBlockBehavior, TestBed } from '@angular/core/testing';

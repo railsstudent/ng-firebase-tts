@@ -1,9 +1,8 @@
-import { AuthCredentials } from './auth-credentials.interface';
 import { WINDOW } from '@/core/constants/navigator.const';
-import { ConfigService } from '@/core/services/config.service';
-import { isLocalhost } from '@/core/utils/host.util';
+import { ConfigService, isLocalhost } from '@/core/firebase';
 import { computed, DestroyRef, inject, Service, signal } from '@angular/core';
 import type { Auth, User } from 'firebase/auth';
+import { AuthCredentials } from './auth-credentials.interface';
 
 const AUTH_EMULATOR_URL = 'http://127.0.0.1:9099';
 

@@ -1,6 +1,6 @@
 import { ROUTE_PATHS } from '@/core/constants/routes.const';
 import { canActivateDashboard } from '@/core/auth';
-import { ConfigService } from '@/core/services/config.service';
+import { ConfigService } from '@/core/firebase/config.service';
 import { HomeComponent } from '@/features/home/home.component';
 import { inject, provideEnvironmentInitializer } from '@angular/core';
 import { Routes } from '@angular/router';
