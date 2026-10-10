@@ -33,6 +33,8 @@ describe('SpeechStudioViewService', () => {
     playStream: ReturnType<typeof vi.fn>;
     stopAll: ReturnType<typeof vi.fn>;
   };
+  let createObjectURLSpy: ReturnType<typeof vi.spyOn>;
+  let revokeObjectURLSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     mockSpeechService = {
@@ -45,8 +47,8 @@ describe('SpeechStudioViewService', () => {
       stopAll: vi.fn().mockResolvedValue(undefined),
     };
 
-    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url');
-    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+    createObjectURLSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url');
+    revokeObjectURLSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
 
     TestBed.configureTestingModule({
       providers: [
@@ -61,7 +63,8 @@ describe('SpeechStudioViewService', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
-    vi.restoreAllMocks();
+    createObjectURLSpy.mockRestore();
+    revokeObjectURLSpy.mockRestore();
   });
 
   describe('Initial State', () => {

@@ -1,10 +1,6 @@
 import { formatAcceptedFormats } from './photo-picker.util';
 
 describe('photo-picker.util', () => {
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
   describe('formatAcceptedFormats', () => {
     it('should format MIME types into a human-readable list', () => {
       const types = ['image/jpeg', 'image/png', 'image/webp'] as const;

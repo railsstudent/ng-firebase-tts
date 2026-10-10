@@ -164,16 +164,17 @@ describe('AudioPlayerService', () => {
 
   describe('awaitPlaybackComplete', () => {
     let testService: AudioPlayerService;
+    let mathSpy: ReturnType<typeof vi.spyOn>;
 
     beforeEach(() => {
       vi.useFakeTimers();
-      vi.spyOn(Math, 'random').mockReturnValue(1 / 3);
+      mathSpy = vi.spyOn(Math, 'random').mockReturnValue(1 / 3);
       testService = TestBed.runInInjectionContext(() => new AudioPlayerService());
     });
 
     afterEach(() => {
       vi.useRealTimers();
-      vi.restoreAllMocks();
+      mathSpy.mockRestore();
     });
 
     it('should resolve instantly if not initialized', async () => {

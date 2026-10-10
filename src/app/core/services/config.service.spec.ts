@@ -7,80 +7,14 @@ import { initializeAppCheck } from 'firebase/app-check';
 import { fetchAndActivate, getRemoteConfig } from 'firebase/remote-config';
 import { ConfigService } from './config.service';
 
-// Mock firebase/app
-vi.mock('firebase/app', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('firebase/app')>();
-  return Object.assign({}, actual, {
-    initializeApp: vi.fn().mockReturnValue({
-      name: '[DEFAULT]',
-      container: {
-        getProvider: vi.fn().mockReturnValue({
-          getImmediate: vi.fn().mockReturnValue({}),
-          getComponent: vi.fn().mockReturnValue({}),
-          heartbeatController: {
-            triggerHeartbeat: vi.fn(),
-          },
-        }),
-      },
-    }),
-  });
-});
-
-// Mock firebase/app-check
-vi.mock('firebase/app-check', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('firebase/app-check')>();
-  return Object.assign({}, actual, {
-    initializeAppCheck: vi.fn(),
-    ReCaptchaEnterpriseProvider: vi.fn(),
-  });
-});
-
-// Mock firebase/remote-config
-vi.mock('firebase/remote-config', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('firebase/remote-config')>();
-  return Object.assign({}, actual, {
-    getRemoteConfig: vi.fn().mockReturnValue({
-      defaultConfig: {},
-      settings: {},
-    }),
-    fetchAndActivate: vi.fn().mockResolvedValue(true),
-    getValue: (_rc: unknown, key: string) => ({
-      asString: () => {
-        switch (key) {
-          case 'vertexAILocation':
-            return 'us-central1';
-          case 'geminiModelName':
-            return 'gemini-1.5-flash';
-          case 'geminiTTSModelName':
-            return 'gemini-1.5-flash-tts';
-          case 'thinkingLevel':
-            return 'LOW';
-          default:
-            return '';
-        }
-      },
-      asBoolean: () => key === 'useLimitedUseAppCheckTokens',
-      asNumber: () => 0,
-    }),
-  });
-});
-
-// Mock firebase/ai to prevent real initialization inside ConfigService tests
-vi.mock('firebase/ai', () => ({
-  getAI: vi.fn().mockReturnValue({}),
-  AgentPlatformBackend: vi.fn(),
-}));
-
-vi.mock('@firebase/ai', () => ({
-  getAI: vi.fn().mockReturnValue({}),
-  AgentPlatformBackend: vi.fn(),
-}));
-
 describe('ConfigService', () => {
   let windowMock: { location: { hostname: string }; navigator: { onLine: boolean } } | null;
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.mocked(initializeApp).mockClear();
+    vi.mocked(initializeAppCheck).mockClear();
+    vi.mocked(getRemoteConfig).mockClear();
+    vi.mocked(fetchAndActivate).mockClear();
     vi.mocked(fetchAndActivate).mockResolvedValue(true);
 
     windowMock = {

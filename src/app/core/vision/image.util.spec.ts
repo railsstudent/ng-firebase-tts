@@ -1,10 +1,6 @@
 import { formatFileSize, preprocessImageForVision } from './image.util';
 
 describe('image.util', () => {
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
   describe('formatFileSize', () => {
     it('should format bytes to human-readable strings', () => {
       expect(formatFileSize(0)).toBe('0 B');

@@ -1,6 +1,7 @@
 import { AuthService } from '@/core/auth/auth.service';
 import { WINDOW } from '@/core/constants/navigator.const';
 import { ConfigService } from '@/core/services/config.service';
+import { createMockConfigService } from '@/testing/config.mock';
 import { TestBed } from '@angular/core/testing';
 import type { Auth, User } from 'firebase/auth';
 import {
@@ -10,6 +11,7 @@ import {
   onAuthStateChanged,
   setPersistence,
   signInWithEmailAndPassword,
+  signOut,
 } from 'firebase/auth';
 
 interface EnsureAuthResult {
@@ -22,52 +24,59 @@ interface AuthServiceWithInternal {
 }
 
 const mockUnsubscribe = vi.fn();
-
-const mockAuthInstance = {
-  name: '[DEFAULT]',
-  app: {},
-  currentUser: null,
-  authStateReady: vi.fn().mockResolvedValue(undefined),
-} as unknown as Auth;
-
 let authStateCallback: ((user: User | null) => void) | null = null;
-
-vi.mock('firebase/auth', () => ({
-  getAuth: vi.fn(() => mockAuthInstance),
-  connectAuthEmulator: vi.fn(),
-  browserSessionPersistence: 'SESSION',
-  setPersistence: vi.fn().mockResolvedValue(undefined),
-  onAuthStateChanged: vi.fn((_auth: Auth, callback: (user: User | null) => void) => {
-    authStateCallback = callback;
-    return mockUnsubscribe;
-  }),
-  authStateReady: vi.fn().mockResolvedValue(undefined),
-  signInWithEmailAndPassword: vi.fn().mockImplementation(async () => {
-    const user = { uid: 'test-uid-123', email: 'test@example.com' } as User;
-    authStateCallback?.(user);
-    return { user };
-  }),
-  signOut: vi.fn().mockImplementation(async () => {
-    authStateCallback?.(null);
-    return undefined;
-  }),
-}));
+let mockAuthInstance: Auth;
 
 describe('AuthService', () => {
   let windowMock: {
     location: { hostname: string };
   } | null = null;
 
-  const mockConfigService = {
-    initialize: vi.fn(),
-    getAiBackend: vi.fn(),
-    getApp: vi.fn().mockResolvedValue({}),
-  };
+  const mockConfigService = createMockConfigService();
+
+  function resetAuthMocks(): void {
+    mockUnsubscribe.mockClear();
+    mockConfigService.initialize.mockClear();
+    mockConfigService.getAiBackend.mockClear();
+    mockConfigService.getApp.mockClear();
+    const authMocks = [
+      connectAuthEmulator,
+      setPersistence,
+      signInWithEmailAndPassword,
+      signOut,
+      onAuthStateChanged,
+      getAuth,
+    ];
+    for (const fn of authMocks) {
+      vi.mocked(fn).mockClear();
+    }
+  }
+
+  function setupAuthEventLoop(): void {
+    authStateCallback = null;
+    mockAuthInstance = vi.mocked(getAuth)() as unknown as Auth;
+    vi.mocked(getAuth).mockClear();
+
+    vi.mocked(onAuthStateChanged).mockImplementation((_auth, nextOrObserver) => {
+      authStateCallback = typeof nextOrObserver === 'function' ? nextOrObserver : nextOrObserver.next;
+      return mockUnsubscribe;
+    });
+
+    vi.mocked(signInWithEmailAndPassword).mockImplementation(async () => {
+      const user = { uid: 'test-uid-123', email: 'test@example.com' } as User;
+      authStateCallback?.(user);
+      return { user } as never;
+    });
+
+    vi.mocked(signOut).mockImplementation(async () => {
+      authStateCallback?.(null);
+      return undefined;
+    });
+  }
 
   beforeEach(() => {
-    vi.clearAllMocks();
-    authStateCallback = null;
-
+    resetAuthMocks();
+    setupAuthEventLoop();
     windowMock = {
       location: {
         hostname: 'localhost',

@@ -5,7 +5,7 @@ import { ComponentFixture, DeferBlockBehavior, TestBed } from '@angular/core/tes
 import { By } from '@angular/platform-browser';
 
 const mockVisionService = {
-  analyzeImage: vi.spyOn(VisionService.prototype, 'analyzeImage'),
+  analyzeImage: vi.fn(),
 };
 
 describe('AnalyzerPanelComponent', () => {
@@ -13,11 +13,15 @@ describe('AnalyzerPanelComponent', () => {
   let fixture: ComponentFixture<AnalyzerPanelComponent>;
 
   beforeEach(async () => {
-    vi.clearAllMocks();
+    mockVisionService.analyzeImage.mockReset();
 
     await TestBed.configureTestingModule({
       imports: [AnalyzerPanelComponent],
       providers: [
+        {
+          provide: VisionService,
+          useValue: mockVisionService,
+        },
         {
           provide: ConfigService,
           useValue: {
