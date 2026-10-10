@@ -1,8 +1,8 @@
-import { PwaUpdateService } from '@/core/services/pwa-update.service';
-import { PwaUpdateBanner } from './pwa-update-banner';
 import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { PwaUpdateBanner } from './pwa-update-banner';
+import { PwaUpdateService } from './pwa-update.service';
 
 describe('PwaUpdateBanner', () => {
   let updateAvailableSignal: WritableSignal<boolean>;

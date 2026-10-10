@@ -1,5 +1,5 @@
-import { PwaUpdateService } from '@/core/services/pwa-update.service';
 import { Component, inject } from '@angular/core';
+import { PwaUpdateService } from './pwa-update.service';
 
 @Component({
   selector: 'app-pwa-update-banner',

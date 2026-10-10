@@ -1,10 +1,10 @@
 import { WINDOW } from '@/core/constants/navigator.const';
-import { PWA_CHECK_INTERVAL } from '@/core/constants/pwa.constant';
 import { ApplicationRef, DestroyRef, inject, Service } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { SwUpdate } from '@angular/service-worker';
 import { concat, EMPTY, from, interval } from 'rxjs';
 import { catchError, exhaustMap, filter, map, take } from 'rxjs/operators';
+import { PWA_CHECK_INTERVAL } from './pwa.constant';
 
 @Service()
 export class PwaUpdateService {

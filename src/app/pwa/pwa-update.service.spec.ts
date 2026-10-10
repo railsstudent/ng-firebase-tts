@@ -1,11 +1,11 @@
 import { WINDOW } from '@/core/constants/navigator.const';
-import { PWA_CHECK_INTERVAL } from '@/core/constants/pwa.constant';
-import { PwaUpdateService } from './pwa-update.service';
 import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { SwUpdate, UnrecoverableStateEvent, VersionReadyEvent } from '@angular/service-worker';
 import { Subject } from 'rxjs';
 import { vi } from 'vitest';
+import { PwaUpdateService } from './pwa-update.service';
+import { PWA_CHECK_INTERVAL } from './pwa.constant';
 
 describe('PwaUpdateService', () => {
   let swUpdateMock: {
