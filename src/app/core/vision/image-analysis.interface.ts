@@ -1,7 +1,13 @@
-import { Metadata } from '@/core/interfaces/grounding.interface';
 import { Recommendation } from '@/core/interfaces/recommendation.interface';
 import { TokenUsage } from '@/core/interfaces/token-usage.interface';
+import { WebGroundingChunk } from 'firebase/ai';
 import { ImageOptimizationMetrics } from './image-processing.interface';
+
+export interface GroundingMetadata {
+  citations: WebGroundingChunk[];
+  renderedContent: string;
+  searchQueries: string[];
+}
 
 export interface ImageAnalysis {
   alternativeText: string;
@@ -14,6 +20,6 @@ export interface ImageAnalysisResponse {
   parsed: ImageAnalysis;
   thought: string;
   tokenUsage: TokenUsage;
-  metadata: Metadata;
+  metadata: GroundingMetadata;
   optimizationMetrics?: ImageOptimizationMetrics;
 }

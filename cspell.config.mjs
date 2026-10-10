@@ -45,6 +45,7 @@ export default defineConfig({
     'EXIF',
     'Contentful',
     'lifecycles',
+    'referrerpolicy',
   ],
   ignorePaths: [
     'node_modules',

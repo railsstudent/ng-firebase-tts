@@ -1,5 +1,5 @@
-import { Metadata } from '@/core/interfaces/grounding.interface';
-import { afterRenderEffect, Component, computed, ElementRef, inject, input, Renderer2 } from '@angular/core';
+import { GroundingMetadata } from '@/core/vision';
+import { Component, computed, inject, input } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 
 @Component({
@@ -8,41 +8,23 @@ import { DomSanitizer } from '@angular/platform-browser';
   styleUrl: './grounding.component.css',
 })
 export class GroundingComponent {
-  metadata = input<Metadata | undefined>(undefined);
+  metadata = input<GroundingMetadata | undefined>(undefined);
 
   #sanitizer = inject(DomSanitizer);
-  #renderer2 = inject(Renderer2);
-  #elementRef = inject(ElementRef);
 
   safeRenderedContent = computed(() => {
     const unsafeContent = this.metadata()?.renderedContent;
-    return unsafeContent ? this.#sanitizer.bypassSecurityTrustHtml(unsafeContent) : '';
-  });
-
-  constructor() {
-    afterRenderEffect({
-      write: () => {
-        if (this.safeRenderedContent()) {
-          this.styleSources();
-        }
-      },
-    });
-  }
-
-  private styleSources() {
-    const nativeElement = this.#elementRef.nativeElement;
-
-    if (nativeElement && nativeElement instanceof HTMLElement) {
-      const firstCarousel = nativeElement.getElementsByClassName('carousel')?.item(0);
-      if (firstCarousel) {
-        this.#renderer2.setStyle(firstCarousel, 'white-space', 'normal');
-        const tags = firstCarousel.getElementsByTagName('a');
-        for (const tag of tags) {
-          this.#renderer2.setStyle(tag, 'margin-bottom', '0.5rem');
-          this.#renderer2.setAttribute(tag, 'target', '_blank');
-          this.#renderer2.setAttribute(tag, 'rel', 'noopener noreferrer');
-        }
-      }
+    if (!unsafeContent) {
+      return '';
     }
-  }
+
+    const enhanced = unsafeContent
+      .replace('class="carousel"', 'class="carousel whitespace-normal"')
+      .replaceAll(
+        '<a ',
+        '<a target="_blank" rel="noopener noreferrer nofollow external" referrerpolicy="no-referrer" title="Opens in a new tab" class="link-anchor mb-2" ',
+      );
+
+    return this.#sanitizer.bypassSecurityTrustHtml(enhanced);
+  });
 }
