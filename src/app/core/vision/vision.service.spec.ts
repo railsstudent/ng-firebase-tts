@@ -1,17 +1,17 @@
 import { ConfigService } from '@/core/firebase/config.service';
-import { createVisionResponseMock, getMockVisionModel } from '@/testing/ai-model.mock';
+import { createMockVisionModel, createMockVisionResponse } from '@/testing/ai-model.mock';
 import { createMockConfigService } from '@/testing/config.mock';
 import { TestBed } from '@angular/core/testing';
 import { VisionService } from './vision.service';
 
 describe('VisionService', () => {
   let service: VisionService;
-  let mockAiModel: ReturnType<typeof getMockVisionModel>;
+  let mockAiModel: ReturnType<typeof createMockVisionModel>;
 
   beforeEach(() => {
-    mockAiModel = getMockVisionModel();
+    mockAiModel = createMockVisionModel();
     mockAiModel.generateContent.mockClear();
-    mockAiModel.generateContent.mockResolvedValue(createVisionResponseMock());
+    mockAiModel.generateContent.mockResolvedValue(createMockVisionResponse());
 
     TestBed.configureTestingModule({
       providers: [
@@ -44,7 +44,7 @@ describe('VisionService', () => {
     mockAiModel.generateContent.mockImplementation((args: unknown) => {
       generateContentCalled = true;
       generateContentArgs = args;
-      return Promise.resolve(createVisionResponseMock());
+      return Promise.resolve(createMockVisionResponse());
     });
 
     const fakeFile = new File(['hello-world'], 'test-image.png', { type: 'image/png' });

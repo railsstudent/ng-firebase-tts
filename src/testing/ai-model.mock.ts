@@ -49,7 +49,7 @@ function buildGroundingMetadata(includeGrounding?: boolean) {
   };
 }
 
-export function createVisionResponseMock(options?: MockVisionResponseOptions) {
+export function createMockVisionResponse(options?: MockVisionResponseOptions) {
   const analysisPayload = buildVisionPayload(options);
   const groundingMetadata = buildGroundingMetadata(options?.includeGrounding);
 
@@ -68,7 +68,7 @@ export function createVisionResponseMock(options?: MockVisionResponseOptions) {
   };
 }
 
-export function createTtsResponseMock(options?: MockTtsResponseOptions) {
+export function createMockTtsResponse(options?: MockTtsResponseOptions) {
   const data = options?.base64Data ?? 'SGVsbG8=';
   const mimeType = options?.mimeType ?? 'audio/l16; rate=24000; channels=1';
 
@@ -85,7 +85,7 @@ export function createTtsResponseMock(options?: MockTtsResponseOptions) {
   };
 }
 
-export function createTtsStreamMock(chunks?: { data: string; mimeType: string }[]) {
+export function createMockTtsStream(chunks?: { data: string; mimeType: string }[]) {
   const defaultChunks = chunks ?? [{ data: 'SGVsbG8=', mimeType: 'audio/l16; rate=24000; channels=1' }];
 
   return {
@@ -105,14 +105,14 @@ export function createTtsStreamMock(chunks?: { data: string; mimeType: string }[
   };
 }
 
-export function getMockVisionModel() {
+export function createMockVisionModel() {
   return vi.mocked(getGenerativeModel)({} as never, {} as never) as unknown as {
     generateContent: ReturnType<typeof vi.fn>;
     generateContentStream: ReturnType<typeof vi.fn>;
   };
 }
 
-export function getMockTtsModel() {
+export function createMockTtsModel() {
   return vi.mocked(getGenerativeModel)({} as never, {
     model: 'gemini-2.0-flash-exp',
     generationConfig: { responseModalities: ['AUDIO'] },

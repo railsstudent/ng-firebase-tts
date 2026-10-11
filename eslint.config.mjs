@@ -64,9 +64,17 @@ export default defineConfig([
           patterns: [
             {
               group: ['**/../*', '**/./../*'],
-              message: 'Relative imports are forbidden. Please use absolute path aliases starting with @/.',
+              message:
+                'Parent relative imports (..) are forbidden. Use sibling relative imports (./) for files in the same directory or absolute aliases (@/) for cross-directory imports.',
             },
           ],
+        },
+      ],
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'MethodDefinition[key.type="PrivateIdentifier"]',
+          message: 'Use TypeScript private keyword instead of # prefix for class methods.',
         },
       ],
       complexity: ['error', { max: 10 }],

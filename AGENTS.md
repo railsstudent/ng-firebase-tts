@@ -1,126 +1,25 @@
-# Agent Guidelines: ng-firebase-tts
+# AGENTS
 
 This file provides context, rules, and guidance for AI assistants working on this codebase.
 
-> [!NOTE]
-> General Angular framework-level best practices are defined in [.gemini/GEMINI.md](.gemini/GEMINI.md).
+## Directory Navigation
 
-## Project Structure & Coding Style
+- **`src/app/core/<domain>/`**: Cohesive flat domain packages with public `index.ts`. Keep domain files at the root level of the folder without nested subdirectories.
+- **`src/app/features/`**: Feature components, routing, and view models. Never create barrel files (`index.ts`) in feature folders or across `@defer` boundaries.
+- **`src/app/pwa/`**: PWA infrastructure & update checking. Use direct targeted imports without barrel files to preserve `@defer` splitting.
+- **`src/app/shared/`**: Reusable components, pipes, and domain models (`src/app/shared/interfaces/<domain>.interface.ts`).
+- **`src/testing/`**: Shared mock factories (`createMockConfigService`, `createMockAiModel`).
+- **`firebase/`**: Firebase CLI configs (`firebase.json`, Remote Config templates, prebuild scripts).
 
-Follow this directory layout and architectural pattern when adding new files:
+## Context Pointers & Protocols
 
-- **`firebase/`**: Contains all Firebase CLI configurations (`firebase.json`, Remote Config templates, prebuild scripts). Scripts in `package.json` copy `firebase/firebase.json` to the root ephemerally during execution (`cp firebase/firebase.json .; ...; rm firebase.json`) to keep the root directory clean.
-- **`src/app/core/`**: Core domain logic, singleton services, guards, and startup initializers. Core business domains should be organized as cohesive domain packages (e.g., `src/app/core/vision/`, `src/app/core/speech/`, `src/app/core/auth/`) that present a clean, deep public interface via `index.ts` while collocating their private internal utilities, schemas, and domain-scoped interfaces.
-- **`src/app/features/`**: Feature-specific components, routing, and modules (e.g., dashboard, settings).
-- **`src/app/pwa/`**: Progressive Web App infrastructure, update checking services, and banner components. Must use direct targeted file imports without a barrel file (`index.ts`) to preserve `@defer` code-splitting boundaries.
-- **`src/app/shared/`**: Reusable components, directives, pipes, domain models, and shared utilities.
-  - **Shared Interfaces**: Core shared/domain TypeScript interfaces and model files (like `Expense` or `ToastMessage`) MUST be created inside `src/app/shared/interfaces/` as separate files using the naming convention `<domain-name>.interface.ts`. Never declare interfaces inline within service or utility files.
-  - **Component & Feature-Scoped Interfaces**: Interfaces that are strictly scoped to a specific component or feature-tree (like table configurations or local view states) should be organized inside an `interfaces/` subfolder located directly within that component or feature directory (e.g. `src/app/features/expense/components/history-insights/interfaces/`). Sibling relative imports (`./interfaces/...`) or absolute path aliases (e.g. `@/features/expense/...`) are allowed; parent directory traversal imports (`../`) are strictly forbidden.
-- **`src/testing/`**: Shared mock factories (`createMockConfigService`, `createMockAiModel`) and test harnesses. Never mutate mocks across tests; always generate fresh instances via factories.
+- **MCP Tools & Research**: [docs/agents/mcp-tools.md](docs/agents/mcp-tools.md) — MUST query `angular-cli` and `firebase-mcp-server` MCPs first. Web search is strictly forbidden for Angular/Firebase platform APIs.
+- **Coding Standards & Invariants**: [docs/agents/coding-standards.md](docs/agents/coding-standards.md) — Architectural invariants (zero `!`, zero `../`, native `#` for non-method private state/deps, TS `private` for methods, Signal Forms).
+- **Testing & Mocking**: [docs/agents/testing-guide.md](docs/agents/testing-guide.md) — DI mocking at TestBed boundary using `mock<Name>` with `satisfies Partial<T>`, mock factories, and targeted runner usage.
+- **Domain Modeling**: [docs/agents/domain.md](docs/agents/domain.md) — Project glossary and domain decisions.
+- **Document Boundaries**: [docs/agents/document-boundaries.md](docs/agents/document-boundaries.md) — Scope separation across PRDs (`spec.md`), ADRs (`docs/adr/`), and implementation tickets (`.scratch/`).
 
-### Core Coding Style & Syntax Constraints
+## Verification & Pre-Commit Loop
 
-When writing or refactoring TypeScript code, you MUST adhere to the following rules:
-
-1. **Private Member Conventions (Methods vs. The Rest)**:
-   - **Private Methods**: Always declare class-internal helper methods with the TypeScript `private` keyword (e.g. `private clamp(...)`, `private getCacheKey(...)`). Do NOT use `#` prefixes for methods, and do NOT leave internal helper functions as loose module-level functions in service files—encapsulate them as `private` methods within the class.
-   - **The Rest (All Non-Method Private Members)**: Always use JavaScript native `#` prefixes for any internal private member that is not a method (state signals, injected dependencies, primitive variables, objects, e.g. `readonly #state = signal(...)`, `readonly #nav = inject(NavService)`, `#engine: Engine | null = null`). Signal queries (`viewChild`, `viewChildren`, `contentChild`, `contentChildren`) and template-accessible properties/signals are public by design and exempt from `#` prefixes.
-2. **Tailwind CSS v4 Component Styling**: Always prioritize Tailwind CSS v4 `@apply` utility classes over raw vanilla CSS inside component-scoped stylesheets. To compile correctly in isolation, you MUST prepend an explicit `@reference` directive pointing relatively to the global `src/styles.css` stylesheet file (relative paths like `@reference "../../../../../styles.css";` are specifically required and allowed for CSS `@reference`, as CSS does not support TypeScript path aliases).
-   - **Correct**:
-
-     ```css
-     @reference "../../../../../styles.css";
-     .toast-container {
-       @apply fixed top-6 right-6 flex flex-col;
-     }
-     ```
-
-3. **Signal Localization & Stateless Parent Services**: Presentation-only variables (such as active sorting columns, sort direction, page size, current page numbers, and modal pending/open selections) must reside locally inside the presenting component or its stateless view-service helpers. They must not pollute parent data-loading services.
-   - **Atomic Record Migration**: When upgrading a service from loose primitives to an atomic snapshot Signal (e.g. `activeAudio = signal<GeneratedAudioRecord | undefined>`), eliminate single-property pass-through computed getters (`audioUrl`) from the service. Always project presentation-specific properties locally within the consuming component (`audioUrl = computed(() => this.speechService.activeAudio()?.url)`).
-   - _Avoid_: Retaining pass-through getters on data services for backward compatibility.
-4. **Signal Forms (`@angular/forms/signals`) Constraint**: All forms in this repository MUST be built using Angular's modern, reactive Signal Forms (`@angular/forms/signals`). The use of legacy Reactive Forms (`FormGroup`, `FormControl`, `FormBuilder` from `@angular/forms`) or template-driven forms is strictly prohibited. This guarantees optimal performance, native reactivity, and a unified state management architecture.
-5. **Unified Visual Theme & Page Shells**: All newly created pages must use the project's standardized global wrapper class (such as `.app-page-shell` or layout boundaries) and adhere strictly to the designated design tokens (colors, variables, and typography) defined in the global stylesheet. Under no circumstances should individual pages define their own localized, hardcoded background overrides or absolute `min-h-screen` height properties; instead, they must inherit the unified layout structure and respect responsive viewport boundaries.
-6. **Zero-Dependency Icons & Native Web Primitives**:
-   - **UI Icons**: All UI icons MUST be implemented as standalone SVG components inside `src/app/shared/ui/icons/` referencing the shared `styleUrl: './icon.css'` stylesheet (which applies `:host { @apply app-icon; }` via Tailwind CSS v4) and `<svg class="w-full h-full" fill="currentColor" aria-hidden="true">`. Individual `.component.css` files should only be used when an icon requires custom animation or distinct transitions. Do NOT install or use icon web fonts (`@fontsource`, Google Fonts) or third-party icon packages.
-   - **External Dependencies**: Always prefer native Angular/TypeScript primitives (Signals, standard Web APIs, Tailwind CSS v4) over installing third-party utility packages. Only introduce dependencies for heavy domain complexity (such as Firebase SDK, Angular CDK/ARIA primitives).
-7. **PWA Icon Dimensions & Static Asset Optimization**:
-   - PWA icons located in `public/icons/` (e.g. `icon-192.png`, `icon-512.png`) MUST strictly match their designated physical pixel dimensions (exactly 192x192 for `icon-192.png` and 512x512 for `icon-512.png`).
-   - Never commit oversized or unscaled raw assets (such as 1024x1024 master images or multi-megabyte uncompressed files) into `public/`.
-   - Always downscale images to their exact target resolutions (using CLI utilities like `sips -z <height> <width> <file>` on macOS) to ensure strict PWA compliance, minimal asset payloads, and optimal caching behavior.
-8. **Domain Package Boundaries & Invariants**:
-   - **Domain Packages (`src/app/core/<domain>/`)**: Core business logic, services, routing, and utilities must be organized as cohesive, flat domain packages (e.g. `src/app/core/vision/`, `src/app/core/speech/`, `src/app/core/auth/`). Keep all domain files on the same level directly inside the domain package folder without nested subdirectories (`constants/`, `interfaces/`, `types/`). Each domain package presents a clean, minimal public API surface via its `index.ts` entry point while encapsulating internal details. Never broaden member visibility or export internal helpers for testing; test domain packages strictly through their public API surface.
-   - **Architectural Invariants & Linter Compliance**: All authored code must preserve architectural invariants on initial generation (zero `!` non-null assertions, native `#` private fields, sibling `./` imports or absolute `@/` path aliases, and zero parent `../` imports). Numerical AST metrics (line lengths, parameter limits, complexity thresholds, and magic numbers) are deterministically enforced by `npm run lint`.
-   - **Barrel File Restrictions**: Barrel files (`index.ts`) are strictly reserved for core domain packages under `src/app/core/<domain>/`. Never create barrel files in `src/app/pwa/`, feature folders, or component directories containing `@defer` components, as eager service imports from a shared barrel bundle deferred components into the initial chunk.
-
-## Agent skills
-
-### Issue tracker
-
-Issues and specs live as local markdown files under `.scratch/`. See `docs/agents/issue-tracker.md`.
-
-### Documentation Architecture & Document Boundaries
-
-Maintain clear separation across the three core document types:
-
-1. **`spec.md` (Product Specification / PRD)**:
-   - **Role**: Defines **what** the feature accomplishes and **why** from the user's perspective.
-   - **Content**: Problem statement, user stories, product-level behaviors, and **natural-language testing decisions** framed around user journeys, accessibility, and security gates for product managers and non-technical stakeholders.
-   - **Scope Boundaries**: Focuses on user-visible behavior; leaves low-level class names, method signatures, private helpers, and library mechanics to the ADR and implementation tickets.
-
-2. **`docs/adr/` (Architectural Decision Records)**:
-   - **Role**: Documents **how** the system is built, technology choices, and architectural trade-offs.
-   - **Content**: Rationale for technical decisions, evaluation of alternatives, performance and bundle considerations, data storage or persistence strategies, and overarching system patterns.
-
-3. **Implementation Tickets (`.scratch/<feature>/issues/NN-<slug>.md`)**:
-   - **Role**: Concrete engineering execution breakdown.
-   - **Content**: Specific public API contracts, internal module structure, test matrices, and step-by-step implementation tasks.
-
-### Domain docs
-
-Domain documentation layout is single-context. See `docs/agents/domain.md`.
-
-## Documentation & MCP Research Protocols
-
-### Pre-Implementation Discovery Protocol
-
-Before authoring new utilities, styles, or services, inspect existing project declarations first:
-
-- **Design Tokens**: Inspect `@theme` in `src/styles.css` for existing tokens (e.g. `text-(--color-text-secondary)`) instead of using raw Tailwind palette classes.
-- **Platform Injections**: Inspect `src/app/core/constants/navigator.const.ts` for existing injection tokens (`WINDOW`, `NAVIGATOR`) instead of writing ad-hoc `typeof` checks.
-- **Architectural Decisions**: Inspect `docs/adr/` for relevant domain specifications and design decisions.
-
-### Framework & Library Research Protocols
-
-When researching framework/platform APIs, architecture, or resolving errors:
-
-1. **Angular Questions (`angular-cli` MCP)**:
-   - Primary: Query the `angular-cli` MCP server (`search_documentation`, `get_best_practices`, `ai_tutor`) targeting the project's current major Angular version (`22`).
-   - Fallback: Use web search if the MCP server is unavailable or returns no results.
-
-2. **Firebase & Google Cloud Questions (`firebase-mcp-server`)**:
-   - Primary: Query the `firebase-mcp-server` (`developerknowledge_answer_query`, `developerknowledge_search_documents`) for App Hosting, Remote Config, Firebase Security Rules, and Firebase Web SDK 12.x documentation.
-   - Fallback: Use web search if the tool is unavailable or hits rate limits.
-
-3. **General Third-Party Tools (Tailwind v4, Vitest, etc.)**:
-   - Use web search directly for libraries outside the official Angular / Firebase MCP knowledge bases.
-
-## Testing & Command Verification Loop
-
-When editing, creating, or testing files in this repository, you MUST follow these constraints:
-
-1. **Targeted Testing via Angular CLI MCP Server**:
-   - During feature development and refactoring, use the `angular-cli` MCP server (`run_target`) with `target: "test"` to run tests against specifically modified files or component directories.
-   - To run targeted tests with coverage, pass key-value options such as:
-
-     ```json
-     {
-       "coverage": true,
-       "include": ["src/app/features/dashboard/components/tags-display/tags-display.component.spec.ts"]
-     }
-     ```
-
-2. **Defer Full-Suite Verification to End-of-Task**:
-   - Do NOT run full repo-wide commands (`npm run lint`, `npm run format`, `npm test`, full `npm run test:once`, `npm run build`) recursively after every individual contiguous block edit. Gather all contiguous and related edits, apply them first, and run full validation commands EXACTLY ONCE at the end of the complete task milestone.
-
-3. **ESLint Compliance in Spec Files**:
-   - When generating or updating unit tests (`*.spec.ts`), ensure they adhere to the project's ESLint config. Avoid common violations like parent relative imports (`../`) in TypeScript (use sibling `./` imports or absolute `@/` path aliases; relative parent paths are strictly for CSS `@reference` directives) and missing curly braces. Do not use legacy reactive forms or custom test classes that expand member visibility just for testing.
+1. **Targeted Testing during Development**: Use `angular-cli` MCP `run_target` with `target: "test"` against modified files or directories.
+2. **End-of-Task Validation**: Run `npm run lint` and `npm run test:once` before declaring work complete to ensure zero violations.

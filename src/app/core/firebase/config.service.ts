@@ -33,11 +33,11 @@ export class ConfigService {
     return this.#appConfig;
   }
 
-  #isOnline(): boolean {
+  private isOnline(): boolean {
     return this.#window?.navigator?.onLine ?? true;
   }
 
-  #configureAppCheckDebugToken(isLocalhost: boolean): void {
+  private configureAppCheckDebugToken(isLocalhost: boolean): void {
     (globalThis as Record<string, unknown>)['FIREBASE_APPCHECK_DEBUG_TOKEN'] = isLocalhost
       ? firebaseConfig.appCheckDebugToken || true
       : false;
@@ -46,7 +46,7 @@ export class ConfigService {
   private loadAppCheck(isLocalhost: boolean, key: string): Promise<void> {
     const appCheck = import('firebase/app-check');
     return appCheck.then(({ initializeAppCheck, ReCaptchaEnterpriseProvider }) => {
-      this.#configureAppCheckDebugToken(isLocalhost);
+      this.configureAppCheckDebugToken(isLocalhost);
       initializeAppCheck(this.#app, {
         provider: new ReCaptchaEnterpriseProvider(key),
         isTokenAutoRefreshEnabled: true,
@@ -81,7 +81,7 @@ export class ConfigService {
 
     const app = await this.getApp();
 
-    if (this.#isOnline() && firebaseConfig.recaptchaEnterpriseKey) {
+    if (this.isOnline() && firebaseConfig.recaptchaEnterpriseKey) {
       await this.ensureAppCheck(isLocalhost(this.#window));
     }
 
@@ -118,7 +118,7 @@ export class ConfigService {
     const dev = isDevMode();
     rc.settings.minimumFetchIntervalMillis = dev ? 0 : ONE_HOUR_IN_MILLISECONDS;
     rc.settings.fetchTimeoutMillis = dev ? DEV_TIMEOUT : PROD_TIMEOUT;
-    if (this.#isOnline()) {
+    if (this.isOnline()) {
       fetchAndActivate(rc)
         .then(() => {
           this.#appConfig = {

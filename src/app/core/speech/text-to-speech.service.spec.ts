@@ -1,22 +1,22 @@
 import { ConfigService } from '@/core/firebase/config.service';
-import { createTtsResponseMock, createTtsStreamMock, getMockTtsModel } from '@/testing/ai-model.mock';
+import { createMockTtsModel, createMockTtsResponse, createMockTtsStream } from '@/testing/ai-model.mock';
 import { createMockConfigService } from '@/testing/config.mock';
 import { TestBed } from '@angular/core/testing';
 import { TextToSpeechService } from './text-to-speech.service';
 
 describe('TextToSpeechService', () => {
   let service: TextToSpeechService;
-  let mockModel: ReturnType<typeof getMockTtsModel>;
+  let mockModel: ReturnType<typeof createMockTtsModel>;
   let mockConfigService: ReturnType<typeof createMockConfigService>;
   let appConfigSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    mockModel = getMockTtsModel();
+    mockModel = createMockTtsModel();
     mockModel.generateContent.mockReset();
-    mockModel.generateContent.mockResolvedValue(createTtsResponseMock());
+    mockModel.generateContent.mockResolvedValue(createMockTtsResponse());
 
     mockModel.generateContentStream.mockReset();
-    mockModel.generateContentStream.mockResolvedValue(createTtsStreamMock());
+    mockModel.generateContentStream.mockResolvedValue(createMockTtsStream());
 
     mockConfigService = createMockConfigService();
     appConfigSpy = vi.spyOn(mockConfigService, 'appConfig', 'get');
@@ -41,7 +41,7 @@ describe('TextToSpeechService', () => {
       expect(appConfigSpy).not.toHaveBeenCalled();
 
       // Mock generative response
-      mockModel.generateContent.mockResolvedValue(createTtsResponseMock());
+      mockModel.generateContent.mockResolvedValue(createMockTtsResponse());
 
       // Call public methods
       await testService.synthesize({ text: 'Test 1', voice: 'Kore' });
@@ -55,7 +55,7 @@ describe('TextToSpeechService', () => {
   describe('synthesize (Use Case 1 - Ad-hoc Single-shot)', () => {
     it('should fetch complete content, decode base64, create a blob and return Object URL', async () => {
       const mockBase64 = 'SGVsbG8=';
-      mockModel.generateContent.mockResolvedValue(createTtsResponseMock({ base64Data: mockBase64 }));
+      mockModel.generateContent.mockResolvedValue(createMockTtsResponse({ base64Data: mockBase64 }));
       const blob = await service.synthesize({ text: 'Hello Fact', voice: 'Kore' });
 
       expect(mockModel.generateContent).toHaveBeenCalledWith(['Hello Fact']);
@@ -77,7 +77,7 @@ describe('TextToSpeechService', () => {
   describe('synthesizeStream (Use Case 2 - Streamed Synthesis)', () => {
     it('should stream chunks and yield pure AudioStreamChunk objects', async () => {
       mockModel.generateContentStream.mockResolvedValue(
-        createTtsStreamMock([
+        createMockTtsStream([
           { data: 'SGVsbG8=', mimeType: 'audio/l16; rate=24000; channels=1' },
           { data: 'V29ybGQ=', mimeType: 'audio/l16; rate=24000; channels=1' },
         ]),
