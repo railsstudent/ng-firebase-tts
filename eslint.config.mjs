@@ -150,7 +150,7 @@ export default defineConfig([
     },
   },
   {
-    files: ['**/*.spec.ts'],
+    files: ['**/*.spec.ts', 'src/testing/*'],
     rules: {
       'max-lines-per-function': 'off',
       '@typescript-eslint/no-magic-numbers': 'off',
