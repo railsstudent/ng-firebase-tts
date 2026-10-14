@@ -3,6 +3,7 @@ import { ConfigService } from '@/core/firebase/config.service';
 import { inject, Service } from '@angular/core';
 import {
   AI,
+  GenerativeModel,
   getGenerativeModel,
   GroundingMetadata,
   HarmBlockThreshold,
@@ -11,7 +12,7 @@ import {
   UsageMetadata,
   WebGroundingChunk,
 } from 'firebase/ai';
-import { ImageAnalysis, ImageAnalysisResponse } from './image-analysis.interface';
+import { ImageAnalysis, ImageAnalysisResponse, TokenUsage, VisionGroundingMetadata } from './image-analysis.interface';
 import { ImageAnalysisSchema } from './image-analysis.schema';
 import { preprocessImageForVision } from './image.util';
 
@@ -81,7 +82,7 @@ Task 4: Search for a surprising or obscure fact that interconnects the following
     throw Error('No text generated.');
   }
 
-  private getGenerativeAIModel(backend: AI) {
+  private getGenerativeAIModel(backend: AI): GenerativeModel {
     return getGenerativeModel(backend, {
       model: this.#configService.appConfig.geminiModelName,
       generationConfig: {
@@ -97,7 +98,7 @@ Task 4: Search for a surprising or obscure fact that interconnects the following
     });
   }
 
-  private constructCitations(groundingMetadata?: GroundingMetadata) {
+  private constructCitations(groundingMetadata?: GroundingMetadata): VisionGroundingMetadata {
     if (!groundingMetadata) {
       return {
         citations: [],
@@ -124,7 +125,7 @@ Task 4: Search for a surprising or obscure fact that interconnects the following
     };
   }
 
-  private getTokenUsage(usageMetadata?: UsageMetadata) {
+  private getTokenUsage(usageMetadata?: UsageMetadata): TokenUsage {
     return {
       input: usageMetadata?.promptTokenCount || 0,
       output: usageMetadata?.candidatesTokenCount || 0,

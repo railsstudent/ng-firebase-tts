@@ -8,10 +8,6 @@ import { Listbox, Option } from '@angular/aria/listbox';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { afterRenderEffect, Component, computed, model, signal, viewChild } from '@angular/core';
 
-function getVoiceValue(newValue: string) {
-  return newValue && SORTED_VOICE_MAP.has(newValue) ? newValue : DEFAULT_VOICE;
-}
-
 @Component({
   selector: 'app-voice-selector',
   templateUrl: './voice-selector.component.html',
@@ -38,7 +34,8 @@ export class VoiceSelectorComponent {
   popupExpanded = signal(false);
 
   displayLabel = computed(() => {
-    const value = getVoiceValue(this.selectedValue());
+    const newValue = this.selectedValue();
+    const value = newValue && SORTED_VOICE_MAP.has(newValue) ? newValue : DEFAULT_VOICE;
     return SORTED_VOICE_MAP.get(value);
   });
 
@@ -46,7 +43,7 @@ export class VoiceSelectorComponent {
     afterRenderEffect(() => this.listbox()?.scrollActiveItemIntoView());
   }
 
-  onCommit() {
+  onCommit(): void {
     this.popupExpanded.set(false);
   }
 }

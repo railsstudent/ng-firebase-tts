@@ -23,7 +23,7 @@ export class AnalyzerPanelComponent {
 
   previewUrl = this.#assetRegistry.previewUrl.asReadonly();
 
-  async handleGenerateClick() {
+  async handleGenerateClick(): Promise<void> {
     const file = this.#assetRegistry.file();
 
     if (!file) {
@@ -49,7 +49,7 @@ export class AnalyzerPanelComponent {
     }
   }
 
-  handleFileChange(file: File | undefined) {
+  handleFileChange(file: File | undefined): void {
     this.#assetRegistry.register(file);
     this.analysis.set(undefined);
     this.error.set(undefined);

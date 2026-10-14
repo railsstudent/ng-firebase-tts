@@ -112,7 +112,7 @@ export class ConfigService {
     getRemoteConfig,
     fetchAndActivate,
     getValue,
-  }: Pick<typeof import('firebase/remote-config'), 'getRemoteConfig' | 'fetchAndActivate' | 'getValue'>) {
+  }: Pick<typeof import('firebase/remote-config'), 'getRemoteConfig' | 'fetchAndActivate' | 'getValue'>): void {
     const rc = getRemoteConfig(this.#app);
     rc.defaultConfig = remoteConfigDefaults;
     const dev = isDevMode();

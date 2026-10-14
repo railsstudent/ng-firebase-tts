@@ -1,7 +1,7 @@
 import { WebGroundingChunk } from 'firebase/ai';
 import { ImageOptimizationMetrics } from './image-processing.interface';
 
-export interface GroundingMetadata {
+export interface VisionGroundingMetadata {
   citations: WebGroundingChunk[];
   renderedContent: string;
   searchQueries: string[];
@@ -31,6 +31,6 @@ export interface ImageAnalysisResponse {
   parsed: ImageAnalysis;
   thought: string;
   tokenUsage: TokenUsage;
-  metadata: GroundingMetadata;
+  metadata: VisionGroundingMetadata;
   optimizationMetrics?: ImageOptimizationMetrics;
 }

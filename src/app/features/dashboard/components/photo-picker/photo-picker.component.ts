@@ -23,7 +23,7 @@ export class PhotoPickerComponent {
   isDragActive = signal<boolean>(false);
   readonly accepted = ACCEPTED_IMAGE_TYPES.join(', ');
 
-  onFileChange(event: Event) {
+  onFileChange(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (file) {
@@ -32,12 +32,12 @@ export class PhotoPickerComponent {
     input.value = '';
   }
 
-  handleDrag(event: DragEvent, isOver = true) {
+  handleDrag(event: DragEvent, isOver = true): void {
     event.preventDefault();
     this.isDragActive.set(isOver);
   }
 
-  onDrop(event: DragEvent) {
+  onDrop(event: DragEvent): void {
     this.handleDrag(event, false);
 
     const files = event.dataTransfer?.files;
@@ -54,7 +54,7 @@ export class PhotoPickerComponent {
     this.validateAndProcessFile(file);
   }
 
-  private validateAndProcessFile(file: File) {
+  private validateAndProcessFile(file: File): void {
     if (!ACCEPTED_IMAGE_TYPES.includes(file.type as (typeof ACCEPTED_IMAGE_TYPES)[number])) {
       this.invalidFile.emit(`Invalid file type. Please select a ${ACCEPTED_FORMATS_TEXT} image.`);
       return;

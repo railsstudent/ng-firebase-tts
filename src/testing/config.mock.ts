@@ -19,7 +19,22 @@ export function createMockAppRemoteConfig(overrides?: Partial<AppRemoteConfig>):
   };
 }
 
-export function createMockAiBackend(customApp?: unknown) {
+export interface MockAiBackend {
+  backend: {
+    backendType: string;
+  };
+  backendType: string;
+  app: unknown;
+}
+
+export interface MockConfigService {
+  readonly appConfig: AppRemoteConfig;
+  initialize: ReturnType<typeof vi.fn>;
+  getApp: ReturnType<typeof vi.fn>;
+  getAiBackend: ReturnType<typeof vi.fn>;
+}
+
+export function createMockAiBackend(customApp?: unknown): MockAiBackend {
   return {
     backend: {
       backendType: 'VERTEX',
@@ -35,7 +50,7 @@ export function createMockAiBackend(customApp?: unknown) {
   };
 }
 
-export function createMockConfigService(options?: MockConfigServiceOptions) {
+export function createMockConfigService(options?: MockConfigServiceOptions): MockConfigService {
   const currentAppConfig = createMockAppRemoteConfig(options?.appConfig);
   const defaultAiBackend = createMockAiBackend(options?.app);
 

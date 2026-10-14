@@ -35,24 +35,24 @@ export class SpeechStudioViewService {
     this.#destroyRef$.onDestroy(() => this.clearAudio());
   }
 
-  private setGeneratedAudioRecord(blob: Blob, prompt: string, voice: string) {
+  private setGeneratedAudioRecord(blob: Blob, prompt: string, voice: string): void {
     revokeBlobURL(this.#activeAudio()?.url);
     const url = URL.createObjectURL(blob);
     this.#activeAudio.set({ url, prompt, voice });
   }
 
-  private clearAudio() {
+  private clearAudio(): void {
     revokeBlobURL(this.#activeAudio()?.url);
     this.#activeAudio.set(undefined);
   }
 
-  private async handlePlaybackError(e: unknown) {
+  private async handlePlaybackError(e: unknown): Promise<void> {
     console.error('Streaming playback failed:', e);
     const audioPlayerService = await this.#asyncAudioPlayerService();
     await audioPlayerService.stopAll();
   }
 
-  private async handleSync(promptArgs: FactConfig) {
+  private async handleSync(promptArgs: FactConfig): Promise<void> {
     try {
       const speechService = await this.#asyncSpeechService();
       const blob = await speechService.synthesize({ text: promptArgs.prompt, voice: promptArgs.voice });
@@ -63,12 +63,12 @@ export class SpeechStudioViewService {
     }
   }
 
-  private calculateRandomPlaybackRate(min = MIN_PLAYBACK_RATE, max = MAX_PLAYBACK_RATE) {
+  private calculateRandomPlaybackRate(min = MIN_PLAYBACK_RATE, max = MAX_PLAYBACK_RATE): number {
     const rawRate = Math.random() * (max - min) + min;
     return Math.round(rawRate * PERCENT) / PERCENT;
   }
 
-  private async handleStream({ prompt, voice, shouldWait = false }: FactConfig) {
+  private async handleStream({ prompt, voice, shouldWait = false }: FactConfig): Promise<void> {
     const abortController = new AbortController();
     const unregisteredFn = this.#destroyRef$.onDestroy(() => abortController.abort());
 
@@ -107,7 +107,7 @@ export class SpeechStudioViewService {
     }
   }
 
-  async generateSpeech(mode: GenerateSpeechMode, promptArgs: FactConfig) {
+  async generateSpeech(mode: GenerateSpeechMode, promptArgs: FactConfig): Promise<void> {
     if (!promptArgs.fact || this.#loadingMode() !== 'idle') {
       return;
     }

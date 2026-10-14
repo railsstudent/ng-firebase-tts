@@ -1,4 +1,4 @@
-import { GroundingMetadata } from '@/core/vision';
+import { VisionGroundingMetadata } from '@/core/vision';
 import { Component, computed, inject, input } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 
@@ -8,7 +8,7 @@ import { DomSanitizer } from '@angular/platform-browser';
   styleUrl: './grounding.component.css',
 })
 export class GroundingComponent {
-  metadata = input<GroundingMetadata | undefined>(undefined);
+  metadata = input<VisionGroundingMetadata | undefined>(undefined);
 
   #sanitizer = inject(DomSanitizer);
 

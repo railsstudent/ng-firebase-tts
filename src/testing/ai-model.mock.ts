@@ -1,7 +1,7 @@
-import { getGenerativeModel } from 'firebase/ai';
+import { getGenerativeModel, GroundingMetadata, UsageMetadata } from 'firebase/ai';
 import { vi } from 'vitest';
 
-export interface MockVisionResponseOptions {
+interface MockVisionResponseOptions {
   altText?: string;
   tags?: string[];
   suggestions?: { title: string; reason: string }[];
@@ -10,12 +10,53 @@ export interface MockVisionResponseOptions {
   includeGrounding?: boolean;
 }
 
-export interface MockTtsResponseOptions {
+interface MockTtsResponseOptions {
   base64Data?: string;
   mimeType?: string;
 }
 
-function buildVisionPayload(options?: MockVisionResponseOptions) {
+interface MockVisionPayload {
+  altText: string;
+  tags: string[];
+  suggestions: { title: string; reason: string }[];
+  obscureFact: string;
+}
+
+interface MockVisionResponse {
+  response: {
+    candidates: { groundingMetadata?: GroundingMetadata }[];
+    text: () => string;
+    thoughtSummary: () => string;
+    usageMetadata: UsageMetadata;
+  };
+}
+
+interface MockTtsResponse {
+  response: {
+    candidates: {
+      content: {
+        parts: { inlineData: { data: string; mimeType: string } }[];
+      };
+    }[];
+  };
+}
+
+interface MockTtsStream {
+  stream: AsyncGenerator<{
+    candidates: {
+      content: {
+        parts: { inlineData: { data: string; mimeType: string } }[];
+      };
+    }[];
+  }>;
+}
+
+interface MockGenerativeModel {
+  generateContent: ReturnType<typeof vi.fn>;
+  generateContentStream: ReturnType<typeof vi.fn>;
+}
+
+function buildVisionPayload(options?: MockVisionResponseOptions): MockVisionPayload {
   return {
     altText: options?.altText ?? 'A beautiful sunset over the mountains',
     tags: options?.tags ?? ['sunset', 'mountains', 'scenery'],
@@ -24,7 +65,7 @@ function buildVisionPayload(options?: MockVisionResponseOptions) {
   };
 }
 
-function buildGroundingMetadata(includeGrounding?: boolean) {
+function buildGroundingMetadata(includeGrounding?: boolean): GroundingMetadata | undefined {
   if (includeGrounding === false) {
     return undefined;
   }
@@ -49,7 +90,7 @@ function buildGroundingMetadata(includeGrounding?: boolean) {
   };
 }
 
-export function createMockVisionResponse(options?: MockVisionResponseOptions) {
+export function createMockVisionResponse(options?: MockVisionResponseOptions): MockVisionResponse {
   const analysisPayload = buildVisionPayload(options);
   const groundingMetadata = buildGroundingMetadata(options?.includeGrounding);
 
@@ -68,7 +109,7 @@ export function createMockVisionResponse(options?: MockVisionResponseOptions) {
   };
 }
 
-export function createMockTtsResponse(options?: MockTtsResponseOptions) {
+export function createMockTtsResponse(options?: MockTtsResponseOptions): MockTtsResponse {
   const data = options?.base64Data ?? 'SGVsbG8=';
   const mimeType = options?.mimeType ?? 'audio/l16; rate=24000; channels=1';
 
@@ -85,7 +126,7 @@ export function createMockTtsResponse(options?: MockTtsResponseOptions) {
   };
 }
 
-export function createMockTtsStream(chunks?: { data: string; mimeType: string }[]) {
+export function createMockTtsStream(chunks?: { data: string; mimeType: string }[]): MockTtsStream {
   const defaultChunks = chunks ?? [{ data: 'SGVsbG8=', mimeType: 'audio/l16; rate=24000; channels=1' }];
 
   return {
@@ -105,19 +146,13 @@ export function createMockTtsStream(chunks?: { data: string; mimeType: string }[
   };
 }
 
-export function createMockVisionModel() {
-  return vi.mocked(getGenerativeModel)({} as never, {} as never) as unknown as {
-    generateContent: ReturnType<typeof vi.fn>;
-    generateContentStream: ReturnType<typeof vi.fn>;
-  };
+export function createMockVisionModel(): MockGenerativeModel {
+  return vi.mocked(getGenerativeModel)({} as never, {} as never) as unknown as MockGenerativeModel;
 }
 
-export function createMockTtsModel() {
+export function createMockTtsModel(): MockGenerativeModel {
   return vi.mocked(getGenerativeModel)({} as never, {
     model: 'gemini-2.0-flash-exp',
     generationConfig: { responseModalities: ['AUDIO'] },
-  }) as unknown as {
-    generateContent: ReturnType<typeof vi.fn>;
-    generateContentStream: ReturnType<typeof vi.fn>;
-  };
+  }) as unknown as MockGenerativeModel;
 }

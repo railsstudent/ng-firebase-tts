@@ -7,6 +7,7 @@ This document defines testing conventions, DI mocking contracts, and verificatio
 1. **TestBed Boundary Mocking**:
    - Always mock external dependencies and services at the Angular `TestBed` DI boundary.
    - Use `mock<ServiceName>` objects typed with `Partial<ServiceName>` and verified via `satisfies Partial<ServiceName>`:
+
      ```typescript
      const mockSpeechService = {
        activeAudio: signal(undefined),
@@ -33,6 +34,7 @@ This document defines testing conventions, DI mocking contracts, and verificatio
 
 1. **Targeted Testing during Iterations**:
    - Use the `angular-cli` MCP server `run_target` tool with `target: "test"` to run tests against specific files:
+
      ```json
      {
        "coverage": true,

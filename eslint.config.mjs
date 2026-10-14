@@ -96,6 +96,57 @@ export default defineConfig([
       '@typescript-eslint/no-magic-numbers': ['error', { ignoreArrayIndexes: true, ignore: [0, 1, 2] }],
       '@typescript-eslint/no-floating-promises': ['error'],
       '@typescript-eslint/no-non-null-assertion': ['error'],
+      '@typescript-eslint/explicit-function-return-type': [
+        'error',
+        {
+          allowExpressions: true, // Allows arrow functions and expressions (e.g. inline callbacks) to omit return types
+          allowTypedFunctionExpressions: true, // Allows functions whose type is already defined by context
+          allowHigherOrderFunctions: true,
+          allowDirectConstAssertionInArrowFunctions: true,
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/app/shared/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/../*', '**/./../*'],
+              message:
+                'Parent relative imports (..) are forbidden. Use sibling relative imports (./) for files in the same directory or absolute aliases (@/) for cross-directory imports.',
+            },
+            {
+              group: ['@/features/**', '**/features/**'],
+              message: 'Layer violation: Shared layer cannot import from Feature layer.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/app/core/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/../*', '**/./../*'],
+              message:
+                'Parent relative imports (..) are forbidden. Use sibling relative imports (./) for files in the same directory or absolute aliases (@/) for cross-directory imports.',
+            },
+            {
+              group: ['@/features/**', '@/shared/**', '**/features/**', '**/shared/**'],
+              message: 'Layer violation: Core layer cannot import from Feature or Shared layers.',
+            },
+          ],
+        },
+      ],
     },
   },
   {

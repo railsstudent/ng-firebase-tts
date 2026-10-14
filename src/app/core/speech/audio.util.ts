@@ -1,8 +1,6 @@
-import { ParsedMimeType } from '@/shared/interfaces/parsed-mime-type.interface';
-import { WavConversionOptions } from '@/shared/interfaces/wav-conversion-options.interface';
 import { PCM_SPEC, RADIX_DECIMAL, WAV_SPEC } from './audio.constant';
 import { DEFAULT_AUDIO_TYPE, DEFAULT_SAMPLE_RATE } from './text-to-speech.constant';
-import { AudioStreamChunk } from './text-to-speech.interface';
+import { AudioStreamChunk, ParsedMimeType, WavConversionOptions } from './text-to-speech.interface';
 
 function isBlobPart(value: unknown): value is BlobPart {
   return (
@@ -57,7 +55,7 @@ function createWavHeader(dataLength: number, options: WavConversionOptions): Uin
   const buffer = new ArrayBuffer(WAV_SPEC.HEADER_SIZE);
   const view = new DataView(buffer);
 
-  const writeString = (offset: number, str: string) => {
+  const writeString = (offset: number, str: string): void => {
     for (let i = 0; i < str.length; i = i + 1) {
       view.setUint8(offset + i, str.charCodeAt(i));
     }

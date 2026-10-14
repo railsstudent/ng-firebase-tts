@@ -1,5 +1,10 @@
 import { formatFileSize, preprocessImageForVision } from './image.util';
 
+interface MockOffscreenCanvasInstance {
+  getContext: ReturnType<typeof vi.fn>;
+  convertToBlob: ReturnType<typeof vi.fn>;
+}
+
 describe('image.util', () => {
   describe('formatFileSize', () => {
     it('should format bytes to human-readable strings', () => {
@@ -27,7 +32,7 @@ describe('image.util', () => {
         convertToBlob: vi.fn().mockResolvedValue(mockConvertedBlob),
       };
 
-      function MockOffscreenCanvas() {
+      function MockOffscreenCanvas(): MockOffscreenCanvasInstance {
         return mockCanvasInstance;
       }
 
@@ -66,7 +71,7 @@ describe('image.util', () => {
         convertToBlob: vi.fn().mockRejectedValueOnce(new Error('WebP unsupported')).mockResolvedValueOnce(mockJpegBlob),
       };
 
-      function MockOffscreenCanvas() {
+      function MockOffscreenCanvas(): MockOffscreenCanvasInstance {
         return mockCanvasInstance;
       }
 
@@ -119,7 +124,7 @@ describe('image.util', () => {
         convertToBlob: vi.fn().mockRejectedValue(new Error('Conversion completely unsupported')),
       };
 
-      function MockOffscreenCanvas() {
+      function MockOffscreenCanvas(): MockOffscreenCanvasInstance {
         return mockCanvasInstance;
       }
 

@@ -20,7 +20,7 @@ export class AuthService {
   #authSdk: typeof import('firebase/auth') | null = null;
   #authReady: Promise<void> | null = null;
 
-  private async loadAuth() {
+  private async loadAuth(): Promise<void> {
     const [firebaseApp, authSdk] = await Promise.all([this.#configService.getApp(), import('firebase/auth')]);
 
     const auth = authSdk.getAuth(firebaseApp);
@@ -39,7 +39,7 @@ export class AuthService {
     this.#authSdk = authSdk;
   }
 
-  async ensureAuth() {
+  async ensureAuth(): Promise<{ auth: Auth; sdk: typeof import('firebase/auth') }> {
     if (!this.#authReady) {
       this.#authReady = this.loadAuth();
     }
@@ -57,7 +57,7 @@ export class AuthService {
     return { auth: this.#auth, sdk: this.#authSdk };
   }
 
-  async signIn({ email, password }: AuthCredentials) {
+  async signIn({ email, password }: AuthCredentials): Promise<void> {
     if (!email || !password) {
       this.#user.set(null);
       return;
@@ -67,7 +67,7 @@ export class AuthService {
     await sdk.signInWithEmailAndPassword(auth, email, password);
   }
 
-  async signOut() {
+  async signOut(): Promise<void> {
     const { auth, sdk } = await this.ensureAuth();
     await sdk.signOut(auth);
   }

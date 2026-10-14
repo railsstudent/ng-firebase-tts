@@ -17,7 +17,7 @@ export class PwaUpdateBanner {
   readonly #pwaService = inject(PwaUpdateService);
   readonly updateAvailable = this.#pwaService.updateAvailable;
 
-  async reloadApp() {
+  async reloadApp(): Promise<void> {
     await this.#pwaService.reloadPage();
   }
 }

@@ -13,3 +13,18 @@ export interface SpeechChunkData {
   data: string;
   mimeType: string;
 }
+
+export interface AudioPlaybackOptions {
+  playbackRate?: number;
+  signal?: AbortSignal;
+}
+
+export interface WavConversionOptions {
+  sampleRate: number;
+  numChannels: number;
+  bitsPerSample: number;
+}
+
+export interface ParsedMimeType extends WavConversionOptions {
+  baseType: string;
+}

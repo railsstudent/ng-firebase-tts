@@ -108,7 +108,7 @@ export class SpeechStudioComponent {
     },
   ];
 
-  onVoiceChange(newVoice: string) {
+  onVoiceChange(newVoice: string): void {
     const voiceOption = newVoice ?? DEFAULT_VOICE;
     this.#audioPromptModel.update((model) => ({
       ...model,
@@ -116,7 +116,7 @@ export class SpeechStudioComponent {
     }));
   }
 
-  async generateSpeech(mode: GenerateSpeechMode) {
+  async generateSpeech(mode: GenerateSpeechMode): Promise<void> {
     try {
       const fact = this.interestingFact();
       if (!fact || (mode !== 'web_audio_api' && this.isGeneratedForCurrentInput())) {
