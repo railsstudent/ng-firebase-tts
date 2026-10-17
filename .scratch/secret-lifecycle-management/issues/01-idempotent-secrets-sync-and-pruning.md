@@ -4,12 +4,12 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** completed
 
-- [ ] Update `apphosting.yaml` to declare a single secret reference: `APP_FIREBASE_CONFIG` mapping to secret `app_firebase_config`.
-- [ ] Refactor `firebase/scripts/deploy-apphosting-secrets.mjs` to bundle Firebase SDK config and reCAPTCHA Enterprise key into a unified JSON payload for `app_firebase_config`.
-- [ ] Implement diff-checking in `deploy-apphosting-secrets.mjs` via `npx firebase apphosting:secrets:access app_firebase_config` to skip write when the cloud payload matches the local bundle.
-- [ ] Implement automatic pruning in `deploy-apphosting-secrets.mjs` to destroy previous versions upon secret update, ensuring $\le 1$ active version.
-- [ ] Update `firebase/scripts/generate-firebase-config.mjs` Cloud Build `else` block to parse `process.env.APP_FIREBASE_CONFIG` (preserving local `.env` development flow).
-- [ ] Destroy the 7 deprecated individual secrets (`firebase_api_key`, `firebase_auth_domain`, etc.) in Google Cloud Secret Manager to reclaim quota.
-- [ ] Verify that running `npm run config:secrets` creates zero redundant versions when unchanged, and `npm run build` succeeds locally and in production simulation.
+- [x] Update `apphosting.yaml` to declare a single secret reference: `APP_FIREBASE_CONFIG` mapping to secret `app_firebase_config`.
+- [x] Refactor `firebase/scripts/deploy-apphosting-secrets.mjs` to bundle Firebase SDK config and reCAPTCHA Enterprise key into a unified JSON payload for `app_firebase_config`.
+- [x] Implement diff-checking in `deploy-apphosting-secrets.mjs` via `npx firebase apphosting:secrets:access app_firebase_config` to skip write when the cloud payload matches the local bundle.
+- [x] Implement automatic pruning in `deploy-apphosting-secrets.mjs` to destroy previous versions upon secret update, ensuring $\le 1$ active version.
+- [x] Update `firebase/scripts/generate-firebase-config.mjs` Cloud Build `else` block to parse `process.env.APP_FIREBASE_CONFIG` (preserving local `.env` development flow).
+- [x] Destroy the 7 deprecated individual secrets (`firebase_api_key`, `firebase_auth_domain`, etc.) in Google Cloud Secret Manager to reclaim quota.
+- [x] Verify that running `npm run config:secrets` creates zero redundant versions when unchanged, and `npm run build` succeeds locally and in production simulation.

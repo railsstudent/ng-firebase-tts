@@ -82,32 +82,43 @@ try {
     appCheckDebugToken = process.env.APP_FIREBASE_APPCHECK_DEBUG_TOKEN || '';
     app = await fetchSdkConfigViaCli(webAppName);
   } else {
-    // 2. Otherwise: use process.env directly to construct the object
+    // 2. Otherwise: parse process.env.APP_FIREBASE_CONFIG (injected by App Hosting)
     console.log('Warning: .env file does not exist. Using process.env to construct config object');
 
-    app = {
-      apiKey: process.env.APP_FIREBASE_API_KEY,
-      authDomain: process.env.APP_FIREBASE_AUTH_DOMAIN,
-      projectId: process.env.APP_FIREBASE_PROJECT_ID,
-      storageBucket: process.env.APP_FIREBASE_STORAGE_BUCKET,
-      messagingSenderId: process.env.APP_FIREBASE_MESSAGING_SENDER_ID,
-      appId: process.env.APP_FIREBASE_APP_ID,
+    const rawConfig = process.env.APP_FIREBASE_CONFIG;
+    if (!rawConfig || rawConfig.trim() === '') {
+      throw new Error('APP_FIREBASE_CONFIG environment variable is missing or empty.');
+    }
+
+    let parsedConfig;
+    try {
+      parsedConfig = JSON.parse(rawConfig);
+    } catch (parseError) {
+      throw new Error(`Failed to parse APP_FIREBASE_CONFIG as JSON: ${parseError.message}`);
+    }
+
+    app = parsedConfig.app ?? {
+      apiKey: parsedConfig.apiKey,
+      authDomain: parsedConfig.authDomain,
+      projectId: parsedConfig.projectId,
+      storageBucket: parsedConfig.storageBucket,
+      messagingSenderId: parsedConfig.messagingSenderId,
+      appId: parsedConfig.appId,
     };
 
-    recaptchaEnterpriseKey = process.env.APP_FIREBASE_RECAPTCHA_ENTERPRISE_KEY;
-    appCheckDebugToken = process.env.APP_FIREBASE_APPCHECK_DEBUG_TOKEN || '';
+    recaptchaEnterpriseKey = parsedConfig.recaptchaEnterpriseKey;
+    appCheckDebugToken = parsedConfig.appCheckDebugToken || process.env.APP_FIREBASE_APPCHECK_DEBUG_TOKEN || '';
 
     // Validate that required keys are present
-    const missing = Object.entries(app)
-      .filter(([, value]) => !value || value.startsWith('<'))
-      .map(([key]) => key);
+    const requiredKeys = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'];
+    const missing = requiredKeys.filter((key) => !app?.[key] || app[key].startsWith('<'));
 
     if (missing.length > 0) {
-      throw new Error(`The following process.env keys are missing or invalid: ${missing.join(', ')}`);
+      throw new Error(`The following SDK keys are missing or invalid in APP_FIREBASE_CONFIG: ${missing.join(', ')}`);
     }
 
     if (!recaptchaEnterpriseKey || recaptchaEnterpriseKey.startsWith('<')) {
-      throw new Error('APP_FIREBASE_RECAPTCHA_ENTERPRISE_KEY is missing or invalid in process.env');
+      throw new Error('APP_FIREBASE_RECAPTCHA_ENTERPRISE_KEY is missing or invalid in APP_FIREBASE_CONFIG');
     }
   }
 

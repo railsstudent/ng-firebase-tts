@@ -68,8 +68,8 @@ function resolveBackendId(targetRootDir) {
 /**
  * Dynamically parses secret declarations from apphosting.yaml.
  * Matches:
- *   - variable: APP_FIREBASE_API_KEY
- *     secret: firebase_api_key
+ *   - variable: APP_FIREBASE_CONFIG
+ *     secret: app_firebase_config
  */
 function parseAppHostingSecrets(yamlPath) {
   if (!fs.existsSync(yamlPath)) {
@@ -93,42 +93,6 @@ function parseAppHostingSecrets(yamlPath) {
   }
 
   return secretEntries;
-}
-
-/**
- * Converts 'APP_FIREBASE_MESSAGING_SENDER_ID' -> 'messagingSenderId'
- */
-function variableToSdkKey(variableName) {
-  return variableName
-    .replace(/^APP_FIREBASE_/, '')
-    .toLowerCase()
-    .replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
-}
-
-/**
- * Resolves secret values dynamically without hardcoded dictionary maps:
- * 1. Derives SDK property from variableName and checks sdkConfig.
- * 2. Fallbacks to process.env (e.g. for reCAPTCHA Enterprise key or custom variables).
- */
-function resolveSecretMappings(declaredSecrets, sdkConfig) {
-  return declaredSecrets.map(({ variableName, secretName }) => {
-    // 1. Try resolving from Firebase SDK configuration
-    const sdkKey = variableToSdkKey(variableName);
-    if (sdkConfig && sdkConfig[sdkKey]) {
-      return { secretName, secretValue: sdkConfig[sdkKey] };
-    }
-
-    // 2. Try resolving from process.env (.env file)
-    const envValue = process.env[variableName];
-    if (envValue && !envValue.startsWith('<')) {
-      return { secretName, secretValue: envValue };
-    }
-
-    // 3. Fail fast if declared in YAML but missing everywhere
-    throw new Error(
-      `Variable "${variableName}" (secret: ${secretName}) in apphosting.yaml could not be resolved from Firebase SDK config or .env`,
-    );
-  });
 }
 
 /**
@@ -167,6 +131,40 @@ async function fetchSdkConfigViaCli(webAppName) {
   }
 
   return sdkConfig;
+}
+
+/**
+ * Reads the active secret value from App Hosting / Secret Manager via Firebase CLI.
+ * Returns null if the secret does not exist yet or throws an error.
+ */
+async function getActiveSecretValue(secretName, cwd) {
+  try {
+    const { stdout } = await execAsync(`npx firebase apphosting:secrets:access ${secretName} --project default`, {
+      cwd,
+    });
+    return stdout;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Checks whether the cloud secret value matches the local payload.
+ */
+function isSecretUpToDate(activeValue, newValue) {
+  if (activeValue === null || activeValue === undefined) {
+    return false;
+  }
+  if (activeValue.trim() === newValue.trim()) {
+    return true;
+  }
+  try {
+    const activeObj = JSON.parse(activeValue.trim());
+    const newObj = JSON.parse(newValue.trim());
+    return JSON.stringify(activeObj) === JSON.stringify(newObj);
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -215,6 +213,46 @@ async function setSecretValue(secretName, secretValue, cwd, maxRetries = 2) {
 }
 
 /**
+ * Prunes older versions of the secret so that only <= 1 active version remains.
+ */
+async function pruneSecretVersions(secretName, projectId, cwd) {
+  try {
+    console.log(`🧹 Pruning older versions of secret "${secretName}"...`);
+    const { stdout } = await execAsync(
+      `gcloud secrets versions list ${secretName} --project ${projectId} --format="value(name,state)"`,
+      { cwd },
+    );
+
+    const lines = stdout.trim().split('\n').filter(Boolean);
+    const versions = lines
+      .map((line) => {
+        const [name, state] = line.trim().split(/\s+/);
+        const versionId = name ? name.split('/').pop() : '';
+        const versionNumber = Number.parseInt(versionId, 10);
+        return { versionNumber, versionId, state: state ? state.toUpperCase() : '' };
+      })
+      .filter((v) => !Number.isNaN(v.versionNumber));
+
+    // Sort descending so the latest version is first
+    versions.sort((a, b) => b.versionNumber - a.versionNumber);
+
+    // Keep the latest version (versions[0]), destroy older active versions
+    const olderVersionsToDestroy = versions.slice(1).filter((v) => v.state !== 'DESTROYED');
+
+    for (const v of olderVersionsToDestroy) {
+      console.log(`🗑️ Destroying old version ${v.versionId} of secret "${secretName}"...`);
+      await execAsync(
+        `gcloud secrets versions destroy ${v.versionId} --secret ${secretName} --project ${projectId} --quiet`,
+        { cwd },
+      );
+    }
+    console.log(`✅ Version pruning complete for secret "${secretName}".`);
+  } catch (error) {
+    console.warn(`⚠️ Warning: Failed to prune secret versions for "${secretName}":`, error.message);
+  }
+}
+
+/**
  * Grants the App Hosting backend access to provisioned secrets.
  */
 async function grantSecretAccess(secretNames, targetBackend, cwd) {
@@ -225,36 +263,45 @@ async function grantSecretAccess(secretNames, targetBackend, cwd) {
   });
 }
 
-/**
- * Synchronizes all mapped secrets concurrently in parallel via Promise.all.
- */
-async function syncAllSecrets(mappings, targetBackend, cwd) {
-  console.log('🚀 Starting parallel App Hosting secrets synchronization...');
-
-  await Promise.all(
-    mappings.map(({ secretName, secretValue }) => {
-      console.log(`🔒 Setting secret "${secretName}"...`);
-      return setSecretValue(secretName, secretValue, cwd);
-    }),
-  );
-
-  const allSecretNames = mappings.map((m) => m.secretName);
-  await grantSecretAccess(allSecretNames, targetBackend, cwd);
-  console.log('🎉 All App Hosting secrets successfully synced and granted in parallel!');
-}
-
 // === Top-Level Execution ===
 try {
   loadAndValidateEnv(envPath);
 
   const backendId = resolveBackendId(projectRootDir);
   const declaredSecrets = parseAppHostingSecrets(appHostingYamlPath);
+  const secretEntry = declaredSecrets.find((s) => s.variableName === 'APP_FIREBASE_CONFIG');
+  const secretName = secretEntry ? secretEntry.secretName : 'app_firebase_config';
+
   const webAppName = process.env.APP_FIREBASE_WEB_APP_NAME;
   const sdkConfig = await fetchSdkConfigViaCli(webAppName);
+  const projectId = sdkConfig.projectId || 'vertexai-tts';
 
-  const mappings = resolveSecretMappings(declaredSecrets, sdkConfig);
+  const bundle = {
+    app: {
+      apiKey: sdkConfig.apiKey,
+      authDomain: sdkConfig.authDomain,
+      projectId: sdkConfig.projectId,
+      storageBucket: sdkConfig.storageBucket,
+      messagingSenderId: sdkConfig.messagingSenderId,
+      appId: sdkConfig.appId,
+    },
+    recaptchaEnterpriseKey: process.env.APP_FIREBASE_RECAPTCHA_ENTERPRISE_KEY,
+  };
+  const secretValue = JSON.stringify(bundle);
 
-  await syncAllSecrets(mappings, backendId, firebaseDir);
+  console.log(`🔍 Checking current cloud value for secret "${secretName}"...`);
+  const activeValue = await getActiveSecretValue(secretName, firebaseDir);
+
+  if (isSecretUpToDate(activeValue, secretValue)) {
+    console.log(`⚡ Secret "${secretName}" is already up to date. Skipping creation.`);
+  } else {
+    console.log(`🔒 Setting secret "${secretName}"...`);
+    await setSecretValue(secretName, secretValue, firebaseDir);
+    await pruneSecretVersions(secretName, projectId, firebaseDir);
+  }
+
+  await grantSecretAccess([secretName], backendId, firebaseDir);
+  console.log('🎉 App Hosting secret successfully synced and granted!');
 } catch (error) {
   console.error('❌ Secrets synchronization failed:', error.message);
   process.exit(1);

@@ -46,3 +46,4 @@ toggleable
 wayfinder
 Wayfinding
 llms
+vertexai

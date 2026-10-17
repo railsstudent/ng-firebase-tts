@@ -1,4 +1,4 @@
-import { AuthService } from '@/core/auth/auth.service';
+import { AuthService } from '@/core/auth';
 import { APP_LINKS } from '@/core/constants/routes.const';
 import { HomeIconComponent } from '@/shared/ui/icons/home-icon.component';
 import { SignOutIconComponent } from '@/shared/ui/icons/sign-out-icon.component';

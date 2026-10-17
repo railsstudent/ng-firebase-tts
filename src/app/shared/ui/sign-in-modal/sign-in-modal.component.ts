@@ -1,5 +1,5 @@
 import { AuthCredentials } from '@/core/auth/auth-credentials.interface';
-import { AuthService } from '@/core/auth/auth.service';
+import { AuthService } from '@/core/auth';
 import { APP_LINKS } from '@/core/constants/routes.const';
 import { CloseIconComponent } from '@/shared/ui/icons/close-icon.component';
 import { SpinnerIconComponent } from '@/shared/ui/icons/spinner-icon.component';
