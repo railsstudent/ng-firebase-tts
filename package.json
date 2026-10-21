@@ -10,6 +10,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:once": "ng test --watch=false",
+    "test:spec": "ng test --watch=false --include",
     "test:coverage": "ng test --watch=false --coverage",
     "check:cycles": "knip --cycles --reporter cycles",
     "lint": "ng lint && npm run check:cycles && knip --production && npm run cspell",
