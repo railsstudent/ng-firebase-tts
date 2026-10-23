@@ -1,70 +1,86 @@
-import { ConfigService } from '@/core/firebase/config.service';
-import { createMockTtsModel, createMockTtsResponse, createMockTtsStream } from '@/testing/ai-model.mock';
-import { createMockConfigService } from '@/testing/config.mock';
+import { AiModelFactory } from '@/core/firebase';
+import {
+  createMockAiModelFactory,
+  createMockTtsModel,
+  createMockTtsResponse,
+  createMockTtsStream,
+  MockAiModelFactory,
+} from '@/testing/ai-model.mock';
 import { TestBed } from '@angular/core/testing';
 import { TextToSpeechService } from './text-to-speech.service';
 
 describe('TextToSpeechService', () => {
   let service: TextToSpeechService;
-  let mockModel: ReturnType<typeof createMockTtsModel>;
-  let mockConfigService: ReturnType<typeof createMockConfigService>;
-  let appConfigSpy: ReturnType<typeof vi.spyOn>;
+  let mockAiModel: ReturnType<typeof createMockTtsModel>;
+  let mockAiModelFactory: MockAiModelFactory;
 
   beforeEach(() => {
-    mockModel = createMockTtsModel();
-    mockModel.generateContent.mockReset();
-    mockModel.generateContent.mockResolvedValue(createMockTtsResponse());
+    mockAiModel = createMockTtsModel();
+    mockAiModel.generateContent.mockClear();
+    mockAiModel.generateContentStream.mockClear();
 
-    mockModel.generateContentStream.mockReset();
-    mockModel.generateContentStream.mockResolvedValue(createMockTtsStream());
-
-    mockConfigService = createMockConfigService();
-    appConfigSpy = vi.spyOn(mockConfigService, 'appConfig', 'get');
+    mockAiModelFactory = createMockAiModelFactory({ ttsModel: mockAiModel });
 
     TestBed.configureTestingModule({
-      providers: [TextToSpeechService, { provide: ConfigService, useValue: mockConfigService }],
+      providers: [
+        TextToSpeechService,
+        {
+          provide: AiModelFactory,
+          useValue: mockAiModelFactory,
+        },
+      ],
     });
 
     service = TestBed.inject(TextToSpeechService);
   });
 
-  describe('On-demand Model Construction', () => {
-    it('should read modelName from ConfigService appConfig dynamically on demand during synthesis', async () => {
-      appConfigSpy.mockClear();
+  describe('On-demand Model Retrieval', () => {
+    it('should retrieve the TTS model from AiModelFactory dynamically on demand during synthesis', async () => {
+      mockAiModelFactory.getTtsModel.mockClear();
 
       let testService!: TextToSpeechService;
       TestBed.runInInjectionContext(() => {
         testService = new TextToSpeechService();
       });
 
-      // Does not access appConfig during constructor instantiation
-      expect(appConfigSpy).not.toHaveBeenCalled();
+      expect(mockAiModelFactory.getTtsModel).not.toHaveBeenCalled();
 
-      // Mock generative response
-      mockModel.generateContent.mockResolvedValue(createMockTtsResponse());
+      mockAiModel.generateContent.mockResolvedValue(createMockTtsResponse());
 
-      // Call public methods
       await testService.synthesize({ text: 'Test 1', voice: 'Kore' });
-      expect(appConfigSpy).toHaveBeenCalledTimes(1);
+      expect(mockAiModelFactory.getTtsModel).toHaveBeenCalledTimes(1);
 
       await testService.synthesize({ text: 'Test 2', voice: 'Puck' });
-      expect(appConfigSpy).toHaveBeenCalledTimes(2);
+      expect(mockAiModelFactory.getTtsModel).toHaveBeenCalledTimes(2);
     });
   });
 
   describe('synthesize (Use Case 1 - Ad-hoc Single-shot)', () => {
-    it('should fetch complete content, decode base64, create a blob and return Object URL', async () => {
+    it('should fetch complete content with speechConfig request, decode base64, and return a WAV Blob', async () => {
       const mockBase64 = 'SGVsbG8=';
-      mockModel.generateContent.mockResolvedValue(createMockTtsResponse({ base64Data: mockBase64 }));
+      mockAiModel.generateContent.mockResolvedValue(createMockTtsResponse({ base64Data: mockBase64 }));
       const blob = await service.synthesize({ text: 'Hello Fact', voice: 'Kore' });
 
-      expect(mockModel.generateContent).toHaveBeenCalledWith(['Hello Fact']);
+      expect(mockAiModel.generateContent).toHaveBeenCalledWith({
+        contents: [{ role: 'user', parts: [{ text: 'Hello Fact' }] }],
+        generationConfig: {
+          responseModalities: ['AUDIO'],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: {
+                voiceName: 'Kore',
+              },
+            },
+            languageCode: 'en-US',
+          },
+        },
+      });
       expect(blob).toBeInstanceOf(Blob);
       expect(blob.type).toBe('audio/wav');
     });
 
     it('should throw an error if generateContent returns empty candidates or data', async () => {
-      mockModel.generateContent.mockResolvedValue({
+      mockAiModel.generateContent.mockResolvedValue({
         response: {},
       });
 
@@ -75,8 +91,8 @@ describe('TextToSpeechService', () => {
   });
 
   describe('synthesizeStream (Use Case 2 - Streamed Synthesis)', () => {
-    it('should stream chunks and yield pure AudioStreamChunk objects', async () => {
-      mockModel.generateContentStream.mockResolvedValue(
+    it('should stream chunks with speechConfig request and yield pure AudioStreamChunk objects', async () => {
+      mockAiModel.generateContentStream.mockResolvedValue(
         createMockTtsStream([
           { data: 'SGVsbG8=', mimeType: 'audio/l16; rate=24000; channels=1' },
           { data: 'V29ybGQ=', mimeType: 'audio/l16; rate=24000; channels=1' },
@@ -89,7 +105,20 @@ describe('TextToSpeechService', () => {
         emissions.push(chunk);
       }
 
-      expect(mockModel.generateContentStream).toHaveBeenCalledWith(['Dynamic Stream']);
+      expect(mockAiModel.generateContentStream).toHaveBeenCalledWith({
+        contents: [{ role: 'user', parts: [{ text: 'Dynamic Stream' }] }],
+        generationConfig: {
+          responseModalities: ['AUDIO'],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: {
+                voiceName: 'Kore',
+              },
+            },
+            languageCode: 'en-US',
+          },
+        },
+      });
       expect(emissions.length).toBe(2);
       expect(emissions[0]).toEqual({
         decodedData: expect.any(Uint8Array),
@@ -104,7 +133,7 @@ describe('TextToSpeechService', () => {
     });
 
     it('should rethrow on stream errors', async () => {
-      mockModel.generateContentStream.mockRejectedValue(new Error('Vertex AI stream error'));
+      mockAiModel.generateContentStream.mockRejectedValue(new Error('Vertex AI stream error'));
 
       const generator = service.synthesizeStream({ text: 'Failing stream', voice: 'Puck' });
       await expect(generator.next()).rejects.toThrow('Vertex AI stream error');

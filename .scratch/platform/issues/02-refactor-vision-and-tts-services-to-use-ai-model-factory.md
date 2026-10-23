@@ -1,24 +1,23 @@
 # 02: Refactor `VisionService` and `TextToSpeechService` to Consume `AiModelFactory`
 
 **What to build:**
-Refactor `VisionService` (`src/app/core/vision/vision.service.ts`) and `TextToSpeechService` (`src/app/core/speech/text-to-speech.service.ts`) to inject `AiModelFactory` instead of `ConfigService` and remove their local `getGenerativeAIModel()` / `createModel()` methods. In `VisionService`, retrieve the cached model via `await this.#aiModelFactory.getModel({ schema: ImageAnalysisSchema, tools: [{ googleSearch: {} }] })`. In `TextToSpeechService`, retrieve the single cached TTS model via `await this.#aiModelFactory.getTtsModel()` and pass per-call `speechConfig` inside `generateContent` and `generateContentStream` while spreading `...model.generationConfig` so `responseModalities: [ResponseModality.AUDIO]` is preserved. Update `vision.service.spec.ts` and `text-to-speech.service.spec.ts` to mock `AiModelFactory` at the `TestBed` boundary.
+Refactor `VisionService` (`src/app/core/vision/vision.service.ts`) and `TextToSpeechService` (`src/app/core/speech/text-to-speech.service.ts`) to lazily inject `AiModelFactory` via `injectAsync(() => import('@/core/firebase/ai-model-factory.service').then((m) => m.AiModelFactory))` instead of `ConfigService` and remove their local `getGenerativeAIModel()` / `createModel()` methods. In `VisionService`, retrieve the cached model via `await asyncAIModelFactory.getModel({ schema: ImageAnalysisSchema, tools: [{ googleSearch: {} }] })`. In `TextToSpeechService`, retrieve the single cached TTS model via `await asyncAIModelFactory.getTtsModel()` and pass per-call `speechConfig` inside `generateContent` and `generateContentStream` while spreading `...aiModel.generationConfig` so `responseModalities: [ResponseModality.AUDIO]` is preserved. Update `vision.service.spec.ts` and `text-to-speech.service.spec.ts` to mock `AiModelFactory` at the `TestBed` boundary.
 
 **Blocked by:** 01: Create `AiModelFactory` with Configurable Model Map Cache, TTS Cache, and ADR-0013
 
-**Status:** ready-for-agent
+**Status:** in_progress
 
 ## Acceptance Criteria & Implementation Checklist
 
 ### 1. Refactor `VisionService` to Use `AiModelFactory` (`src/app/core/vision/vision.service.ts`)
 
-- [ ] Replace `ConfigService` injection, `SAFETY_SETTINGS`, and `private getGenerativeAIModel(backend: AI)` in `src/app/core/vision/vision.service.ts` with `AiModelFactory` and `await this.#aiModelFactory.getModel({ schema: ImageAnalysisSchema, tools: [{ googleSearch: {} }] })`:
+- [x] Replace `ConfigService` injection, `SAFETY_SETTINGS`, and `private getGenerativeAIModel(backend: AI)` in `src/app/core/vision/vision.service.ts` with `injectAsync` of `AiModelFactory` and `await asyncAIModelFactory.getModel({ schema: ImageAnalysisSchema, tools: [{ googleSearch: {} }] })`:
 
   ````ts
   import { WINDOW } from '@/core/constants/navigator.const';
-  import { AiModelFactory } from '@/core/firebase';
-  import { inject, Service } from '@angular/core';
+  import { inject, injectAsync, Service } from '@angular/core';
   import type { GroundingMetadata, UsageMetadata, WebGroundingChunk } from 'firebase/ai';
-  import {
+  import type {
     ImageAnalysis,
     ImageAnalysisResponse,
     TokenUsage,
@@ -26,11 +25,14 @@ Refactor `VisionService` (`src/app/core/vision/vision.service.ts`) and `TextToSp
   } from './image-analysis.interface';
   import { ImageAnalysisSchema } from './image-analysis.schema';
   import { preprocessImageForVision } from './image.util';
+  import { altTextPrompt } from './vision.prompt';
 
   @Service()
   export class VisionService {
     readonly #window = inject(WINDOW);
-    readonly #aiModelFactory = inject(AiModelFactory);
+    readonly #aiModelFactory = injectAsync(() =>
+      import('@/core/firebase/ai-model-factory.service').then((m) => m.AiModelFactory),
+    );
 
     async analyzeImage(image: File): Promise<ImageAnalysisResponse> {
       if (!image) {
@@ -45,14 +47,8 @@ Refactor `VisionService` (`src/app/core/vision/vision.service.ts`) and `TextToSp
         },
       };
 
-      const altTextPrompt = `
-  You are asked to perform four tasks:
-  Task 1: Generate 1 - 3 sentences of alternative texts for the image provided, max 300 words.
-  Task 2: Generate at least 3 tags to describe the image.
-  Task 3: Based on the alternative text and tags, provide some suggestions to make the image more interesting and the reason to support them.
-  Task 4: Search for a surprising or obscure fact that interconnects the following tags. If a direct link doesn't exist, find a conceptual link between them.
-  `;
-      const aiModel = await this.#aiModelFactory.getModel({
+      const asyncAIModelFactory = await this.#aiModelFactory();
+      const aiModel = await asyncAIModelFactory.getModel({
         schema: ImageAnalysisSchema,
         tools: [{ googleSearch: {} }],
       });
@@ -208,18 +204,25 @@ Refactor `VisionService` (`src/app/core/vision/vision.service.ts`) and `TextToSp
 
 ### 3. Refactor `TextToSpeechService` to Use `AiModelFactory` & Request-Level `speechConfig` Spread (`src/app/core/speech/text-to-speech.service.ts`)
 
-- [ ] Replace `ConfigService` injection and `private createModel(voiceName: string)` in `src/app/core/speech/text-to-speech.service.ts` with `AiModelFactory`, retrieve the cached model via `await this.#aiModelFactory.getTtsModel()`, and construct the `GenerateContentRequest` via `private buildSpeechRequest(model: GenerativeModel, text: string, voiceName: string): GenerateContentRequest` that spreads `...model.generationConfig` alongside `speechConfig`:
+- [x] Replace `ConfigService` injection and `private createModel(voiceName: string)` in `src/app/core/speech/text-to-speech.service.ts` with `injectAsync` of `AiModelFactory`, retrieve the cached model via `await asyncAIModelFactory.getTtsModel()`, and construct the `GenerateContentRequest` via `private createGenerationRequest(aiModel: GenerativeModel, text: string, voiceName: string): GenerateContentRequest` that spreads `...aiModel.generationConfig` alongside `speechConfig`:
 
   ```ts
-  import { AiModelFactory } from '@/core/firebase';
-  import { inject, Service } from '@angular/core';
-  import type { GenerateContentRequest, GenerateContentResponse, GenerativeModel } from 'firebase/ai';
+  import { injectAsync, Service } from '@angular/core';
+  import type {
+    Content,
+    GenerateContentRequest,
+    GenerateContentResponse,
+    GenerationConfig,
+    GenerativeModel,
+  } from 'firebase/ai';
   import { decodeAudioChunk, toWavBlob } from './audio.util';
   import { AudioStreamChunk, SpeechChunkData, SpeechPrompt } from './text-to-speech.interface';
 
   @Service()
   export class TextToSpeechService {
-    readonly #aiModelFactory = inject(AiModelFactory);
+    readonly #aiModelFactory = injectAsync(() =>
+      import('@/core/firebase/ai-model-factory.service').then((m) => m.AiModelFactory),
+    );
 
     private extractValidChunkData(chunk: GenerateContentResponse): SpeechChunkData | null {
       const inlineData = chunk.candidates?.[0]?.content?.parts?.[0]?.inlineData;
@@ -229,28 +232,15 @@ Refactor `VisionService` (`src/app/core/vision/vision.service.ts`) and `TextToSp
       return { data: inlineData.data, mimeType: inlineData.mimeType };
     }
 
-    private buildSpeechRequest(model: GenerativeModel, text: string, voiceName: string): GenerateContentRequest {
-      return {
-        contents: [{ role: 'user', parts: [{ text }] }],
-        generationConfig: {
-          ...model.generationConfig,
-          speechConfig: {
-            voiceConfig: {
-              prebuiltVoiceConfig: { voiceName },
-            },
-            languageCode: 'en-US',
-          },
-        },
-      };
-    }
-
     /**
      * USE CASE 2 (Streamed Synthesis):
      * Yields decoded audio chunks as they arrive from the Gemini model.
      */
     async *synthesizeStream({ text, voice }: SpeechPrompt): AsyncGenerator<AudioStreamChunk> {
-      const model = await this.#aiModelFactory.getTtsModel();
-      const responseStream = await model.generateContentStream(this.buildSpeechRequest(model, text, voice));
+      const asyncAIModelFactory = await this.#aiModelFactory();
+      const aiModel = await asyncAIModelFactory.getTtsModel();
+      const generationRequest = this.createGenerationRequest(aiModel, text, voice);
+      const responseStream = await aiModel.generateContentStream(generationRequest);
 
       for await (const chunk of responseStream.stream) {
         const chunkData = this.extractValidChunkData(chunk);
@@ -261,32 +251,67 @@ Refactor `VisionService` (`src/app/core/vision/vision.service.ts`) and `TextToSp
       }
     }
 
+    private createGenerationRequest(aiModel: GenerativeModel, text: string, voiceName: string): GenerateContentRequest {
+      const contents: Content[] = [
+        {
+          role: 'user',
+          parts: [
+            {
+              text,
+            },
+          ],
+        },
+      ];
+      const generationConfig: GenerationConfig = {
+        ...aiModel.generationConfig,
+        speechConfig: {
+          voiceConfig: {
+            prebuiltVoiceConfig: { voiceName },
+          },
+          languageCode: 'en-US',
+        },
+      };
+
+      return { contents, generationConfig };
+    }
+
     /**
-     * USE CASE 1 (Non-Streamed Synthesis):
-     * Generates the entire speech audio and returns a playable WAV Blob.
+     * USE CASE 1 (Ad-hoc Single-shot):
+     * Fetches the entire audio content at once, constructs a Blob, and returns it.
      */
     async synthesize({ text, voice }: SpeechPrompt): Promise<Blob> {
-      const model = await this.#aiModelFactory.getTtsModel();
-      const response = await model.generateContent(this.buildSpeechRequest(model, text, voice));
-      const chunkData = this.extractValidChunkData(response.response);
+      try {
+        const asyncAIModelFactory = await this.#aiModelFactory();
+        const aiModel = await asyncAIModelFactory.getTtsModel();
 
-      if (chunkData) {
-        const { data, mimeType } = chunkData;
-        const decoded = decodeAudioChunk(data, mimeType);
-        return toWavBlob(decoded.samples, decoded.sampleRate);
+        const generationRequest = this.createGenerationRequest(aiModel, text, voice);
+        const result = await aiModel.generateContent(generationRequest);
+        const chunk = this.extractValidChunkData(result.response);
+        if (!chunk) {
+          throw new Error('No audio data received in response.');
+        }
+        return toWavBlob(chunk.data, chunk.mimeType);
+      } catch (e) {
+        console.error('Ad-hoc single-shot synthesis failed:', e);
+        throw e;
       }
-      throw Error('TTS response missing candidate content parts');
     }
   }
   ```
 
 ### 4. Update `TextToSpeechService` Unit Tests (`src/app/core/speech/text-to-speech.service.spec.ts`)
 
-- [ ] Update `src/app/core/speech/text-to-speech.service.spec.ts` to provide `AiModelFactory` via `createMockAiModelFactory` and assert that `generateContent` and `generateContentStream` receive the preserved `responseModalities: ['AUDIO']` along with dynamic `speechConfig`:
+- [x] Update `src/app/core/speech/text-to-speech.service.spec.ts` to provide `AiModelFactory` via `createMockAiModelFactory` and assert that `generateContent` and `generateContentStream` receive the preserved `responseModalities: ['AUDIO']` along with dynamic `speechConfig`:
 
   ```ts
   import { AiModelFactory } from '@/core/firebase';
-  import { createMockAiModelFactory, createMockTtsModel, MockAiModelFactory } from '@/testing/ai-model.mock';
+  import {
+    createMockAiModelFactory,
+    createMockTtsModel,
+    createMockTtsResponse,
+    createMockTtsStream,
+    MockAiModelFactory,
+  } from '@/testing/ai-model.mock';
   import { TestBed } from '@angular/core/testing';
   import { TextToSpeechService } from './text-to-speech.service';
 
@@ -315,60 +340,105 @@ Refactor `VisionService` (`src/app/core/vision/vision.service.ts`) and `TextToSp
       service = TestBed.inject(TextToSpeechService);
     });
 
-    describe('synthesize', () => {
-      it('should pass speechConfig while preserving responseModalities from model.generationConfig', async () => {
-        const result = await service.synthesize({ text: 'Hello', voice: 'Puck' });
+    describe('On-demand Model Resolution', () => {
+      it('should resolve TTS model via AiModelFactory only on demand during synthesis', async () => {
+        let testService!: TextToSpeechService;
+        TestBed.runInInjectionContext(() => {
+          testService = new TextToSpeechService();
+        });
+
+        expect(mockAiModelFactory.getTtsModel).not.toHaveBeenCalled();
+
+        mockAiModel.generateContent.mockResolvedValue(createMockTtsResponse());
+
+        await testService.synthesize({ text: 'Test 1', voice: 'Kore' });
+        expect(mockAiModelFactory.getTtsModel).toHaveBeenCalledTimes(1);
+
+        await testService.synthesize({ text: 'Test 2', voice: 'Puck' });
+        expect(mockAiModelFactory.getTtsModel).toHaveBeenCalledTimes(2);
+      });
+    });
+
+    describe('synthesize (Use Case 1 - Ad-hoc Single-shot)', () => {
+      it('should pass speechConfig while preserving responseModalities from model.generationConfig and return WAV Blob', async () => {
+        const mockBase64 = 'SGVsbG8=';
+        mockAiModel.generateContent.mockResolvedValue(createMockTtsResponse({ base64Data: mockBase64 }));
+        const blob = await service.synthesize({ text: 'Hello Fact', voice: 'Kore' });
 
         expect(mockAiModelFactory.getTtsModel).toHaveBeenCalledTimes(1);
         expect(mockAiModel.generateContent).toHaveBeenCalledWith({
-          contents: [{ role: 'user', parts: [{ text: 'Hello' }] }],
+          contents: [{ role: 'user', parts: [{ text: 'Hello Fact' }] }],
           generationConfig: {
             responseModalities: ['AUDIO'],
             speechConfig: {
               voiceConfig: {
-                prebuiltVoiceConfig: { voiceName: 'Puck' },
+                prebuiltVoiceConfig: { voiceName: 'Kore' },
               },
               languageCode: 'en-US',
             },
           },
         });
-        expect(result).toBeInstanceOf(Blob);
+        expect(blob).toBeInstanceOf(Blob);
+        expect(blob.type).toBe('audio/wav');
       });
 
-      it('should throw an error if TTS candidate content is missing', async () => {
-        mockAiModel.generateContent.mockResolvedValueOnce({
-          response: { candidates: [] },
+      it('should throw an error if generateContent returns empty candidates or data', async () => {
+        mockAiModel.generateContent.mockResolvedValue({
+          response: {},
         });
 
-        await expect(service.synthesize({ text: 'Hello', voice: 'Puck' })).rejects.toThrow(
-          'TTS response missing candidate content parts',
+        await expect(service.synthesize({ text: 'Empty Fact', voice: 'Puck' })).rejects.toThrow(
+          'No audio data received in response.',
         );
       });
     });
 
-    describe('synthesizeStream', () => {
-      it('should stream audio chunks while preserving responseModalities in generationConfig', async () => {
-        const generator = service.synthesizeStream({ text: 'Hello stream', voice: 'Aoede' });
-        const chunks = [];
+    describe('synthesizeStream (Use Case 2 - Streamed Synthesis)', () => {
+      it('should stream chunks while preserving responseModalities in generationConfig and yield AudioStreamChunk objects', async () => {
+        mockAiModel.generateContentStream.mockResolvedValue(
+          createMockTtsStream([
+            { data: 'SGVsbG8=', mimeType: 'audio/l16; rate=24000; channels=1' },
+            { data: 'V29ybGQ=', mimeType: 'audio/l16; rate=24000; channels=1' },
+          ]),
+        );
 
+        const generator = service.synthesizeStream({ text: 'Dynamic Stream', voice: 'Kore' });
+        const emissions = [];
         for await (const chunk of generator) {
-          chunks.push(chunk);
+          emissions.push(chunk);
         }
 
         expect(mockAiModelFactory.getTtsModel).toHaveBeenCalledTimes(1);
         expect(mockAiModel.generateContentStream).toHaveBeenCalledWith({
-          contents: [{ role: 'user', parts: [{ text: 'Hello stream' }] }],
+          contents: [{ role: 'user', parts: [{ text: 'Dynamic Stream' }] }],
           generationConfig: {
             responseModalities: ['AUDIO'],
             speechConfig: {
               voiceConfig: {
-                prebuiltVoiceConfig: { voiceName: 'Aoede' },
+                prebuiltVoiceConfig: { voiceName: 'Kore' },
               },
               languageCode: 'en-US',
             },
           },
         });
-        expect(chunks.length).toBeGreaterThan(0);
+        expect(emissions.length).toBe(2);
+        expect(emissions[0]).toEqual({
+          decodedData: expect.any(Uint8Array),
+          sampleRate: 24000,
+          mimeType: 'audio/l16; rate=24000; channels=1',
+        });
+        expect(emissions[1]).toEqual({
+          decodedData: expect.any(Uint8Array),
+          sampleRate: 24000,
+          mimeType: 'audio/l16; rate=24000; channels=1',
+        });
+      });
+
+      it('should rethrow on stream errors', async () => {
+        mockAiModel.generateContentStream.mockRejectedValue(new Error('Vertex AI stream error'));
+
+        const generator = service.synthesizeStream({ text: 'Failing stream', voice: 'Puck' });
+        await expect(generator.next()).rejects.toThrow('Vertex AI stream error');
       });
     });
   });
@@ -376,14 +446,14 @@ Refactor `VisionService` (`src/app/core/vision/vision.service.ts`) and `TextToSp
 
 ### 5. Verification
 
-- [ ] Run targeted unit tests:
+- [x] Run targeted unit tests:
 
   ```bash
   npm run test:spec src/app/core/vision/vision.service.spec.ts
   npm run test:spec src/app/core/speech/text-to-speech.service.spec.ts
   ```
 
-- [ ] Run complete linting and testing suite:
+- [x] Run complete linting and testing suite:
 
   ```bash
   npm run lint && npm run test:once

@@ -1,6 +1,6 @@
 import { inject, Service } from '@angular/core';
-import type { AI, GenerationConfig, ModelParams, SafetySetting } from 'firebase/ai';
-import { GenerativeModel, HarmBlockThreshold, HarmCategory } from 'firebase/ai';
+import type { AI, GenerationConfig, GenerativeModel, ModelParams, SafetySetting } from 'firebase/ai';
+import { HarmBlockThreshold, HarmCategory } from 'firebase/ai';
 import type { AiModelOptions } from './ai-model-options.interface';
 import { ConfigService } from './config.service';
 

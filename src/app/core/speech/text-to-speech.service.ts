@@ -1,12 +1,19 @@
-import { ConfigService } from '@/core/firebase/config.service';
-import { inject, Service } from '@angular/core';
-import { GenerateContentResponse, GenerativeModel, getGenerativeModel, ResponseModality } from 'firebase/ai';
+import { injectAsync, Service } from '@angular/core';
+import type {
+  Content,
+  GenerateContentRequest,
+  GenerateContentResponse,
+  GenerationConfig,
+  GenerativeModel,
+} from 'firebase/ai';
 import { decodeAudioChunk, toWavBlob } from './audio.util';
 import { AudioStreamChunk, SpeechChunkData, SpeechPrompt } from './text-to-speech.interface';
 
 @Service()
 export class TextToSpeechService {
-  readonly #configService = inject(ConfigService);
+  readonly #aiModelFactory = injectAsync(() =>
+    import('@/core/firebase/ai-model-factory.service').then((m) => m.AiModelFactory),
+  );
 
   private extractValidChunkData(chunk: GenerateContentResponse): SpeechChunkData | null {
     const inlineData = chunk.candidates?.[0]?.content?.parts?.[0]?.inlineData;
@@ -21,8 +28,10 @@ export class TextToSpeechService {
    * Yields decoded audio chunks as they arrive from the Gemini model.
    */
   async *synthesizeStream({ text, voice }: SpeechPrompt): AsyncGenerator<AudioStreamChunk> {
-    const model = await this.createModel(voice);
-    const responseStream = await model.generateContentStream([text]);
+    const asyncAIModelFactory = await this.#aiModelFactory();
+    const aiModel = await asyncAIModelFactory.getTtsModel();
+    const generationRequest = this.createGenerationRequest(aiModel, text, voice);
+    const responseStream = await aiModel.generateContentStream(generationRequest);
 
     for await (const chunk of responseStream.stream) {
       const chunkData = this.extractValidChunkData(chunk);
@@ -33,14 +42,41 @@ export class TextToSpeechService {
     }
   }
 
+  private createGenerationRequest(aiModel: GenerativeModel, text: string, voiceName: string): GenerateContentRequest {
+    const contents: Content[] = [
+      {
+        role: 'user',
+        parts: [
+          {
+            text,
+          },
+        ],
+      },
+    ];
+    const generationConfig: GenerationConfig = {
+      ...aiModel.generationConfig,
+      speechConfig: {
+        voiceConfig: {
+          prebuiltVoiceConfig: { voiceName },
+        },
+        languageCode: 'en-US',
+      },
+    };
+
+    return { contents, generationConfig };
+  }
+
   /**
    * USE CASE 1 (Ad-hoc Single-shot):
    * Fetches the entire audio content at once, constructs a Blob, and returns it.
    */
   async synthesize({ text, voice }: SpeechPrompt): Promise<Blob> {
     try {
-      const model = await this.createModel(voice);
-      const result = await model.generateContent([text]);
+      const asyncAIModelFactory = await this.#aiModelFactory();
+      const aiModel = await asyncAIModelFactory.getTtsModel();
+
+      const generationRequest = this.createGenerationRequest(aiModel, text, voice);
+      const result = await aiModel.generateContent(generationRequest);
       const chunk = this.extractValidChunkData(result.response);
       if (!chunk) {
         throw new Error('No audio data received in response.');
@@ -50,20 +86,5 @@ export class TextToSpeechService {
       console.error('Ad-hoc single-shot synthesis failed:', e);
       throw e;
     }
-  }
-
-  private async createModel(voiceName: string): Promise<GenerativeModel> {
-    return getGenerativeModel(await this.#configService.getAiBackend(), {
-      model: this.#configService.appConfig.geminiTTSModelName,
-      generationConfig: {
-        responseModalities: [ResponseModality.AUDIO],
-        speechConfig: {
-          voiceConfig: {
-            prebuiltVoiceConfig: { voiceName },
-          },
-          languageCode: 'en-US',
-        },
-      },
-    });
   }
 }

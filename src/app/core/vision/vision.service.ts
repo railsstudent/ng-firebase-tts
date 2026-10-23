@@ -1,44 +1,22 @@
 import { WINDOW } from '@/core/constants/navigator.const';
-import { ConfigService } from '@/core/firebase/config.service';
-import { inject, Service } from '@angular/core';
-import {
-  AI,
-  GenerativeModel,
-  getGenerativeModel,
-  GroundingMetadata,
-  HarmBlockThreshold,
-  HarmCategory,
-  SafetySetting,
-  UsageMetadata,
-  WebGroundingChunk,
-} from 'firebase/ai';
-import { ImageAnalysis, ImageAnalysisResponse, TokenUsage, VisionGroundingMetadata } from './image-analysis.interface';
+import { inject, injectAsync, Service } from '@angular/core';
+import type { GroundingMetadata, UsageMetadata, WebGroundingChunk } from 'firebase/ai';
+import type {
+  ImageAnalysis,
+  ImageAnalysisResponse,
+  TokenUsage,
+  VisionGroundingMetadata,
+} from './image-analysis.interface';
 import { ImageAnalysisSchema } from './image-analysis.schema';
 import { preprocessImageForVision } from './image.util';
-
-const SAFETY_SETTINGS: SafetySetting[] = [
-  {
-    category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-    threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-  },
-  {
-    category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-    threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-  },
-  {
-    category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-    threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-  },
-  {
-    category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-    threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-  },
-];
+import { altTextPrompt } from './vision.prompt';
 
 @Service()
 export class VisionService {
   readonly #window = inject(WINDOW);
-  readonly #configService = inject(ConfigService);
+  readonly #aiModelFactory = injectAsync(() =>
+    import('@/core/firebase/ai-model-factory.service').then((m) => m.AiModelFactory),
+  );
 
   async analyzeImage(image: File): Promise<ImageAnalysisResponse> {
     if (!image) {
@@ -53,14 +31,11 @@ export class VisionService {
       },
     };
 
-    const altTextPrompt = `
-You are asked to perform four tasks:
-Task 1: Generate 1 - 3 sentences of alternative texts for the image provided, max 300 words.
-Task 2: Generate at least 3 tags to describe the image.
-Task 3: Based on the alternative text and tags, provide some suggestions to make the image more interesting and the reason to support them.
-Task 4: Search for a surprising or obscure fact that interconnects the following tags. If a direct link doesn't exist, find a conceptual link between them.
-`;
-    const aiModel = this.getGenerativeAIModel(await this.#configService.getAiBackend());
+    const asyncAIModelFactory = await this.#aiModelFactory();
+    const aiModel = await asyncAIModelFactory.getModel({
+      schema: ImageAnalysisSchema,
+      tools: [{ googleSearch: {} }],
+    });
     const result = await aiModel.generateContent([altTextPrompt, imagePart]);
 
     if (result?.response) {
@@ -80,22 +55,6 @@ Task 4: Search for a surprising or obscure fact that interconnects the following
       };
     }
     throw Error('No text generated.');
-  }
-
-  private getGenerativeAIModel(backend: AI): GenerativeModel {
-    return getGenerativeModel(backend, {
-      model: this.#configService.appConfig.geminiModelName,
-      generationConfig: {
-        responseMimeType: 'application/json',
-        responseSchema: ImageAnalysisSchema,
-        thinkingConfig: {
-          thinkingLevel: this.#configService.appConfig.thinkingLevel,
-          includeThoughts: true,
-        },
-      },
-      safetySettings: SAFETY_SETTINGS,
-      tools: [{ googleSearch: {} }],
-    });
   }
 
   private constructCitations(groundingMetadata?: GroundingMetadata): VisionGroundingMetadata {

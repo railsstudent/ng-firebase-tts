@@ -1,24 +1,31 @@
-import { ConfigService } from '@/core/firebase/config.service';
-import { createMockVisionModel, createMockVisionResponse } from '@/testing/ai-model.mock';
-import { createMockConfigService } from '@/testing/config.mock';
+import { AiModelFactory } from '@/core/firebase';
+import {
+  createMockAiModelFactory,
+  createMockVisionModel,
+  createMockVisionResponse,
+  MockAiModelFactory,
+} from '@/testing/ai-model.mock';
 import { TestBed } from '@angular/core/testing';
+import { ImageAnalysisSchema } from './image-analysis.schema';
 import { VisionService } from './vision.service';
 
 describe('VisionService', () => {
   let service: VisionService;
   let mockAiModel: ReturnType<typeof createMockVisionModel>;
+  let mockAiModelFactory: MockAiModelFactory;
 
   beforeEach(() => {
     mockAiModel = createMockVisionModel();
     mockAiModel.generateContent.mockClear();
     mockAiModel.generateContent.mockResolvedValue(createMockVisionResponse());
+    mockAiModelFactory = createMockAiModelFactory({ model: mockAiModel });
 
     TestBed.configureTestingModule({
       providers: [
         VisionService,
         {
-          provide: ConfigService,
-          useValue: createMockConfigService(),
+          provide: AiModelFactory,
+          useValue: mockAiModelFactory,
         },
       ],
     });
@@ -49,6 +56,11 @@ describe('VisionService', () => {
 
     const fakeFile = new File(['hello-world'], 'test-image.png', { type: 'image/png' });
     const result = await service.analyzeImage(fakeFile);
+
+    expect(mockAiModelFactory.getModel).toHaveBeenCalledWith({
+      schema: ImageAnalysisSchema,
+      tools: [{ googleSearch: {} }],
+    });
 
     expect(generateContentCalled).toBe(true);
     expect(generateContentArgs).toBeDefined();

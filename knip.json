@@ -6,6 +6,5 @@
     "cycles": "error"
   },
   "ignoreBinaries": ["ng"],
-  "ignoreDependencies": ["@firebase/ai"],
-  "ignore": ["src/app/core/firebase/ai-model-factory.service.ts"]
+  "ignoreDependencies": ["@firebase/ai"]
 }
