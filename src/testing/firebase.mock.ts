@@ -141,6 +141,7 @@ interface MockAiModelMock {
 
 function createVisionAiModel(): MockAiModelMock {
   return {
+    generationConfig: {},
     generateContent: vi.fn().mockImplementation(async () => ({
       response: {
         text: () => '{"altText":"Test alt text","tags":["tag1"],"suggestions":[],"obscureFact":"Fact"}',
@@ -157,6 +158,7 @@ function createVisionAiModel(): MockAiModelMock {
 function createTtsAiModel(): MockAiModelMock {
   const parts = [{ inlineData: { data: 'SGVsbG8=', mimeType: 'audio/l16; rate=24000; channels=1' } }];
   return {
+    generationConfig: { responseModalities: ['AUDIO'] },
     generateContent: vi.fn().mockImplementation(async () => ({
       response: { candidates: [{ content: { parts } }] },
     })),
@@ -211,6 +213,13 @@ interface MockAiEnums {
   HarmCategory: Record<string, string>;
   HarmBlockThreshold: Record<string, string>;
   ResponseModality: Record<string, string>;
+}
+
+interface MockAiModelMock {
+  generationConfig?: Record<string, unknown>;
+  generateContent: ReturnType<typeof vi.fn>;
+  generateContentStream: ReturnType<typeof vi.fn>;
+  startChat: ReturnType<typeof vi.fn>;
 }
 
 function createAiEnums(): MockAiEnums {

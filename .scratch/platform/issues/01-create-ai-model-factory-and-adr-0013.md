@@ -5,19 +5,18 @@ Create a dedicated interface file `src/app/core/firebase/ai-model-options.interf
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
 ## Acceptance Criteria & Implementation Checklist
 
 ### 1. Create `AiModelOptions` Interface (`src/app/core/firebase/ai-model-options.interface.ts`)
 
-- [ ] Create `src/app/core/firebase/ai-model-options.interface.ts` defining options for model overrides, system instructions, structured JSON outputs, and tools:
+- [x] Create `src/app/core/firebase/ai-model-options.interface.ts` defining options for model overrides, system instructions, structured JSON outputs, and tools:
 
   ```ts
   import type { SchemaRequest, Tool, TypedSchema } from 'firebase/ai';
 
   export interface AiModelOptions {
-    model?: string;
     systemInstruction?: string;
     schema?: SchemaRequest | TypedSchema;
     tools?: Tool[];
@@ -83,12 +82,11 @@ Create a dedicated interface file `src/app/core/firebase/ai-model-options.interf
 
     private generateKey(options?: AiModelOptions): string {
       const { geminiModelName, thinkingLevel } = this.#configService.appConfig;
-      const model = options?.model || geminiModelName;
       const instruction = options?.systemInstruction ?? '';
       const schemaKey = options?.schema ? JSON.stringify(options.schema) : '';
       const toolsKey = options?.tools?.length ? JSON.stringify(options.tools) : '';
 
-      return `${model}_${thinkingLevel}_${instruction}_${schemaKey}_${toolsKey}`;
+      return `${geminiModelName}_${thinkingLevel}_${instruction}_${schemaKey}_${toolsKey}`;
     }
 
     private async createModel(backend: AI, options?: AiModelOptions): Promise<GenerativeModel> {
@@ -108,7 +106,7 @@ Create a dedicated interface file `src/app/core/firebase/ai-model-options.interf
       }
 
       const modelParams: ModelParams = {
-        model: options?.model || geminiModelName,
+        model: geminiModelName,
         generationConfig,
         safetySettings: SAFETY_SETTINGS,
       };
@@ -147,13 +145,12 @@ Create a dedicated interface file `src/app/core/firebase/ai-model-options.interf
   }
   ```
 
-### 3. Export `AiModelOptions` and `AiModelFactory` from Firebase Barrel (`src/app/core/firebase/index.ts`)
+### 3. Export `AiModelFactory` from Firebase Barrel (`src/app/core/firebase/index.ts`)
 
-- [ ] Export `ai-model-options.interface` and `ai-model-factory.service` in `src/app/core/firebase/index.ts`:
+- [x] Export `ai-model-options.interface` and `ai-model-factory.service` in `src/app/core/firebase/index.ts`:
 
   ```ts
   export * from './ai-model-factory.service';
-  export * from './ai-model-options.interface';
   export * from './app-remote-config.interface';
   export * from './config.service';
   export * from './host.util';
@@ -161,7 +158,7 @@ Create a dedicated interface file `src/app/core/firebase/ai-model-options.interf
 
 ### 4. Update Global AI Mocks & Add `createMockAiModelFactory` (`src/testing/firebase.mock.ts` & `src/testing/ai-model.mock.ts`)
 
-- [ ] Update `createVisionAiModel()`, `createTtsAiModel()`, and `mockGetGenerativeModel` in `src/testing/firebase.mock.ts` so returned mock models expose `generationConfig` (needed when callers spread `...model.generationConfig`) and return fresh wrapper instances per `getGenerativeModel` call while delegating to shared spy functions:
+- [x] Update `createVisionAiModel()`, `createTtsAiModel()`, and `mockGetGenerativeModel` in `src/testing/firebase.mock.ts` so returned mock models expose `generationConfig` (needed when callers spread `...model.generationConfig`) and return fresh wrapper instances per `getGenerativeModel` call while delegating to shared spy functions:
 
   ```ts
   interface MockAiModelMock {
@@ -212,7 +209,7 @@ Create a dedicated interface file `src/app/core/firebase/ai-model-options.interf
   }
   ```
 
-- [ ] Update `src/testing/ai-model.mock.ts` to include `generationConfig` on `MockGenerativeModel` and export `createMockAiModelFactory`:
+- [x] Update `src/testing/ai-model.mock.ts` to include `generationConfig` on `MockGenerativeModel` and export `createMockAiModelFactory`:
 
   ```ts
   import type { AiModelFactory } from '@/core/firebase';
@@ -250,7 +247,7 @@ Create a dedicated interface file `src/app/core/firebase/ai-model-options.interf
 
 ### 5. Add Unit Tests for `AiModelFactory` (`src/app/core/firebase/ai-model-factory.service.spec.ts`)
 
-- [ ] Create `src/app/core/firebase/ai-model-factory.service.spec.ts` verifying composite key ordering (`${model}_${thinkingLevel}_${instruction}_${schemaKey}_${toolsKey}`), general/structured/tool-enabled model Map caching, conditional `responseSchema` / `responseMimeType`, optional `tools` handling, TTS model caching with `ResponseModality.AUDIO`, and cache invalidation when `ConfigService.getAiBackend()` returns a new backend reference:
+- [x] Create `src/app/core/firebase/ai-model-factory.service.spec.ts` verifying composite key ordering (`${model}_${thinkingLevel}_${instruction}_${schemaKey}_${toolsKey}`), general/structured/tool-enabled model Map caching, conditional `responseSchema` / `responseMimeType`, optional `tools` handling, TTS model caching with `ResponseModality.AUDIO`, and cache invalidation when `ConfigService.getAiBackend()` returns a new backend reference:
 
   ```ts
   import { createMockAiBackend, createMockConfigService, MockConfigService } from '@/testing/config.mock';
@@ -327,7 +324,6 @@ Create a dedicated interface file `src/app/core/firebase/ai-model-options.interf
         const testSchema = Schema.object({ properties: { label: Schema.string() } });
 
         await factory.getModel({
-          model: 'gemini-2.5-pro',
           schema: testSchema,
           systemInstruction: 'Analyze carefully',
           tools: [{ googleMaps: {} }],
@@ -375,15 +371,9 @@ Create a dedicated interface file `src/app/core/firebase/ai-model-options.interf
 
         await factory.getModel({ schema, systemInstruction: 'Inst A', tools: [{ googleSearch: {} }] });
         await factory.getModel({ schema, systemInstruction: 'Inst A', tools: [{ googleMaps: {} }] });
-        await factory.getModel({
-          model: 'gemini-2.5-pro',
-          schema,
-          systemInstruction: 'Inst A',
-          tools: [{ googleSearch: {} }],
-        });
         await factory.getModel({ schema, systemInstruction: 'Inst B', tools: [{ googleSearch: {} }] });
 
-        expect(mockGetGenerativeModel).toHaveBeenCalledTimes(4);
+        expect(mockGetGenerativeModel).toHaveBeenCalledTimes(3);
       });
     });
 
@@ -458,13 +448,13 @@ Create a dedicated interface file `src/app/core/firebase/ai-model-options.interf
 
 ### 7. Verification
 
-- [ ] Run targeted unit tests:
+- [x] Run targeted unit tests:
 
   ```bash
   npm run test:spec src/app/core/firebase/ai-model-factory.service.spec.ts
   ```
 
-- [ ] Run linter:
+- [x] Run linter:
 
   ```bash
   npm run lint

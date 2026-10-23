@@ -1,4 +1,5 @@
-import { getGenerativeModel, GroundingMetadata, UsageMetadata } from 'firebase/ai';
+import { AiModelFactory } from '@/core/firebase';
+import { type GenerationConfig, getGenerativeModel, type GroundingMetadata, type UsageMetadata } from 'firebase/ai';
 import { vi } from 'vitest';
 
 interface MockVisionResponseOptions {
@@ -51,9 +52,15 @@ interface MockTtsStream {
   }>;
 }
 
-interface MockGenerativeModel {
+export interface MockGenerativeModel {
+  generationConfig?: GenerationConfig;
   generateContent: ReturnType<typeof vi.fn>;
   generateContentStream: ReturnType<typeof vi.fn>;
+}
+
+export interface MockAiModelFactory {
+  getModel: ReturnType<typeof vi.fn>;
+  getTtsModel: ReturnType<typeof vi.fn>;
 }
 
 function buildVisionPayload(options?: MockVisionResponseOptions): MockVisionPayload {
@@ -155,4 +162,17 @@ export function createMockTtsModel(): MockGenerativeModel {
     model: 'gemini-2.0-flash-exp',
     generationConfig: { responseModalities: ['AUDIO'] },
   }) as unknown as MockGenerativeModel;
+}
+
+export function createMockAiModelFactory(options?: {
+  model?: MockGenerativeModel;
+  ttsModel?: MockGenerativeModel;
+}): MockAiModelFactory {
+  const defaultModel = options?.model ?? createMockVisionModel();
+  const defaultTtsModel = options?.ttsModel ?? createMockTtsModel();
+
+  return {
+    getModel: vi.fn().mockResolvedValue(defaultModel),
+    getTtsModel: vi.fn().mockResolvedValue(defaultTtsModel),
+  } satisfies Partial<AiModelFactory>;
 }
