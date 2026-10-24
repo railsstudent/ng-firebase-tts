@@ -1,13 +1,20 @@
 import { createMockAiBackend, createMockConfigService, MockConfigService } from '@/testing/config.mock';
-import { mockGetGenerativeModel } from '@/testing/firebase.mock';
 import { TestBed } from '@angular/core/testing';
-import { HarmBlockThreshold, HarmCategory, ResponseModality, Schema, ThinkingLevel } from 'firebase/ai';
+import {
+  getGenerativeModel,
+  HarmBlockThreshold,
+  HarmCategory,
+  ResponseModality,
+  Schema,
+  ThinkingLevel,
+} from 'firebase/ai';
 import { AiModelFactory } from './ai-model-factory.service';
 import { ConfigService } from './config.service';
 
 describe('AiModelFactory', () => {
   let factory: AiModelFactory;
   let mockConfigService: MockConfigService;
+  const mockGetGenerativeModel = vi.mocked(getGenerativeModel);
 
   beforeEach(() => {
     mockGetGenerativeModel.mockClear();

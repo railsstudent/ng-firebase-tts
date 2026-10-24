@@ -1,7 +1,7 @@
 # 01: Create `AiModelFactory` with Configurable Model Map Cache, TTS Cache, and ADR-0013
 
 **What to build:**
-Create a dedicated interface file `src/app/core/firebase/ai-model-options.interface.ts` and a centralized `AiModelFactory` in `src/app/core/firebase/ai-model-factory.service.ts` that encapsulates lazy dynamic importing of `firebase/ai` (preserving ADR-0008 service-level code splitting), caches general/structured/tool-enabled generative models in a `Map<string, GenerativeModel>` keyed by `${model}_${thinkingLevel}_${instruction}_${schemaKey}_${toolsKey}`, caches a single TTS model instance configured with `responseModalities: [ResponseModality.AUDIO]`, and automatically evicts cached models whenever `ConfigService.getAiBackend()` emits a new `AI` reference after Remote Config activation. Export both `AiModelOptions` and `AiModelFactory` from `src/app/core/firebase/index.ts`, add `createMockAiModelFactory` to `src/testing/ai-model.mock.ts`, author unit tests in `src/app/core/firebase/ai-model-factory.service.spec.ts`, and record `docs/adr/0013-centralized-ai-model-factory-and-generation-config.md`.
+Create a dedicated interface file `src/app/core/firebase/ai-model-options.interface.ts` and a centralized `AiModelFactory` in `src/app/core/firebase/ai-model-factory.service.ts` that encapsulates lazy dynamic importing of `firebase/ai` (preserving ADR-0008 service-level code splitting), caches general/structured/tool-enabled generative models in a `Map<string, GenerativeModel>` keyed by `${model}_${thinkingLevel}_${instruction}_${schemaKey}_${toolsKey}`, caches a single TTS model instance configured with `responseModalities: [ResponseModality.AUDIO]`, and automatically evicts cached models whenever `ConfigService.getAiBackend()` emits a new `AI` reference after Remote Config activation. Do not export `AiModelFactory` from `src/app/core/firebase/index.ts` so `main.js` does not hoist `AiModelFactory` when eager modules import from `@/core/firebase`. Add `createMockAiModelFactory` to `src/testing/ai-model.mock.ts`, author unit tests in `src/app/core/firebase/ai-model-factory.service.spec.ts`, and record `docs/adr/0013-centralized-ai-model-factory-and-generation-config.md`.
 
 **Blocked by:** None (can start immediately)
 
@@ -25,33 +25,13 @@ Create a dedicated interface file `src/app/core/firebase/ai-model-options.interf
 
 ### 2. Implement `AiModelFactory` (`src/app/core/firebase/ai-model-factory.service.ts`)
 
-- [ ] Create `src/app/core/firebase/ai-model-factory.service.ts` adhering to repository ESLint invariants (native `#` for private state/dependencies, `private` keyword for methods, max 3 parameters per method, max 40 lines per function, zero `!` assertions, zero `../` imports):
+- [x] Create `src/app/core/firebase/ai-model-factory.service.ts` adhering to repository ESLint invariants (native `#` for private state/dependencies, `private` keyword for methods, max 3 parameters per method, max 40 lines per function, zero `!` assertions, zero `../` imports):
 
   ```ts
   import { inject, Service } from '@angular/core';
   import type { AI, GenerationConfig, GenerativeModel, ModelParams, SafetySetting } from 'firebase/ai';
-  import { HarmBlockThreshold, HarmCategory } from 'firebase/ai';
   import type { AiModelOptions } from './ai-model-options.interface';
   import { ConfigService } from './config.service';
-
-  const SAFETY_SETTINGS: SafetySetting[] = [
-    {
-      category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-      threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-    },
-    {
-      category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-      threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-    },
-    {
-      category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-      threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-    },
-    {
-      category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-      threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-    },
-  ];
 
   @Service()
   export class AiModelFactory {
@@ -59,26 +39,6 @@ Create a dedicated interface file `src/app/core/firebase/ai-model-options.interf
     readonly #models = new Map<string, GenerativeModel>();
     #ttsModel: GenerativeModel | null = null;
     #cachedBackend: AI | null = null;
-
-    async getModel(options?: AiModelOptions): Promise<GenerativeModel> {
-      const backend = await this.getValidBackend();
-      const key = this.generateKey(options);
-
-      let model = this.#models.get(key);
-      if (!model) {
-        model = await this.createModel(backend, options);
-        this.#models.set(key, model);
-      }
-      return model;
-    }
-
-    async getTtsModel(): Promise<GenerativeModel> {
-      const backend = await this.getValidBackend();
-      if (!this.#ttsModel) {
-        this.#ttsModel = await this.createTtsModel(backend);
-      }
-      return this.#ttsModel;
-    }
 
     private generateKey(options?: AiModelOptions): string {
       const { geminiModelName, thinkingLevel } = this.#configService.appConfig;
@@ -89,9 +49,20 @@ Create a dedicated interface file `src/app/core/firebase/ai-model-options.interf
       return `${geminiModelName}_${thinkingLevel}_${instruction}_${schemaKey}_${toolsKey}`;
     }
 
+    private async getSafetySettings(): Promise<SafetySetting[]> {
+      const { HarmBlockThreshold, HarmCategory } = await import('firebase/ai');
+      return [
+        { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
+        { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
+        { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
+        { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
+      ];
+    }
+
     private async createModel(backend: AI, options?: AiModelOptions): Promise<GenerativeModel> {
       const { getGenerativeModel } = await import('firebase/ai');
-      const { geminiModelName, thinkingLevel } = this.#configService.appConfig;
+      const model = this.#configService.appConfig.geminiModelName;
+      const { thinkingLevel } = this.#configService.appConfig;
 
       const generationConfig: GenerationConfig = {
         thinkingConfig: {
@@ -106,9 +77,9 @@ Create a dedicated interface file `src/app/core/firebase/ai-model-options.interf
       }
 
       const modelParams: ModelParams = {
-        model: geminiModelName,
+        model,
         generationConfig,
-        safetySettings: SAFETY_SETTINGS,
+        safetySettings: await this.getSafetySettings(),
       };
 
       if (options?.tools?.length) {
@@ -122,10 +93,22 @@ Create a dedicated interface file `src/app/core/firebase/ai-model-options.interf
       return getGenerativeModel(backend, modelParams);
     }
 
-    private async createTtsModel(backend: AI): Promise<GenerativeModel> {
+    async getModel(options?: AiModelOptions): Promise<GenerativeModel> {
+      const backend = await this.getValidBackend();
+      const key = this.generateKey(options);
+      let model = this.#models.get(key);
+      if (!model) {
+        model = await this.createModel(backend, options);
+        this.#models.set(key, model);
+      }
+
+      return model;
+    }
+
+    private async createTtsModel(ai: AI): Promise<GenerativeModel> {
       const { getGenerativeModel, ResponseModality } = await import('firebase/ai');
 
-      return getGenerativeModel(backend, {
+      return getGenerativeModel(ai, {
         model: this.#configService.appConfig.geminiTTSModelName,
         generationConfig: {
           responseModalities: [ResponseModality.AUDIO],
@@ -133,25 +116,33 @@ Create a dedicated interface file `src/app/core/firebase/ai-model-options.interf
       });
     }
 
+    async getTtsModel(): Promise<GenerativeModel> {
+      const backend = await this.getValidBackend();
+      if (!this.#ttsModel) {
+        this.#ttsModel = await this.createTtsModel(backend);
+      }
+
+      return this.#ttsModel;
+    }
+
     private async getValidBackend(): Promise<AI> {
       const backend = await this.#configService.getAiBackend();
-      if (this.#cachedBackend !== backend) {
+      if (backend !== this.#cachedBackend) {
         this.#cachedBackend = backend;
         this.#models.clear();
         this.#ttsModel = null;
       }
-      return backend;
+
+      return this.#cachedBackend;
     }
   }
   ```
 
-### 3. Export `AiModelFactory` from Firebase Barrel (`src/app/core/firebase/index.ts`)
+### 3. Keep `AiModelFactory` Out of Firebase Barrel (`src/app/core/firebase/index.ts`)
 
-- [x] Export `ai-model-options.interface` and `ai-model-factory.service` in `src/app/core/firebase/index.ts`:
+- [x] Keep `src/app/core/firebase/index.ts` exporting only eager symbols (`config.service` and `host.util`) so `AiModelFactory` remains in lazy chunks:
 
   ```ts
-  export * from './ai-model-factory.service';
-  export * from './app-remote-config.interface';
   export * from './config.service';
   export * from './host.util';
   ```
@@ -212,7 +203,7 @@ Create a dedicated interface file `src/app/core/firebase/ai-model-options.interf
 - [x] Update `src/testing/ai-model.mock.ts` to include `generationConfig` on `MockGenerativeModel` and export `createMockAiModelFactory`:
 
   ```ts
-  import type { AiModelFactory } from '@/core/firebase';
+  import type { AiModelFactory } from '@/core/firebase/ai-model-factory.service';
   import { GenerationConfig, getGenerativeModel, GroundingMetadata, UsageMetadata } from 'firebase/ai';
   import { vi } from 'vitest';
   ```
@@ -251,15 +242,22 @@ Create a dedicated interface file `src/app/core/firebase/ai-model-options.interf
 
   ```ts
   import { createMockAiBackend, createMockConfigService, MockConfigService } from '@/testing/config.mock';
-  import { mockGetGenerativeModel } from '@/testing/firebase.mock';
   import { TestBed } from '@angular/core/testing';
-  import { HarmBlockThreshold, HarmCategory, ResponseModality, Schema, ThinkingLevel } from 'firebase/ai';
+  import {
+    getGenerativeModel,
+    HarmBlockThreshold,
+    HarmCategory,
+    ResponseModality,
+    Schema,
+    ThinkingLevel,
+  } from 'firebase/ai';
   import { AiModelFactory } from './ai-model-factory.service';
   import { ConfigService } from './config.service';
 
   describe('AiModelFactory', () => {
     let factory: AiModelFactory;
     let mockConfigService: MockConfigService;
+    const mockGetGenerativeModel = vi.mocked(getGenerativeModel);
 
     beforeEach(() => {
       mockGetGenerativeModel.mockClear();
@@ -332,7 +330,6 @@ Create a dedicated interface file `src/app/core/firebase/ai-model-options.interf
         expect(mockGetGenerativeModel).toHaveBeenCalledWith(
           expect.anything(),
           expect.objectContaining({
-            model: 'gemini-2.5-pro',
             systemInstruction: 'Analyze carefully',
             tools: [{ googleMaps: {} }],
             generationConfig: {
@@ -414,7 +411,7 @@ Create a dedicated interface file `src/app/core/firebase/ai-model-options.interf
 
 ### 6. Author ADR-0013 (`docs/adr/0013-centralized-ai-model-factory-and-generation-config.md`)
 
-- [ ] Create `docs/adr/0013-centralized-ai-model-factory-and-generation-config.md` documenting the architectural context, trade-offs, composite key design, and shallow-spread mitigation:
+- [x] Create `docs/adr/0013-centralized-ai-model-factory-and-generation-config.md` documenting the architectural context, trade-offs, composite key design, and shallow-spread mitigation:
 
   ```markdown
   # 0013: Centralized Generative Model Factory, Lifecycle Caching, and Request-Level GenerationConfig Protocol
@@ -434,8 +431,8 @@ Create a dedicated interface file `src/app/core/firebase/ai-model-options.interf
 
   We introduce a centralized `AiModelFactory` (`src/app/core/firebase/ai-model-factory.service.ts`) governed by four invariants:
 
-  1. **Lazy Dynamic SDK Import**: `AiModelFactory` loads `firebase/ai` via dynamic `await import('firebase/ai')` inside its private `createModel()` and `createTtsModel()` methods, preserving ADR-0008 service-level code splitting so `firebase/ai` never enters the initial critical bundle.
-  2. **Deterministic Generative Model Map Cache**: Models are cached in a private `Map<string, GenerativeModel>` (`#models`) keyed by `${model}_${thinkingLevel}_${instruction}_${schemaKey}_${toolsKey}` in that exact order, separated by underscores (`_`). `model` defaults to `ConfigService.appConfig.geminiModelName`, `thinkingLevel` is resolved from `ConfigService.appConfig.thinkingLevel`, `tools` are attached only when explicitly provided in `options.tools`, and `responseSchema` and `responseMimeType: 'application/json'` are attached conditionally and cleanly only when a schema is provided.
+  1. **Lazy Domain Boundary & Dynamic SDK Import**: Domain services (`VisionService`, `TextToSpeechService`) are themselves lazy-loaded on demand at the UI boundary via `injectAsync`, so they inject `AiModelFactory` synchronously via `inject(AiModelFactory)` (avoiding a redundant dynamic import hop) using a direct file import (`@/core/firebase/ai-model-factory.service`) rather than the `@/core/firebase` barrel so `AiModelFactory` is excluded from `main.js`. `AiModelFactory` loads `firebase/ai` via dynamic `await import('firebase/ai')` inside `createModel()`, `createTtsModel()`, and `getSafetySettings()`, preserving ADR-0008 service-level code splitting so `firebase/ai` never enters the initial critical bundle.
+  2. **Deterministic Generative Model Map Cache**: Models are cached in a private `Map<string, GenerativeModel>` (`#models`) keyed by `${model}_${thinkingLevel}_${instruction}_${schemaKey}_${toolsKey}` in that exact order, separated by underscores (`_`). `model` and `thinkingLevel` are resolved from `ConfigService.appConfig` (`geminiModelName` and `thinkingLevel`), `tools` are attached only when explicitly provided in `options.tools`, and `responseSchema` and `responseMimeType: 'application/json'` are attached conditionally and cleanly only when a schema is provided.
   3. **Single Cached TTS Model with Request-Level Spread**: `AiModelFactory` caches a single `#ttsModel` configured with `generationConfig: { responseModalities: [ResponseModality.AUDIO] }`. Callers (`TextToSpeechService`) pass dynamic voice configurations per request by spreading `...model.generationConfig` alongside `speechConfig` inside `generateContent` and `generateContentStream`.
   4. **Automatic Eviction on Backend Rotation**: `AiModelFactory` tracks `#cachedBackend: AI | null`. Whenever `ConfigService.getAiBackend()` returns a new `AI` reference (such as after Remote Config activation resets `#ai = null`), `AiModelFactory` flushes `#models.clear()` and resets `#ttsModel = null`.
 
@@ -454,8 +451,8 @@ Create a dedicated interface file `src/app/core/firebase/ai-model-options.interf
   npm run test:spec src/app/core/firebase/ai-model-factory.service.spec.ts
   ```
 
-- [x] Run linter:
+- [x] Run linter and full test suite:
 
   ```bash
-  npm run lint
+  npm run lint && npm run test:once
   ```

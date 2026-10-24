@@ -1,4 +1,4 @@
-import { AiModelFactory } from '@/core/firebase';
+import { AiModelFactory } from '@/core/firebase/ai-model-factory.service';
 import {
   createMockAiModelFactory,
   createMockTtsModel,
@@ -38,11 +38,7 @@ describe('TextToSpeechService', () => {
     it('should retrieve the TTS model from AiModelFactory dynamically on demand during synthesis', async () => {
       mockAiModelFactory.getTtsModel.mockClear();
 
-      let testService!: TextToSpeechService;
-      TestBed.runInInjectionContext(() => {
-        testService = new TextToSpeechService();
-      });
-
+      const testService = TestBed.runInInjectionContext(() => new TextToSpeechService());
       expect(mockAiModelFactory.getTtsModel).not.toHaveBeenCalled();
 
       mockAiModel.generateContent.mockResolvedValue(createMockTtsResponse());
@@ -61,6 +57,7 @@ describe('TextToSpeechService', () => {
       mockAiModel.generateContent.mockResolvedValue(createMockTtsResponse({ base64Data: mockBase64 }));
       const blob = await service.synthesize({ text: 'Hello Fact', voice: 'Kore' });
 
+      expect(mockAiModelFactory.getTtsModel).toHaveBeenCalledTimes(1);
       expect(mockAiModel.generateContent).toHaveBeenCalledWith({
         contents: [{ role: 'user', parts: [{ text: 'Hello Fact' }] }],
         generationConfig: {
@@ -105,6 +102,7 @@ describe('TextToSpeechService', () => {
         emissions.push(chunk);
       }
 
+      expect(mockAiModelFactory.getTtsModel).toHaveBeenCalledTimes(1);
       expect(mockAiModel.generateContentStream).toHaveBeenCalledWith({
         contents: [{ role: 'user', parts: [{ text: 'Dynamic Stream' }] }],
         generationConfig: {

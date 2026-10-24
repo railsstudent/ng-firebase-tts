@@ -134,6 +134,7 @@ function createAuthMocks(): MockAuthMocks {
 // 4. firebase/ai & @firebase/ai
 // ---------------------------------------------------------------------------
 interface MockAiModelMock {
+  generationConfig?: Record<string, unknown>;
   generateContent: ReturnType<typeof vi.fn>;
   generateContentStream: ReturnType<typeof vi.fn>;
   startChat: ReturnType<typeof vi.fn>;
@@ -215,13 +216,6 @@ interface MockAiEnums {
   ResponseModality: Record<string, string>;
 }
 
-interface MockAiModelMock {
-  generationConfig?: Record<string, unknown>;
-  generateContent: ReturnType<typeof vi.fn>;
-  generateContentStream: ReturnType<typeof vi.fn>;
-  startChat: ReturnType<typeof vi.fn>;
-}
-
 function createAiEnums(): MockAiEnums {
   return {
     SchemaType: {
@@ -283,9 +277,9 @@ function createAiMocks(): MockAiMocks {
     .fn()
     .mockImplementation((_ai?: unknown, options?: { generationConfig?: { responseModalities?: unknown[] } }) => {
       if (options?.generationConfig?.responseModalities?.length) {
-        return mockTtsAiModel;
+        return { ...mockTtsAiModel };
       }
-      return mockAiModel;
+      return { ...mockAiModel };
     });
 
   const mockFirebaseAi = {
@@ -338,20 +332,6 @@ interface GlobalMockHolder {
 
 const globalMockHolder = globalThis as unknown as GlobalMockHolder;
 const state = (globalMockHolder.__FIREBASE_MOCK_STATE__ ??= initializeFirebaseMocks());
-
-export const mockFirebaseAppInstance = state.mockFirebaseAppInstance;
-export const mockFirebaseApp = state.mockFirebaseApp;
-export const mockFirebaseAppCheck = state.mockFirebaseAppCheck;
-export const mockFirebaseRemoteConfig = state.mockFirebaseRemoteConfig;
-export const mockAuthInstance = state.mockAuthInstance;
-export const mockFirebaseAuth = state.mockFirebaseAuth;
-export const mockAiModel = state.mockAiModel;
-export const mockTtsAiModel = state.mockTtsAiModel;
-export const mockGetGenerativeModel = state.mockGetGenerativeModel;
-export const mockSchema = state.mockSchema;
-export const mockAgentPlatformBackend = state.mockAgentPlatformBackend;
-export const mockGetAI = state.mockGetAI;
-export const mockFirebaseAi = state.mockFirebaseAi;
 
 // ---------------------------------------------------------------------------
 // Global Module Mock Registrations

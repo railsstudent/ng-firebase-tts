@@ -1,4 +1,4 @@
-import { AiModelFactory } from '@/core/firebase';
+import { AiModelFactory } from '@/core/firebase/ai-model-factory.service';
 import {
   createMockAiModelFactory,
   createMockVisionModel,

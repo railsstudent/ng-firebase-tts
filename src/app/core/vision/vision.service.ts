@@ -1,5 +1,6 @@
 import { WINDOW } from '@/core/constants/navigator.const';
-import { inject, injectAsync, Service } from '@angular/core';
+import { AiModelFactory } from '@/core/firebase/ai-model-factory.service';
+import { inject, Service } from '@angular/core';
 import type { GroundingMetadata, UsageMetadata, WebGroundingChunk } from 'firebase/ai';
 import type {
   ImageAnalysis,
@@ -14,9 +15,7 @@ import { altTextPrompt } from './vision.prompt';
 @Service()
 export class VisionService {
   readonly #window = inject(WINDOW);
-  readonly #aiModelFactory = injectAsync(() =>
-    import('@/core/firebase/ai-model-factory.service').then((m) => m.AiModelFactory),
-  );
+  readonly #aiModelFactory = inject(AiModelFactory);
 
   async analyzeImage(image: File): Promise<ImageAnalysisResponse> {
     if (!image) {
@@ -31,8 +30,7 @@ export class VisionService {
       },
     };
 
-    const asyncAIModelFactory = await this.#aiModelFactory();
-    const aiModel = await asyncAIModelFactory.getModel({
+    const aiModel = await this.#aiModelFactory.getModel({
       schema: ImageAnalysisSchema,
       tools: [{ googleSearch: {} }],
     });

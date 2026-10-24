@@ -4,7 +4,7 @@ This file provides context, rules, and guidance for AI assistants working on thi
 
 ## Directory Navigation
 
-- **`src/app/core/<domain>/`**: Cohesive flat domain packages with public `index.ts`. Keep domain files at the root level of the folder without nested subdirectories.
+- **`src/app/core/<domain>/`**: Cohesive flat domain packages (with public `index.ts`). Keep domain files at the root level of the folder without nested subdirectories, and never export lazy-only services (`injectAsync` targets or services exclusively consumed by them) from barrel files that are also imported by eager modules in `main.js`.
 - **`src/app/features/`**: Feature components, routing, and view models. Never create barrel files (`index.ts`) in feature folders or across `@defer` boundaries.
 - **`src/app/pwa/`**: PWA infrastructure & update checking. Use direct targeted imports without barrel files to preserve `@defer` splitting.
 - **`src/app/shared/`**: Reusable components, pipes, and domain models (`src/app/shared/interfaces/<domain>.interface.ts`).

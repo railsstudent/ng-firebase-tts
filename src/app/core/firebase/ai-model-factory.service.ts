@@ -1,27 +1,7 @@
 import { inject, Service } from '@angular/core';
 import type { AI, GenerationConfig, GenerativeModel, ModelParams, SafetySetting } from 'firebase/ai';
-import { HarmBlockThreshold, HarmCategory } from 'firebase/ai';
 import type { AiModelOptions } from './ai-model-options.interface';
 import { ConfigService } from './config.service';
-
-const SAFETY_SETTINGS: SafetySetting[] = [
-  {
-    category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-    threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-  },
-  {
-    category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-    threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-  },
-  {
-    category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-    threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-  },
-  {
-    category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-    threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-  },
-];
 
 @Service()
 export class AiModelFactory {
@@ -37,6 +17,16 @@ export class AiModelFactory {
     const toolsKey = options?.tools?.length ? JSON.stringify(options.tools) : '';
 
     return `${geminiModelName}_${thinkingLevel}_${instruction}_${schemaKey}_${toolsKey}`;
+  }
+
+  private async getSafetySettings(): Promise<SafetySetting[]> {
+    const { HarmBlockThreshold, HarmCategory } = await import('firebase/ai');
+    return [
+      { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
+      { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
+      { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
+      { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
+    ];
   }
 
   private async createModel(backend: AI, options?: AiModelOptions): Promise<GenerativeModel> {
@@ -59,7 +49,7 @@ export class AiModelFactory {
     const modelParams: ModelParams = {
       model,
       generationConfig,
-      safetySettings: SAFETY_SETTINGS,
+      safetySettings: await this.getSafetySettings(),
     };
 
     if (options?.tools?.length) {
@@ -74,8 +64,8 @@ export class AiModelFactory {
   }
 
   async getModel(options?: AiModelOptions): Promise<GenerativeModel> {
-    const key = this.generateKey(options);
     const backend = await this.getValidBackend();
+    const key = this.generateKey(options);
     let model = this.#models.get(key);
     if (!model) {
       model = await this.createModel(backend, options);

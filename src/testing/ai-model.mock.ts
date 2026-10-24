@@ -1,5 +1,6 @@
-import { AiModelFactory } from '@/core/firebase';
-import { type GenerationConfig, getGenerativeModel, type GroundingMetadata, type UsageMetadata } from 'firebase/ai';
+import { AiModelFactory } from '@/core/firebase/ai-model-factory.service';
+import type { GenerationConfig, GroundingMetadata, UsageMetadata } from 'firebase/ai';
+import { getGenerativeModel } from 'firebase/ai';
 import { vi } from 'vitest';
 
 interface MockVisionResponseOptions {

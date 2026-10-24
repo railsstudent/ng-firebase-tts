@@ -30,6 +30,11 @@ This document defines testing conventions, DI mocking contracts, and verificatio
 4. **ESLint Compliance in Spec Files**:
    - Spec files (`*.spec.ts`) must adhere to ESLint config: no parent relative imports (`../`) in TypeScript (use sibling `./` or absolute `@/` path aliases), no missing curly braces, no legacy reactive forms, and no custom test classes expanding private member visibility.
 
+5. **Firebase Global Mock Setup vs Spec Imports**:
+   - `src/testing/firebase.mock.ts` is registered as a global `setupFiles` entry in `angular.json` / Vitest configuration.
+   - Never import mock objects or helpers directly from `@/testing/firebase.mock` inside spec files. Doing so causes Vite/esbuild to code-split the setup file into a shared chunk, breaking `vi.mock` hoisting across worker threads in multi-file test runs.
+   - Instead, import the SDK function directly from the Firebase module (e.g., `'firebase/ai'`) and wrap it with `vi.mocked(...)` (e.g., `const mockGetGenerativeModel = vi.mocked(getGenerativeModel)`).
+
 ## Test Execution Workflow
 
 1. **Targeted Testing during Iterations**:

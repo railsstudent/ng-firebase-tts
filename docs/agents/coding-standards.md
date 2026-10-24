@@ -40,8 +40,8 @@ This document outlines project-specific coding standards and architectural conve
 
 ## 6. Domain Package Boundaries & Invariants
 
-- **Domain Packages (`src/app/core/<domain>/`)**: Cohesive flat domain packages (e.g. `src/app/core/vision/`, `src/app/core/speech/`, `src/app/core/auth/`). Keep all domain files at the root level of the folder without nested subdirectories (`constants/`, `interfaces/`, `types/`). Each domain presents a clean public API via `index.ts`. Never export internal helpers for testing.
-- **Barrel File Restrictions**: Barrel files (`index.ts`) are strictly reserved for core domain packages under `src/app/core/<domain>/`. Never create barrel files in `src/app/pwa/`, feature folders, or component directories containing `@defer` components.
+- **Domain Packages (`src/app/core/<domain>/`)**: Cohesive flat domain packages (e.g. `src/app/core/vision/`, `src/app/core/speech/`, `src/app/core/auth/`, `src/app/core/firebase/`). Keep all domain files at the root level of the folder without nested subdirectories (`constants/`, `interfaces/`, `types/`) and expose the public API via `index.ts`. Never export internal helpers for testing, and never export lazy-only services (`injectAsync` targets or services exclusively consumed by them, such as `AiModelFactory`) from a barrel file (`index.ts`) that is also imported by eager modules in `main.js` (which pulls lazy services into `main.js` when any sibling symbol is imported from the barrel).
+- **Barrel File Restrictions**: Barrel files (`index.ts`) are only permitted in `src/app/core/<domain>/` for eagerly loaded domain exports. Never create barrel files in `src/app/pwa/`, feature folders, or component directories containing `@defer` components.
 
 ## 6. Asynchronous & Fire-and-Forget Operations
 
