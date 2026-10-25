@@ -27,8 +27,10 @@ This document outlines project-specific coding standards and architectural conve
 
 ## 4. Tailwind CSS v4 & Styling
 
-- **Component Styles**: Prioritize Tailwind CSS v4 `@apply` utility classes over raw vanilla CSS inside component stylesheets.
-- **Explicit Reference**: Prepend an explicit `@reference` directive pointing relatively to `src/styles.css` (e.g. `@reference "../../../../../styles.css";`).
+- **Inline Short Static Utilities (`<= 3` classes)**: Place short, static Tailwind utility combinations (`<= 3` utilities with zero `--color-*` CSS variables, no pseudo-elements, and not `:host`) directly on the element's `class="..."` attribute in `.html`. This reuses global `src/styles.css` utilities at `0 B` JS cost and avoids duplicating ~3 kB of Tailwind v4 `@property` boilerplate inside Angular's compiled `styles: [...]` strings.
+- **Component Stylesheets (`.css`)**: Reserve component `.css` files for `:host` rules, custom theme variables (`var(--color-*)` / `text-(--color-*)`), pseudo-elements (`::before`, `::after`), complex state selectors, and reusable multi-utility blocks (`>= 4` utilities via `@apply`). When a rule combines `<= 3` static utilities with a `--color-*` variable, inline the static utilities in `.html` and keep the CSS variable in `.css`.
+- **Zero Dead CSS Classes & No Duplicate `@apply` Blocks**: Whenever a class is removed from `.html` or `.ts` during refactoring, delete its selector from the component `.css` file (or `src/styles.css`). Merge selectors in the same `.css` file that share identical multi-utility `@apply` rules (`.a, .b { @apply ... }`).
+- **Explicit Reference**: Prepend an explicit `@reference` directive pointing relatively to `src/styles.css` (e.g. `@reference "../../../../../styles.css";`) whenever `@apply` is used in a component stylesheet.
 - **Design Tokens**: Inspect `@theme` in `src/styles.css` for existing tokens (e.g. `text-(--color-text-secondary)`) instead of hardcoding raw palette classes.
 - **Unified Page Shells**: All pages must use the project's standardized global wrapper class (`.app-page-shell`) and inherit layout boundaries without localized background overrides or `min-h-screen`.
 

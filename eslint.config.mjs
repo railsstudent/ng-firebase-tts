@@ -162,4 +162,40 @@ export default defineConfig([
     extends: [angular.configs.templateRecommended, angular.configs.templateAccessibility],
     rules: {},
   },
+  {
+    files: ['.agents/skills/angular-bundle-guard/scripts/**/*.mjs'],
+    plugins: {
+      unicorn,
+    },
+    extends: [eslint.configs.recommended],
+    languageOptions: {
+      globals: {
+        console: 'readonly',
+      },
+    },
+    rules: {
+      'max-lines-per-function': [
+        'error',
+        {
+          max: 40,
+          skipBlankLines: true,
+          skipComments: true,
+        },
+      ],
+      'prefer-const': [
+        'error',
+        {
+          destructuring: 'any',
+          ignoreReadBeforeAssign: false,
+        },
+      ],
+      curly: ['error', 'all'],
+      'no-plusplus': ['error'],
+      'arrow-body-style': ['error', 'as-needed'],
+      complexity: ['error', { max: 10 }],
+      'unicorn/prefer-switch': ['error', { minimumCases: 4 }],
+      'max-params': ['error', 3],
+      'max-lines': ['error', { max: 300, skipComments: true, skipBlankLines: true }],
+    },
+  },
 ]);
