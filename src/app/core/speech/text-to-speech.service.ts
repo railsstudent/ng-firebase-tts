@@ -8,7 +8,7 @@ import type {
   GenerativeModel,
 } from 'firebase/ai';
 import { decodeAudioChunk, toWavBlob } from './audio.util';
-import { AudioStreamChunk, SpeechChunkData, SpeechPrompt } from './text-to-speech.interface';
+import type { AudioStreamChunk, SpeechChunkData, SpeechPrompt } from './text-to-speech.interface';
 
 interface AIModelGenerativeRequest {
   aiModel: GenerativeModel;

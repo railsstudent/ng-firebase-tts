@@ -1,5 +1,6 @@
 import { CheckIconComponent } from './check-icon.component';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import type { ComponentFixture } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
 describe('CheckIconComponent', () => {

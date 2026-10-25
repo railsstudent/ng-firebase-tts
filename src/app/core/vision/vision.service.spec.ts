@@ -1,10 +1,6 @@
 import { AiModelFactory } from '@/core/firebase/ai-model-factory.service';
-import {
-  createMockAiModelFactory,
-  createMockVisionModel,
-  createMockVisionResponse,
-  MockAiModelFactory,
-} from '@/testing/ai-model.mock';
+import type { MockAiModelFactory } from '@/testing/ai-model.mock';
+import { createMockAiModelFactory, createMockVisionModel, createMockVisionResponse } from '@/testing/ai-model.mock';
 import { TestBed } from '@angular/core/testing';
 import { ImageAnalysisSchema } from './image-analysis.schema';
 import { VisionService } from './vision.service';

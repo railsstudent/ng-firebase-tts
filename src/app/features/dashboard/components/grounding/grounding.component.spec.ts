@@ -1,6 +1,8 @@
 import { GroundingComponent } from './grounding.component';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { By, SafeHtml } from '@angular/platform-browser';
+import type { ComponentFixture } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
+import type { SafeHtml } from '@angular/platform-browser';
+import { By } from '@angular/platform-browser';
 
 describe('GroundingComponent', () => {
   let component: GroundingComponent;

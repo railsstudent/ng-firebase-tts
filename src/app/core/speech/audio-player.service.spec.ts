@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { AudioPlayerService } from './audio-player.service';
 import { DEFAULT_PLAYBACK_RATE } from './text-to-speech.constant';
-import { AudioStreamChunk } from './text-to-speech.interface';
+import type { AudioStreamChunk } from './text-to-speech.interface';
 
 interface MockSourceNode {
   buffer: unknown;

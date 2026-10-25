@@ -1,5 +1,5 @@
 import { AudioPlayerService } from '@/core/speech/audio-player.service';
-import { AudioStreamChunk } from '@/core/speech/text-to-speech.interface';
+import type { AudioStreamChunk } from '@/core/speech/text-to-speech.interface';
 import { TextToSpeechService } from '@/core/speech/text-to-speech.service';
 import { Injector } from '@angular/core';
 import { TestBed } from '@angular/core/testing';

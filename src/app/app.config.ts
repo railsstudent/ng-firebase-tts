@@ -1,4 +1,5 @@
-import { ApplicationConfig, isDevMode, provideBrowserGlobalErrorListeners } from '@angular/core';
+import type { ApplicationConfig } from '@angular/core';
+import { isDevMode, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter, withAutoCleanupInjectors, withComponentInputBinding } from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
 import { routes } from './app.routes';

@@ -1,5 +1,5 @@
 import { decodeAudioChunk, normalizePcmSamples, recordStreamChunks, toWavBlob } from './audio.util';
-import { AudioStreamChunk } from './text-to-speech.interface';
+import type { AudioStreamChunk } from './text-to-speech.interface';
 
 describe('audio.util', () => {
   describe('normalizePcmSamples', () => {

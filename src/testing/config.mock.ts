@@ -1,4 +1,4 @@
-import { AppRemoteConfig } from '@/core/firebase/app-remote-config.interface';
+import type { AppRemoteConfig } from '@/core/firebase/app-remote-config.interface';
 import { ThinkingLevel } from 'firebase/ai';
 import { vi } from 'vitest';
 

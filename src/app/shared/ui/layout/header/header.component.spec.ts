@@ -2,7 +2,8 @@ import { APP_LINKS } from '@/core/constants/routes.const';
 import { AuthService } from '@/core/auth';
 import { HeaderComponent } from './header.component';
 import { signal } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import type { ComponentFixture } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter, Router } from '@angular/router';
 

@@ -1,7 +1,8 @@
 import { WINDOW } from '@/core/constants/navigator.const';
 import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { SwUpdate, UnrecoverableStateEvent, VersionReadyEvent } from '@angular/service-worker';
+import type { UnrecoverableStateEvent, VersionReadyEvent } from '@angular/service-worker';
+import { SwUpdate } from '@angular/service-worker';
 import { Subject } from 'rxjs';
 import { vi } from 'vitest';
 import { PwaUpdateService } from './pwa-update.service';

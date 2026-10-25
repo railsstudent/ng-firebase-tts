@@ -1,4 +1,4 @@
-import { VoiceItem } from '@/features/dashboard/components/voice-selector/interfaces/voice-item.interface';
+import type { VoiceItem } from '@/features/dashboard/components/voice-selector/interfaces/voice-item.interface';
 
 const VOICE_OPTIONS: VoiceItem[] = [
   { name: 'Zephyr', description: 'Bright' },

@@ -1,5 +1,5 @@
-import { WebGroundingChunk } from 'firebase/ai';
-import { ImageOptimizationMetrics } from './image-processing.interface';
+import type { WebGroundingChunk } from 'firebase/ai';
+import type { ImageOptimizationMetrics } from './image-processing.interface';
 
 export interface VisionGroundingMetadata {
   citations: WebGroundingChunk[];

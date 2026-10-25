@@ -1,4 +1,4 @@
-import { VisionGroundingMetadata } from '@/core/vision';
+import type { VisionGroundingMetadata } from '@/core/vision';
 import { Component, computed, inject, input } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 

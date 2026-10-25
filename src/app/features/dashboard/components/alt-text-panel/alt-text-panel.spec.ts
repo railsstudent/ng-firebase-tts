@@ -1,4 +1,5 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import type { ComponentFixture } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { AltTextPanel } from './alt-text-panel';
 import { SpinnerIconComponent } from '@/shared/ui/icons/spinner-icon.component';
 import { By } from '@angular/platform-browser';

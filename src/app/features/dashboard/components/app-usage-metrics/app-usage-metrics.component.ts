@@ -1,4 +1,5 @@
-import { formatFileSize, ImageOptimizationMetrics, TokenUsage } from '@/core/vision';
+import type { ImageOptimizationMetrics, TokenUsage } from '@/core/vision';
+import { formatFileSize } from '@/core/vision';
 import { Component, computed, input } from '@angular/core';
 
 @Component({

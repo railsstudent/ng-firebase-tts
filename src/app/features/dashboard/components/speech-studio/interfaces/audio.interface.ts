@@ -1,4 +1,4 @@
-import { GenerateSpeechMode } from '@/features/dashboard/types/generate-speech-mode.type';
+import type { GenerateSpeechMode } from '@/features/dashboard/types/generate-speech-mode.type';
 
 export interface GeneratedAudioRecord {
   url: string;

@@ -1,6 +1,6 @@
 import { PCM_SPEC, RADIX_DECIMAL, WAV_SPEC } from './audio.constant';
 import { DEFAULT_AUDIO_TYPE, DEFAULT_SAMPLE_RATE } from './text-to-speech.constant';
-import { AudioStreamChunk, ParsedMimeType, WavConversionOptions } from './text-to-speech.interface';
+import type { AudioStreamChunk, ParsedMimeType, WavConversionOptions } from './text-to-speech.interface';
 
 function isBlobPart(value: unknown): value is BlobPart {
   return (

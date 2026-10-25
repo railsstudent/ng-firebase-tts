@@ -1,5 +1,7 @@
-import { ImageAnalysisResponse, VisionService } from '@/core/vision';
-import { ComponentFixture, DeferBlockState, TestBed } from '@angular/core/testing';
+import type { ImageAnalysisResponse } from '@/core/vision';
+import { VisionService } from '@/core/vision';
+import type { ComponentFixture } from '@angular/core/testing';
+import { DeferBlockState, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import DashboardComponent from './dashboard.component';
 

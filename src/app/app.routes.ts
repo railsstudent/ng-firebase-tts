@@ -1,5 +1,5 @@
 import { inject, provideEnvironmentInitializer } from '@angular/core';
-import { Routes } from '@angular/router';
+import type { Routes } from '@angular/router';
 import { canActivateDashboard } from './core/auth/auth.guard';
 import { ROUTE_PATHS } from './core/constants/routes.const';
 import { ConfigService } from './core/firebase/config.service';

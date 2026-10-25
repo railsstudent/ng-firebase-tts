@@ -1,10 +1,10 @@
 import { AiModelFactory } from '@/core/firebase/ai-model-factory.service';
+import type { MockAiModelFactory } from '@/testing/ai-model.mock';
 import {
   createMockAiModelFactory,
   createMockTtsModel,
   createMockTtsResponse,
   createMockTtsStream,
-  MockAiModelFactory,
 } from '@/testing/ai-model.mock';
 import { TestBed } from '@angular/core/testing';
 import { TextToSpeechService } from './text-to-speech.service';

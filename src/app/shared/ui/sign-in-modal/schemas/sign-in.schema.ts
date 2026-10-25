@@ -1,5 +1,6 @@
 import type { AuthCredentials } from '@/core/auth';
-import { email, PathKind, required, SchemaOrSchemaFn } from '@angular/forms/signals';
+import type { PathKind, SchemaOrSchemaFn } from '@angular/forms/signals';
+import { email, required } from '@angular/forms/signals';
 
 export function signInSchemaValidation(): SchemaOrSchemaFn<AuthCredentials, PathKind.Root> {
   return (schemaPath) => {

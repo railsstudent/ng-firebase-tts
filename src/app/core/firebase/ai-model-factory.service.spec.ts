@@ -1,4 +1,5 @@
-import { createMockAiBackend, createMockConfigService, MockConfigService } from '@/testing/config.mock';
+import type { MockConfigService } from '@/testing/config.mock';
+import { createMockAiBackend, createMockConfigService } from '@/testing/config.mock';
 import { TestBed } from '@angular/core/testing';
 import {
   getGenerativeModel,

@@ -1,4 +1,5 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import type { ComponentFixture } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { PhotoPickerComponent } from './photo-picker.component';
 import { PhotoIconComponent } from '@/shared/ui/icons/photo-icon.component';
 import { SpinnerIconComponent } from '@/shared/ui/icons/spinner-icon.component';

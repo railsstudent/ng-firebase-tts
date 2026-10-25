@@ -3,7 +3,8 @@ import { AuthService } from './auth.service';
 import { APP_LINKS } from '@/core/constants/routes.const';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
+import type { ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree } from '@angular/router';
+import { Router } from '@angular/router';
 
 describe('canActivateDashboard', () => {
   let isAuthenticatedSignal: ReturnType<typeof signal<boolean>>;

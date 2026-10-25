@@ -1,10 +1,12 @@
-import { AuthCredentials, AuthService } from '@/core/auth';
+import type { AuthCredentials } from '@/core/auth';
+import { AuthService } from '@/core/auth';
 import { APP_LINKS } from '@/core/constants/routes.const';
 import { CloseIconComponent } from '@/shared/ui/icons/close-icon.component';
 import { SpinnerIconComponent } from '@/shared/ui/icons/spinner-icon.component';
 import { DialogRef } from '@angular/cdk/dialog';
 import { Component, inject, signal } from '@angular/core';
-import { FieldTree, form, FormField, FormRoot } from '@angular/forms/signals';
+import type { FieldTree } from '@angular/forms/signals';
+import { form, FormField, FormRoot } from '@angular/forms/signals';
 import { Router } from '@angular/router';
 import { signInSchemaValidation } from './schemas/sign-in.schema';
 

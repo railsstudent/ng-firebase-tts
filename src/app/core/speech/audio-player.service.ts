@@ -2,7 +2,7 @@ import { DestroyRef, inject, Service } from '@angular/core';
 import { EmptyError, interval, lastValueFrom, map, takeWhile } from 'rxjs';
 import { normalizePcmSamples } from './audio.util';
 import { DEFAULT_PLAYBACK_RATE, PLAYBACK_POLL_INTERVAL } from './text-to-speech.constant';
-import { AudioPlaybackOptions, AudioStreamChunk } from './text-to-speech.interface';
+import type { AudioPlaybackOptions, AudioStreamChunk } from './text-to-speech.interface';
 
 @Service()
 export class AudioPlayerService {

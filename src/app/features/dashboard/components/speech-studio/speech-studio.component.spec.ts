@@ -1,7 +1,9 @@
-import { GeneratedAudioRecord } from './interfaces/audio.interface';
-import { GenerateSpeechMode } from '@/features/dashboard/types/generate-speech-mode.type';
-import { signal, Signal, WritableSignal } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import type { GeneratedAudioRecord } from './interfaces/audio.interface';
+import type { GenerateSpeechMode } from '@/features/dashboard/types/generate-speech-mode.type';
+import type { Signal, WritableSignal } from '@angular/core';
+import { signal } from '@angular/core';
+import type { ComponentFixture } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { SpeechStudioViewService } from './services/speech-studio-view';
 import { SpeechStudioComponent } from './speech-studio.component';
 

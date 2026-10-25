@@ -1,5 +1,6 @@
-import { ImageOptimizationMetrics, TokenUsage } from '@/core/vision';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import type { ImageOptimizationMetrics, TokenUsage } from '@/core/vision';
+import type { ComponentFixture } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { AppUsageMetricsComponent } from './app-usage-metrics.component';
 
 describe('AppUsageMetricsComponent', () => {

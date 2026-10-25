@@ -7,9 +7,9 @@ import {
 } from '@/core/speech';
 import { recordStreamChunks, toWavBlob } from '@/core/speech/audio.util';
 import { revokeBlobURL } from '@/core/utils/blob.util';
-import { GeneratedAudioRecord } from '@/features/dashboard/components/speech-studio/interfaces/audio.interface';
-import { FactConfig } from '@/features/dashboard/interfaces/fact-config.interface';
-import { GenerateSpeechMode } from '@/features/dashboard/types/generate-speech-mode.type';
+import type { GeneratedAudioRecord } from '@/features/dashboard/components/speech-studio/interfaces/audio.interface';
+import type { FactConfig } from '@/features/dashboard/interfaces/fact-config.interface';
+import type { GenerateSpeechMode } from '@/features/dashboard/types/generate-speech-mode.type';
 import { DestroyRef, inject, Injectable, injectAsync, signal } from '@angular/core';
 
 @Injectable()

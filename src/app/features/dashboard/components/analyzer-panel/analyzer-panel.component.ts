@@ -1,4 +1,4 @@
-import { ImageAnalysisResponse } from '@/core/vision';
+import type { ImageAnalysisResponse } from '@/core/vision';
 import { AltTextPanel } from '@/features/dashboard/components/alt-text-panel/alt-text-panel';
 import { AssetRegistry } from './services/asset-registry.service';
 import { PhotoPickerComponent } from '@/features/dashboard/components/photo-picker/photo-picker.component';

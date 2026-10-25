@@ -14,6 +14,7 @@
     "test:coverage": "ng test --watch=false --coverage",
     "check:cycles": "knip --cycles --reporter cycles",
     "lint": "ng lint && npm run check:cycles && knip --production && npm run cspell",
+    "lint:fix": "eslint \"src/**/*.{ts,js,mjs}\" --fix",
     "prepare": "husky",
     "format": "prettier --write \"**/*.{ts,js,mjs,json,html}\"",
     "cspell": "cspell --no-must-find-files --config cspell.config.mjs .",
