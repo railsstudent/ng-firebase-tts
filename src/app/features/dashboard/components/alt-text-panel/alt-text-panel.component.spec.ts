@@ -1,6 +1,6 @@
 import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
-import { AltTextPanel } from './alt-text-panel';
+import { AltTextPanel } from './alt-text-panel.component';
 import { SpinnerIconComponent } from '@/shared/ui/icons/spinner-icon.component';
 import { By } from '@angular/platform-browser';
 
@@ -29,7 +29,7 @@ describe('AltTextPanel', () => {
     fixture.componentRef.setInput('isLoading', false);
     fixture.detectChanges();
 
-    const emptyState = fixture.debugElement.query(By.css('.empty-message'));
+    const emptyState = fixture.debugElement.query(By.css('.text-center'));
     expect(emptyState).toBeTruthy();
     expect(emptyState.nativeElement.textContent).toContain('Upload an image and click "Generate" to see the results.');
   });
@@ -41,7 +41,7 @@ describe('AltTextPanel', () => {
     fixture.componentRef.setInput('isLoading', true);
     fixture.detectChanges();
 
-    const emptyState = fixture.debugElement.query(By.css('.empty-message'));
+    const emptyState = fixture.debugElement.query(By.css('.text-center'));
     const loadingState = fixture.debugElement.query(By.css('.loading-state'));
     const spinner = fixture.debugElement.query(By.css('.loading-spinner'));
 
@@ -83,10 +83,10 @@ describe('AltTextPanel', () => {
     fixture.componentRef.setInput('isLoading', false);
     fixture.detectChanges();
 
-    const emptyState = fixture.debugElement.query(By.css('.empty-message'));
+    const emptyState = fixture.debugElement.query(By.css('.text-center'));
     const errorCard = fixture.debugElement.query(By.css('.error-card'));
     const results = fixture.debugElement.query(By.css('.results-wrapper'));
-    const altTextDisplay = fixture.debugElement.query(By.css('.display-text'));
+    const altTextDisplay = fixture.debugElement.query(By.css('.text-secondary'));
 
     expect(emptyState).toBeNull();
     expect(errorCard).toBeNull();

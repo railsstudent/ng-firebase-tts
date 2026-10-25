@@ -46,10 +46,6 @@
   @apply bg-indigo-950/60 text-indigo-200 font-semibold;
 }
 
-.voice-option-text {
-  @apply text-secondary;
-}
-
 /* --- Voice Selector Icons --- */
 app-mic-icon,
 app-check-icon,

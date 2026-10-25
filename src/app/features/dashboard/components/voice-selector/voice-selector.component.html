@@ -39,7 +39,7 @@
             @for (option of sortedVoiceOptions; track option.name) {
               <div ngOption [value]="option.name" [label]="option.label">
                 <app-mic-icon />
-                <span class="flex-1 voice-option-text">{{ option.label }}</span>
+                <span class="flex-1 text-secondary">{{ option.label }}</span>
                 <app-check-icon />
               </div>
             }

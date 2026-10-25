@@ -5,7 +5,6 @@ import dompurify from 'dompurify';
 @Component({
   selector: 'app-thought-summary',
   templateUrl: './thought-summary.component.html',
-  styleUrl: './thought-summary.component.css',
 })
 export class ThoughtSummaryComponent {
   thought = input('');

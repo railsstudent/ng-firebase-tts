@@ -9,7 +9,7 @@
 }
 
 .modal-title {
-  @apply text-primary;
+  @apply text-xl sm:text-2xl font-bold text-primary;
 }
 
 .modal-close-btn {

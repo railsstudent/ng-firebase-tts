@@ -1,4 +1,4 @@
-<div class="section-wrapper">
+<div class="w-full mt-6">
   <h3 class="section-title">Recommendations</h3>
   <div class="flex flex-col gap-3" ngAccordionGroup [multiExpandable]="true">
     @for (item of recommendations(); track item.id) {
@@ -6,8 +6,8 @@
         <h4 class="m-0">
           <p ngAccordionTrigger [panel]="panelRef" #triggerRef="ngAccordionTrigger" class="recommendation-trigger">
             <span class="flex-1 pr-2">
-              <span class="recommendation-id font-bold">{{ item.id }}: </span>
-              <span class="recommendation-text">{{ item.text }}</span>
+              <span class="text-primary-accent font-bold">{{ item.id }}: </span>
+              <span class="text-primary">{{ item.text }}</span>
             </span>
 
             <!-- 2. Bind rotate class directly to the triggerRef.expanded() signal -->
@@ -22,7 +22,7 @@
         </p>
       </div>
     } @empty {
-      <p class="empty-message">No recommendation.</p>
+      <p class="text-center text-muted italic">No recommendation.</p>
     }
   </div>
 </div>

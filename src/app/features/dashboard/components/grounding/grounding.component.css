@@ -4,10 +4,6 @@
   @apply list-decimal mb-3;
 }
 
-.list-item {
-  @apply text-secondary;
-}
-
 .link-anchor {
   @apply text-primary-accent hover:text-indigo-300 underline;
 }

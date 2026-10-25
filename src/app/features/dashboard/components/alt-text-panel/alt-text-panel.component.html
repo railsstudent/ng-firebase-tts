@@ -3,7 +3,7 @@
   @let errorMessage = error() || '';
   <app-error-display [error]="errorMessage" />
   @if (!isLoading() && !error() && !imageAnalysis) {
-    <div class="empty-message">
+    <div class="text-center text-muted italic">
       <p>Upload an image and click "Generate" to see the results.</p>
     </div>
   }
@@ -17,10 +17,10 @@
     <div class="results-wrapper">
       @let altText = analysis()?.parsed?.alternativeText || 'Default alternative text';
       @if (altText) {
-        <div class="section-wrapper">
+        <div class="w-full mt-6">
           <h3 class="section-title">Generated Alternative Text</h3>
           <div class="surface-card">
-            <p class="display-text italic">"{{ altText }}"</p>
+            <p class="text-secondary italic">"{{ altText }}"</p>
           </div>
         </div>
       }

@@ -91,10 +91,23 @@ export function findStatsFile(distDir = DIST_DIR) {
   return null;
 }
 
+function isAnyRootConfigStale(statsMtimeMs) {
+  for (const cfgName of ['angular.json', 'package.json', '.postcssrc.json']) {
+    const cfgPath = path.join(rootDir, cfgName);
+    if (fs.existsSync(cfgPath) && fs.statSync(cfgPath).mtimeMs > statsMtimeMs) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /**
- * Checks if any file in sourceRoot has an mtimeMs greater than the given timestamp.
+ * Checks if any file in sourceRoot or root build configs has an mtimeMs greater than the given timestamp.
  */
 function isStatsStale(statsMtimeMs, sourceRoot = SRC_DIR) {
+  if (isAnyRootConfigStale(statsMtimeMs)) {
+    return true;
+  }
   if (!fs.existsSync(sourceRoot)) {
     return false;
   }

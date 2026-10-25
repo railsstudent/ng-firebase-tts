@@ -8,8 +8,8 @@ import { Component, input } from '@angular/core';
 @Component({
   selector: 'app-alt-text-panel',
   imports: [SpinnerIconComponent, RecommendationsDisplayComponent, GroundingComponent, ErrorDisplayComponent],
-  templateUrl: './alt-text-panel.html',
-  styleUrl: './alt-text-panel.css',
+  templateUrl: './alt-text-panel.component.html',
+  styleUrl: './alt-text-panel.component.css',
 })
 export class AltTextPanel {
   isLoading = input(false);

@@ -51,7 +51,7 @@ describe('AnalyzerPanelComponent', () => {
   it('should render app-photo-picker and defer placeholder initially without loading VisionService', () => {
     const photoPicker = fixture.debugElement.query(By.css('app-photo-picker'));
     const altTextPanel = fixture.debugElement.query(By.css('app-alt-text-panel'));
-    const emptyState = fixture.debugElement.query(By.css('.panel-container .empty-message'));
+    const emptyState = fixture.debugElement.query(By.css('.panel-container .text-center'));
 
     expect(photoPicker).toBeTruthy();
     expect(altTextPanel).toBeNull();

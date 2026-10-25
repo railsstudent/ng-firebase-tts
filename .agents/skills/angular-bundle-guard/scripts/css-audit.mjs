@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { rootDir } from './bundle-utils.mjs';
+import { processApplyRule } from './css-apply-rules.mjs';
 import { findDuplicatesInSameFile, findIdenticalRulesAcrossFiles } from './css-duplicates.mjs';
 
 export function getSourceFiles(dir, extList) {
@@ -25,7 +26,7 @@ function getGlobalCssMeta(allCodeFiles) {
   const globalPath = path.join('src', 'styles.css');
   const globalFile = allCodeFiles.find((f) => path.relative(rootDir, f.file) === globalPath);
   if (!globalFile) {
-    return { globalClassNames: new Set(), themeTokenRegex: null };
+    return { globalClassNames: new Set() };
   }
   const clean = globalFile.content.replace(/\/\*[\s\S]*?\*\//g, ' ');
   const globalClassNames = new Set();
@@ -35,11 +36,7 @@ function getGlobalCssMeta(allCodeFiles) {
       extractSelectorClassNames(selector).forEach((cls) => globalClassNames.add(cls));
     }
   }
-  const tokens = [...clean.matchAll(/--(?:text-)?color-([a-zA-Z0-9_-]+)\s*:/g)].map((m) => m[1]);
-  const themeTokenRegex = tokens.length
-    ? new RegExp(`(?:^|:)(?:bg|text|border|ring|fill|stroke|outline)-(?:${tokens.join('|')})(?:/|$)`)
-    : null;
-  return { globalClassNames, themeTokenRegex };
+  return { globalClassNames };
 }
 
 function findFileLineRefs(className, files) {
@@ -74,102 +71,6 @@ function findDeadClassesInRule({ classNames, bodyLength, relPath, cssFile, state
   return dead;
 }
 
-function estimateShortRuleBytes(cssClassesToMoveToHtml) {
-  return (
-    45 +
-    cssClassesToMoveToHtml.length * 32 +
-    (cssClassesToMoveToHtml.includes('animate-spin') ? 95 : 0) +
-    (cssClassesToMoveToHtml.some((u) => u.startsWith('duration-')) ? 180 : 0)
-  );
-}
-
-function getCurrentHtmlClassCount(className, htmlFiles) {
-  let maxCount = 1;
-  for (const f of htmlFiles) {
-    for (const match of f.content.matchAll(/\bclass\s*=\s*"([^"]*)"/g)) {
-      const classes = match[1].trim().split(/\s+/).filter(Boolean);
-      if (classes.includes(className) && classes.length > maxCount) {
-        maxCount = classes.length;
-      }
-    }
-  }
-  return maxCount;
-}
-
-function isEligibleForHtmlMove({ selector, className, utilities, state }) {
-  return (
-    /^\.[a-zA-Z0-9_-]+$/.test(selector) &&
-    !state.globalClassNames.has(className) &&
-    !utilities.some((u) => /(?:^|:)list-(?!item$)/.test(u)) &&
-    !findFileLineRefs(className, state.siblingTsFiles)
-  );
-}
-
-function classifyStaticApplyRule({ selector, utilities, relPath, state }) {
-  const className = selector.slice(1);
-  if (!isEligibleForHtmlMove({ selector, className, utilities, state })) {
-    return null;
-  }
-  const isThemeToken = (u) => u.includes('--') || Boolean(state.themeTokenRegex?.test(u));
-  const cssClassesToKeepInCss = utilities.filter((u) => isThemeToken(u));
-  const cssClassesToMoveToHtml = utilities.filter((u) => !isThemeToken(u));
-  const currentHtmlClassCount = getCurrentHtmlClassCount(className, state.siblingHtmlFiles);
-  const isFullMove = cssClassesToKeepInCss.length === 0 && !state.multiRuleClasses.has(className);
-  const htmlClassCountAfterMove =
-    (isFullMove ? currentHtmlClassCount - 1 : currentHtmlClassCount) + cssClassesToMoveToHtml.length;
-  if (cssClassesToMoveToHtml.length === 0 || htmlClassCountAfterMove > 3) {
-    return null;
-  }
-  const base = {
-    relPath,
-    selector,
-    className,
-    htmlLocations: findFileLineRefs(className, state.siblingHtmlFiles),
-    specRefs: findFileLineRefs(className, state.siblingSpecFiles),
-  };
-  const moveToHtml = cssClassesToMoveToHtml.join(' ');
-  return isFullMove
-    ? {
-        kind: 'short',
-        rule: { ...base, utilities: moveToHtml, count: cssClassesToMoveToHtml.length, estBytes: estimateShortRuleBytes(cssClassesToMoveToHtml) },
-      }
-    : {
-        kind: 'partial',
-        rule: { ...base, moveToHtml, keepInCss: cssClassesToKeepInCss.join(' ') || '(shared rule in CSS)', estBytes: cssClassesToMoveToHtml.length * 28 },
-      };
-}
-
-function processComponentApplyRule({ selector, body, relPath, state }) {
-  if (state.isGlobal || selector.includes(':host')) {
-    return;
-  }
-  const applyMatch = body.match(/@apply\s+([^;]+);/);
-  if (!applyMatch) {
-    return;
-  }
-  const utilities = applyMatch[1].trim().split(/\s+/).filter(Boolean);
-  state.fileApplyBlocks.push({ selector, utilities, loc: relPath });
-
-  const classified = classifyStaticApplyRule({ selector, utilities, relPath, state });
-  if (classified?.kind === 'short') {
-    state.shortStaticRules.push(classified.rule);
-  } else if (classified?.kind === 'partial') {
-    state.partialStaticRules.push(classified.rule);
-  } else {
-    const className = selector.slice(1);
-    if (isEligibleForHtmlMove({ selector, className, utilities, state }) && !state.multiRuleClasses.has(className)) {
-      state.remainingApplyRules.push({
-        relPath,
-        selector,
-        className,
-        utilities,
-        htmlLocations: findFileLineRefs(className, state.siblingHtmlFiles),
-        specRefs: findFileLineRefs(className, state.siblingSpecFiles),
-      });
-    }
-  }
-}
-
 function findMultiRuleClasses(clean) {
   const counts = new Map();
   for (const match of clean.matchAll(/([^{};]+)\{[^{}]+\}/g)) {
@@ -188,9 +89,11 @@ function createScanState({ cssFile, relPath, clean, allCodeFiles, allRuntimeFile
   return {
     isGlobal: relPath === path.join('src', 'styles.css'),
     globalClassNames: globalCssMeta.globalClassNames,
-    themeTokenRegex: globalCssMeta.themeTokenRegex,
     multiRuleClasses: findMultiRuleClasses(clean),
     allRuntimeFiles,
+    allHtmlFiles: allCodeFiles.filter((f) => f.file.endsWith('.html')),
+    allTsFiles: allCodeFiles.filter((f) => f.file.endsWith('.ts') && !f.file.endsWith('.spec.ts')),
+    allSpecFiles: allCodeFiles.filter((f) => f.file.endsWith('.spec.ts')),
     extractSelectorClassNames,
     findFileLineRefs,
     siblingRuntimeFiles: allRuntimeFiles.filter((f) => f.file !== cssFile && path.dirname(f.file) === dir),
@@ -229,7 +132,7 @@ function scanCssFile({ cssFile, allCodeFiles, allRuntimeFiles, globalCssMeta }) 
     });
     state.deadClasses.push(...deadInRule);
     if (deadInRule.length === 0) {
-      processComponentApplyRule({ selector, body, relPath: loc, state });
+      processApplyRule({ selector, body, relPath: loc, state });
     }
   }
 

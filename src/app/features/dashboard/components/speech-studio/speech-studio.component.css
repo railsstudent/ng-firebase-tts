@@ -35,7 +35,3 @@
 .playback-figure {
   @apply mt-6 p-4 bg-slate-900/40 border border-surface-border rounded-xl flex flex-col gap-2;
 }
-
-.playback-caption {
-  @apply text-muted;
-}

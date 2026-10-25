@@ -26,7 +26,7 @@ describe('ThoughtSummaryComponent', () => {
     fixture.componentRef.setInput('thought', '');
     fixture.detectChanges();
 
-    const wrapper = fixture.debugElement.query(By.css('.section-wrapper'));
+    const wrapper = fixture.debugElement.query(By.css('.w-full mt-6'));
     expect(wrapper).toBeNull();
   });
 
@@ -35,9 +35,9 @@ describe('ThoughtSummaryComponent', () => {
     fixture.componentRef.setInput('thought', 'Thinking about Mars surface chemistry...');
     fixture.detectChanges();
 
-    const wrapper = fixture.debugElement.query(By.css('.section-wrapper'));
+    const wrapper = fixture.debugElement.query(By.css('div.w-full'));
     const thoughtContent = fixture.debugElement.query(By.css('.surface-card'));
-    const thoughtText = fixture.debugElement.query(By.css('.thought-text'));
+    const thoughtText = fixture.debugElement.query(By.css('.text-secondary'));
 
     expect(wrapper).toBeTruthy();
     expect(thoughtContent).toBeTruthy();
@@ -49,7 +49,7 @@ describe('ThoughtSummaryComponent', () => {
     fixture.componentRef.setInput('thought', '**Reasoning:** Identifying *high confidence* features.');
     fixture.detectChanges();
 
-    const thoughtText = fixture.debugElement.query(By.css('.thought-text'));
+    const thoughtText = fixture.debugElement.query(By.css('.text-secondary'));
     expect(thoughtText.nativeElement.innerHTML).toContain('<strong>Reasoning:</strong>');
     expect(thoughtText.nativeElement.innerHTML).toContain('<em>high confidence</em>');
   });
@@ -62,7 +62,7 @@ describe('ThoughtSummaryComponent', () => {
     );
     fixture.detectChanges();
 
-    const thoughtText = fixture.debugElement.query(By.css('.thought-text'));
+    const thoughtText = fixture.debugElement.query(By.css('.text-secondary'));
     const breaks = thoughtText.nativeElement.querySelectorAll('br');
     expect(breaks.length).toBe(2);
     expect(thoughtText.nativeElement.textContent).toContain('Step 1: Inspect composition.');
@@ -78,7 +78,7 @@ describe('ThoughtSummaryComponent', () => {
     );
     fixture.detectChanges();
 
-    const thoughtText = fixture.debugElement.query(By.css('.thought-text'));
+    const thoughtText = fixture.debugElement.query(By.css('.text-secondary'));
     const innerHtml = thoughtText.nativeElement.innerHTML;
     expect(innerHtml).not.toContain('<script>');
     expect(innerHtml).not.toContain('onerror');
@@ -90,7 +90,7 @@ describe('ThoughtSummaryComponent', () => {
     fixture.componentRef.setInput('thought', 'Extracted `mars_rover_panorama` tag.');
     fixture.detectChanges();
 
-    const thoughtText = fixture.debugElement.query(By.css('.thought-text'));
+    const thoughtText = fixture.debugElement.query(By.css('.text-secondary'));
     expect(thoughtText.nativeElement.innerHTML).toContain('<code>mars_rover_panorama</code>');
   });
 });

@@ -17,9 +17,9 @@
     @defer (when hasTags) {
       <app-tags-display [tags]="tags" />
     } @placeholder {
-      <div class="section-wrapper">
+      <div class="w-full mt-6">
         <h2 class="section-title">Suggested Tags</h2>
-        <p class="empty-message">No tags were generated for this image.</p>
+        <p class="text-center text-muted italic">No tags were generated for this image.</p>
       </div>
     }
 
@@ -27,9 +27,9 @@
     @defer (when fact) {
       <app-speech-studio [interestingFact]="fact" />
     } @placeholder (minimum 200ms) {
-      <div class="section-wrapper">
+      <div class="w-full mt-6">
         <h3 class="section-title">A surprising or obscure fact about the tags</h3>
-        <p class="empty-message mb-2">Upload an image to discover an obscure fact and generate speech.</p>
+        <p class="text-center text-muted italic">Upload an image to discover an obscure fact and generate speech.</p>
       </div>
     }
   </div>
@@ -39,7 +39,7 @@
     <app-alt-text-panel [analysis]="analysis()" [error]="error()" [isLoading]="isLoading()" />
   } @placeholder {
     <div class="panel-container">
-      <div class="empty-message">
+      <div class="text-center text-muted italic">
         <p>Upload an image and click "Generate" to see the results.</p>
       </div>
     </div>

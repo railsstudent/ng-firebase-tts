@@ -1,4 +1,4 @@
-<div class="section-wrapper">
+<div class="w-full mt-6">
   <h3 class="section-title">A surprising or obscure fact about the tags</h3>
   @if (interestingFact()) {
     <p class="obscure-fact-text">{{ interestingFact() }}</p>
@@ -53,7 +53,7 @@
 
   @if (!isLoading() && audioUrl(); as url) {
     <figure class="playback-figure">
-      <figcaption class="text-sm font-medium playback-caption">Listen to the Gemini-TTS:</figcaption>
+      <figcaption class="text-sm font-medium text-muted">Listen to the Gemini-TTS:</figcaption>
       <audio controls [src]="url" [playbackRate]="'1.25'" class="w-full outline-none"></audio>
     </figure>
   }

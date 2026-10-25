@@ -21,7 +21,7 @@ export function computeProjectHash(projectConfig) {
   const hasher = crypto.createHash('sha256');
   hasher.update(`project:${projectConfig.projectName}\n`);
 
-  for (const cfgName of ['angular.json', 'package.json']) {
+  for (const cfgName of ['angular.json', 'package.json', '.postcssrc.json']) {
     const cfgPath = path.join(rootDir, cfgName);
     if (fs.existsSync(cfgPath)) {
       hasher.update(`${cfgName}:${fs.readFileSync(cfgPath, 'utf8')}\n`);

@@ -26,7 +26,7 @@ describe('RecommendationsDisplay', () => {
       fixture.componentRef.setInput('recommendations', []);
       fixture.detectChanges();
 
-      const fallbackEl = fixture.debugElement.query(By.css('.empty-message'));
+      const fallbackEl = fixture.debugElement.query(By.css('.text-center'));
       const cards = fixture.debugElement.queryAll(By.css('.recommendation-card'));
 
       expect(fallbackEl).toBeTruthy();

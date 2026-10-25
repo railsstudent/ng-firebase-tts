@@ -26,7 +26,7 @@ describe('TagsDisplayComponent', () => {
       fixture.componentRef.setInput('tags', []);
       fixture.detectChanges();
 
-      const fallbackEl = fixture.debugElement.query(By.css('.empty-message'));
+      const fallbackEl = fixture.debugElement.query(By.css('.text-center'));
       const options = fixture.debugElement.queryAll(By.css('[ngOption]'));
 
       expect(fallbackEl).toBeTruthy();

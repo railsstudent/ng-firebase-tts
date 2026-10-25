@@ -35,7 +35,3 @@
 .feature-label {
   @apply text-xs font-medium text-muted uppercase tracking-wider;
 }
-
-.feature-value {
-  @apply text-secondary;
-}

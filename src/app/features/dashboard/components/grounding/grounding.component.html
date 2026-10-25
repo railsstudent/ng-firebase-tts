@@ -1,4 +1,4 @@
-<div class="section-wrapper">
+<div class="w-full mt-6">
   @let citations = metadata()?.citations;
   @let numCitations = citations?.length || 0;
   @if (numCitations > 0) {
@@ -19,7 +19,7 @@
     <ol class="ordered-list">
       @for (query of metadata()?.searchQueries; track query) {
         @if (query) {
-          <li class="ml-4 list-item">
+          <li class="ml-4 text-secondary">
             <span class="italic">{{ query }}</span>
           </li>
         }

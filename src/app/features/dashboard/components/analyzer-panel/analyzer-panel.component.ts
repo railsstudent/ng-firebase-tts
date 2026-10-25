@@ -1,5 +1,5 @@
 import type { ImageAnalysisResponse } from '@/core/vision';
-import { AltTextPanel } from '@/features/dashboard/components/alt-text-panel/alt-text-panel';
+import { AltTextPanel } from '@/features/dashboard/components/alt-text-panel/alt-text-panel.component';
 import { AssetRegistry } from './services/asset-registry.service';
 import { PhotoPickerComponent } from '@/features/dashboard/components/photo-picker/photo-picker.component';
 import { SpeechStudioComponent } from '@/features/dashboard/components/speech-studio/speech-studio.component';

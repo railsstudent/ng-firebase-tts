@@ -109,7 +109,7 @@ describe('HomeComponent', () => {
     expect(featureItems.length).toBe(3);
 
     const labels = featureItems.map((item) => item.query(By.css('.feature-label')).nativeElement.textContent.trim());
-    const values = featureItems.map((item) => item.query(By.css('.feature-value')).nativeElement.textContent.trim());
+    const values = featureItems.map((item) => item.query(By.css('.text-secondary')).nativeElement.textContent.trim());
 
     expect(labels).toEqual(['Model Pipeline', 'Audio Synthesis', 'Grounding']);
     expect(values).toEqual(['Gemini 3.8 Flash', 'Gemini-TTS Streaming', 'Google Search Tool']);

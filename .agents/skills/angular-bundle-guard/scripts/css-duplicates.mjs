@@ -92,6 +92,9 @@ export function findIdenticalRulesAcrossFiles(remainingRules) {
     const utils = group[0].utilities;
     const files = new Set(group.map((r) => r.relPath.split(':')[0]));
     const isSameFile = files.size === 1;
+    if (!isSameFile && utils.length <= 3) {
+      continue;
+    }
     const [first, ...rest] = group;
     duplicates.push({
       relPath: group.map((r) => r.relPath).join(', '),
