@@ -1,12 +1,12 @@
 <div class="section-wrapper">
   <h3 class="section-title">Recommendations</h3>
-  <div class="recommendations-list" ngAccordionGroup [multiExpandable]="true">
+  <div class="flex flex-col gap-3" ngAccordionGroup [multiExpandable]="true">
     @for (item of recommendations(); track item.id) {
       <div class="recommendation-card">
         <h4 class="m-0">
           <p ngAccordionTrigger [panel]="panelRef" #triggerRef="ngAccordionTrigger" class="recommendation-trigger">
-            <span class="recommendation-text-group">
-              <span class="recommendation-id">{{ item.id }}: </span>
+            <span class="flex-1 pr-2">
+              <span class="recommendation-id font-bold">{{ item.id }}: </span>
               <span class="recommendation-text">{{ item.text }}</span>
             </span>
 

@@ -15,7 +15,7 @@ import { Component, inject, injectAsync, model, signal } from '@angular/core';
 })
 export class AnalyzerPanelComponent {
   readonly #assetRegistry = inject(AssetRegistry);
-  #asyncVisionService = injectAsync(() => import('@/core/vision').then((m) => m.VisionService));
+  #asyncVisionService = injectAsync(() => import('@/core/vision/vision.service').then((m) => m.VisionService));
 
   analysis = model<ImageAnalysisResponse | undefined>(undefined);
   error = signal<string | undefined>(undefined);

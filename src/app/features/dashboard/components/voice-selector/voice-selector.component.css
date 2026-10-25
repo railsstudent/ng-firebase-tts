@@ -17,14 +17,6 @@
   @apply flex items-center justify-between select-none py-2.5;
 }
 
-.voice-trigger-left {
-  @apply flex items-center gap-2.5;
-}
-
-.voice-trigger-text {
-  @apply font-medium text-white;
-}
-
 /* --- Dropdown Caret Rotation --- */
 .voice-trigger[aria-expanded='true'] app-arrow-drop-down-icon {
   @apply rotate-180 text-(--color-primary-accent);
@@ -55,7 +47,7 @@
 }
 
 .voice-option-text {
-  @apply flex-1 text-(--color-text-secondary);
+  @apply text-(--color-text-secondary);
 }
 
 /* --- Voice Selector Icons --- */

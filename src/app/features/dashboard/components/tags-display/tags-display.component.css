@@ -1,9 +1,5 @@
 @reference "../../../../../styles.css";
 
-.tags-list {
-  @apply flex flex-wrap gap-2;
-}
-
 .tag-pill {
   @apply bg-indigo-900/20 text-indigo-200 border border-indigo-500/30 text-sm font-medium px-3 py-1 rounded-full;
 }

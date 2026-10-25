@@ -1,10 +1,10 @@
 import { ConfigService } from '@/core/firebase/config.service';
 import type { ImageAnalysisResponse } from '@/core/vision';
-import { VisionService } from '@/core/vision';
-import { AnalyzerPanelComponent } from './analyzer-panel.component';
+import { VisionService } from '@/core/vision/vision.service';
 import type { ComponentFixture } from '@angular/core/testing';
 import { DeferBlockBehavior, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { AnalyzerPanelComponent } from './analyzer-panel.component';
 
 const mockVisionService = {
   analyzeImage: vi.fn(),

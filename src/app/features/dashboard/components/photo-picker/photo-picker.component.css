@@ -24,10 +24,6 @@
   @apply text-xs sm:text-sm text-(--color-text-muted);
 }
 
-.preview-container {
-  @apply w-full relative;
-}
-
 .preview-image {
   @apply w-full h-auto max-h-96 object-contain rounded-xl shadow-lg;
 }
@@ -38,10 +34,6 @@
 
 .btn-generate {
   @apply mt-6 w-full flex items-center justify-center;
-}
-
-.spinner {
-  @apply animate-spin h-5 w-5;
 }
 
 .btn-image-selector {

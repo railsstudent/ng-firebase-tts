@@ -12,12 +12,8 @@
   @apply animate-spin h-10 w-10 text-(--color-primary-indigo);
 }
 
-.loading-text {
-  @apply mt-4 text-lg;
-}
-
 .display-text {
-  @apply text-(--color-text-secondary) italic;
+  @apply text-(--color-text-secondary);
 }
 
 @keyframes fadeIn {

@@ -24,24 +24,12 @@
   @apply w-full bg-slate-900/60 border border-(--color-surface-border) rounded-lg px-4 py-2 text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all;
 }
 
-.form-field-input {
-  @apply bg-slate-900/60 border border-(--color-surface-border) rounded-lg px-4 py-2 text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all;
-}
-
 .form-field-group-full {
   @apply flex flex-col gap-1.5 md:col-span-2;
 }
 
-.btn-container {
-  @apply flex justify-evenly gap-4;
-}
-
 .btn-audio {
   @apply mt-6 flex items-center justify-center px-4 py-2 btn-primary shadow-md;
-}
-
-.spinner-icon {
-  @apply animate-spin h-5 w-5;
 }
 
 .playback-figure {
@@ -49,9 +37,5 @@
 }
 
 .playback-caption {
-  @apply text-sm font-medium text-(--color-text-muted);
-}
-
-.playback-audio {
-  @apply w-full outline-none;
+  @apply text-(--color-text-muted);
 }

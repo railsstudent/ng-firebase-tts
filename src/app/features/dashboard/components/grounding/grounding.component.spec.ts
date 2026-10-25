@@ -46,7 +46,7 @@ describe('GroundingComponent', () => {
     });
     fixture.detectChanges();
 
-    const queryItems = fixture.debugElement.queryAll(By.css('.query-text'));
+    const queryItems = fixture.debugElement.queryAll(By.css('.list-item'));
     expect(queryItems.length).toBe(2);
     expect(queryItems[0].nativeElement.textContent).toContain('Mars soil chemistry');
     expect(queryItems[1].nativeElement.textContent).toContain('Gemini AI search');

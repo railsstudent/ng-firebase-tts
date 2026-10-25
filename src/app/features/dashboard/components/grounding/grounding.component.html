@@ -5,7 +5,7 @@
     <h3 class="section-title">Inline Citations</h3>
     <ol class="ordered-list">
       @for (citation of citations; track citation.title) {
-        <li class="list-item">
+        <li class="ml-4 list-item">
           <a class="link-anchor" [href]="citation.uri" target="_blank" rel="noopener noreferrer">
             {{ citation.title }}
           </a>
@@ -19,7 +19,7 @@
     <ol class="ordered-list">
       @for (query of metadata()?.searchQueries; track query) {
         @if (query) {
-          <li class="query-text">
+          <li class="ml-4 list-item">
             <span class="italic">{{ query }}</span>
           </li>
         }

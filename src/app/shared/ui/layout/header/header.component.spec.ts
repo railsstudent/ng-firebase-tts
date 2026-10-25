@@ -46,7 +46,7 @@ describe('HeaderComponent', () => {
   });
 
   it('should render the left-anchored home button with accessible label and router link', () => {
-    const homeBtn = fixture.debugElement.query(By.css('a.header-home-btn'));
+    const homeBtn = fixture.debugElement.query(By.css('a.header-btn'));
     expect(homeBtn).toBeTruthy();
     expect(homeBtn.attributes['aria-label']).toBe('Go to Home Screen');
     expect(homeBtn.attributes['href']).toBe('/home');

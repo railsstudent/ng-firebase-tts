@@ -4,10 +4,6 @@
   @apply fixed bottom-6 right-6 bg-slate-800 text-(--color-text-primary) p-4 rounded-lg shadow-2xl flex items-center gap-4 z-50 border border-(--color-surface-border);
 }
 
-.pwa-text {
-  @apply text-sm font-medium;
-}
-
 .pwa-button {
   @apply bg-(--color-primary-indigo) hover:bg-(--color-primary-hover) text-white px-3 py-1.5 rounded-md text-sm font-semibold transition-all;
 }

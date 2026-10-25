@@ -57,7 +57,7 @@ describe('PhotoPickerComponent', () => {
     fixture.detectChanges();
 
     const generateBtn = fixture.debugElement.query(By.css('.btn-generate'));
-    const spinner = fixture.debugElement.query(By.css('.spinner'));
+    const spinner = fixture.debugElement.query(By.css('app-spinner-icon'));
 
     expect(generateBtn.nativeElement.disabled).toBe(true);
     expect(spinner).toBeTruthy();

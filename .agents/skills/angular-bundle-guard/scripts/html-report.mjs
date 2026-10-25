@@ -28,6 +28,11 @@ export function computeProjectHash(projectConfig) {
     }
   }
 
+  const scriptDir = path.dirname(new URL(import.meta.url).pathname);
+  for (const scriptFile of getSourceFiles(scriptDir, ['.mjs', '.css']).sort()) {
+    hasher.update(`script:${ path.basename(scriptFile) }:${ fs.readFileSync(scriptFile, 'utf8') }\n`);
+  }
+
   const files = getSourceFiles(projectConfig.sourceRoot, ['.ts', '.html', '.css']).sort();
   for (const file of files) {
     const rel = path.relative(rootDir, file);
@@ -59,11 +64,14 @@ function formatFileLinks(refList) {
   return refList
     .split(', ')
     .map((ref) => {
-      const [relFile] = ref.split(':');
+      const [relFile, linesPart] = ref.split(':');
       const absPath = path.join(rootDir, relFile);
       const fileUrl = pathToFileURL(absPath).href;
       const label = escapeHtml(ref).replaceAll('/', '/<wbr>');
-      return `<a href="${escapeHtml(fileUrl)}"><code>${label}</code></a>`;
+      const lineCount = linesPart ? linesPart.split(',').length : 0;
+      const multiBadge =
+        lineCount > 1 ? ` <span class="badge badge-warn">⚠️ ${lineCount}x in file</span>` : '';
+      return `<a href="${escapeHtml(fileUrl)}"><code>${label}</code></a>${multiBadge}`;
     })
     .join('<br>');
 }
@@ -234,7 +242,7 @@ function renderCssSections(cssAnalysis = {}) {
       ${renderPartialStaticTable(partialStaticRules)}
     </details>
     <details open>
-      <summary>4. Duplicate Multi-Utility @apply Rules (${duplicateRules.length})</summary>
+      <summary>4. Duplicate @apply Rules (${duplicateRules.length})</summary>
       ${renderDuplicateRulesTable(duplicateRules)}
     </details>`;
 }

@@ -1,13 +1,9 @@
 @reference "../../../../../styles.css";
 
-.summary-container {
-  @apply section-wrapper flex flex-col;
-}
-
 .thought-content {
   @apply surface-card overflow-y-auto h-64;
 }
 
 .thought-text {
-  @apply text-(--color-text-secondary) italic;
+  @apply text-(--color-text-secondary);
 }

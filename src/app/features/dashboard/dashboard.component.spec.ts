@@ -1,5 +1,5 @@
 import type { ImageAnalysisResponse } from '@/core/vision';
-import { VisionService } from '@/core/vision';
+import { VisionService } from '@/core/vision/vision.service';
 import type { ComponentFixture } from '@angular/core/testing';
 import { DeferBlockState, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
@@ -33,7 +33,7 @@ describe('DashboardComponent', () => {
   it('should render main dashboard wrapper, analyzer panel, and no token usage or thought summary by default', () => {
     const mainEl = fixture.debugElement.query(By.css('.dashboard-main'));
     const analyzerPanel = fixture.debugElement.query(By.css('app-analyzer-panel'));
-    const tokenUsage = fixture.debugElement.query(By.css('.usage-section'));
+    const tokenUsage = fixture.debugElement.query(By.css('app-usage-metrics'));
     const thoughtSummary = fixture.debugElement.query(By.css('app-thought-summary'));
 
     expect(mainEl).toBeTruthy();

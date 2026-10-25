@@ -12,10 +12,10 @@
     @if (isAuthenticated()) {
       <a [routerLink]="dashboard" class="btn-primary btn-launch group">
         <span>Launch Studio</span>
-        <app-arrow-right-icon class="btn-launch-icon" />
+        <app-arrow-right-icon class="transition-transform duration-200 group-hover:translate-x-1" />
       </a>
     } @else {
-      <button type="button" class="btn-primary btn-sign-in" (click)="openSignInModal()">
+      <button type="button" class="btn-primary btn-launch" (click)="openSignInModal()">
         <span>Sign In</span>
       </button>
     }
@@ -24,7 +24,7 @@
       @for (feature of features; track feature.label) {
         <div class="feature-item">
           <span class="feature-label">{{ feature.label }}</span>
-          <span class="feature-value">{{ feature.value }}</span>
+          <span class="text-sm font-semibold feature-value">{{ feature.value }}</span>
         </div>
       }
     </div>

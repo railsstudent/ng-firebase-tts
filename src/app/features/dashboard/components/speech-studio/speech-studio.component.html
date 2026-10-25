@@ -16,7 +16,7 @@
               [id]="f.id"
               [formField]="f.field"
               [placeholder]="f.placeholder"
-              class="form-field-textarea"
+              class="w-full form-field-textarea"
             ></textarea>
           } @else {
             <input
@@ -24,7 +24,7 @@
               [id]="f.id"
               [formField]="f.field"
               [placeholder]="f.placeholder"
-              class="form-field-input"
+              class="form-field-textarea"
             />
           }
         </div>
@@ -37,13 +37,13 @@
   <app-error-display [error]="ttsError()" />
 
   <div>
-    <div class="btn-container">
+    <div class="flex justify-evenly gap-4">
       @for (c of speechButtonConfigs; track c.mode) {
         <button (click)="generateSpeech(c.mode)" [aria-label]="c.ariaLabel" [disabled]="isLoading()" class="btn-audio">
           @let isModeLoading = loadingMode() === c.mode;
           @let genText = c.getGenText ? c.getGenText() : 'Generating Speech...';
           @if (isModeLoading) {
-            <app-spinner-icon class="spinner-icon" />
+            <app-spinner-icon class="animate-spin h-5 w-5" />
           }
           {{ isModeLoading ? genText : c.buttonText }}
         </button>
@@ -53,8 +53,8 @@
 
   @if (!isLoading() && audioUrl(); as url) {
     <figure class="playback-figure">
-      <figcaption class="playback-caption">Listen to the Gemini-TTS:</figcaption>
-      <audio controls [src]="url" [playbackRate]="'1.25'" class="playback-audio"></audio>
+      <figcaption class="text-sm font-medium playback-caption">Listen to the Gemini-TTS:</figcaption>
+      <audio controls [src]="url" [playbackRate]="'1.25'" class="w-full outline-none"></audio>
     </figure>
   }
 </div>

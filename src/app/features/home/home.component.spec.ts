@@ -81,7 +81,7 @@ describe('HomeComponent', () => {
     isAuthenticatedSignal.set(false);
     fixture.detectChanges();
 
-    const signInBtn = fixture.debugElement.query(By.css('button.btn-sign-in'));
+    const signInBtn = fixture.debugElement.query(By.css('button.btn-launch'));
     const launchBtn = fixture.debugElement.query(By.css('a.btn-launch'));
 
     expect(signInBtn).toBeTruthy();
@@ -123,7 +123,7 @@ describe('HomeComponent', () => {
     isAuthenticatedSignal.set(false);
     fixture.detectChanges();
 
-    const signInBtn = fixture.debugElement.query(By.css('button.btn-sign-in'));
+    const signInBtn = fixture.debugElement.query(By.css('button.btn-launch'));
     expect(signInBtn).toBeTruthy();
 
     const openModalSpy = vi.spyOn(fixture.componentInstance, 'openSignInModal');
@@ -145,7 +145,7 @@ describe('HomeComponent', () => {
     isAuthenticatedSignal.set(false);
     fixture.detectChanges();
 
-    const signInBtn = fixture.debugElement.query(By.css('button.btn-sign-in'));
+    const signInBtn = fixture.debugElement.query(By.css('button.btn-launch'));
     expect(signInBtn).toBeTruthy();
 
     const openModalSpy = vi.spyOn(fixture.componentInstance, 'openSignInModal');
@@ -164,7 +164,7 @@ describe('HomeComponent', () => {
     isAuthenticatedSignal.set(false);
     fixture.detectChanges();
 
-    const signInBtn = fixture.debugElement.query(By.css('button.btn-sign-in'));
+    const signInBtn = fixture.debugElement.query(By.css('button.btn-launch'));
     expect(signInBtn).toBeTruthy();
 
     const openModalSpy = vi.spyOn(fixture.componentInstance, 'openSignInModal');

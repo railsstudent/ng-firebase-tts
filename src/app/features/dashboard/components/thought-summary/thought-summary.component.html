@@ -1,10 +1,10 @@
 @let thought = htmlThought();
 @if (thought) {
-  <div class="summary-container">
+  <div class="section-wrapper flex flex-col">
     <div class="w-full">
       <h3 class="section-title">Thought Summary</h3>
-      <div class="thought-content">
-        <p class="thought-text" [innerHTML]="thought"></p>
+      <div class="surface-card overflow-y-auto h-64">
+        <p class="thought-text italic" [innerHTML]="thought"></p>
       </div>
     </div>
   </div>

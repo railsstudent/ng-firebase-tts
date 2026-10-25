@@ -10,7 +10,7 @@ import { By } from '@angular/platform-browser';
 export class VoiceSelectorHarness extends ComponentHarness {
   static hostSelector = 'app-voice-selector';
 
-  protected getTriggerText = this.locatorFor('.voice-trigger-text');
+  protected getTriggerText = this.locatorFor('#voiceOption span');
 
   async getDisplayText(): Promise<string> {
     const trigger = await this.getTriggerText();

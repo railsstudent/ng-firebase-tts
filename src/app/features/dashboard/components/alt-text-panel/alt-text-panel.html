@@ -10,7 +10,7 @@
   @if (isLoading()) {
     <div class="loading-state">
       <app-spinner-icon class="loading-spinner" />
-      <p class="loading-text">Firebase AI is thinking...</p>
+      <p class="mt-4 text-lg">Firebase AI is thinking...</p>
     </div>
   }
   @if (!isLoading() && imageAnalysis) {
@@ -20,7 +20,7 @@
         <div class="section-wrapper">
           <h3 class="section-title">Generated Alternative Text</h3>
           <div class="surface-card">
-            <p class="display-text">"{{ altText }}"</p>
+            <p class="display-text italic">"{{ altText }}"</p>
           </div>
         </div>
       }

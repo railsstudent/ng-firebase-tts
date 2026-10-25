@@ -5,13 +5,9 @@
 }
 
 .list-item {
-  @apply ml-4 text-(--color-text-secondary);
+  @apply text-(--color-text-secondary);
 }
 
 .link-anchor {
   @apply text-(--color-primary-accent) hover:text-indigo-300 underline;
-}
-
-.query-text {
-  @apply ml-4 text-(--color-text-secondary);
 }

@@ -15,7 +15,7 @@
       <p class="upload-subtitle pointer-events-none">PNG, JPG, JPEG or WEBP</p>
     </button>
   } @else {
-    <div class="preview-container group">
+    <div class="w-full relative group">
       <img [src]="previewUrl()!" alt="Selected preview" class="preview-image" />
       <div class="action-overlay">
         <button
@@ -44,7 +44,7 @@
     class="btn-generate btn-primary"
   >
     @if (isLoading()) {
-      <app-spinner-icon class="spinner" />
+      <app-spinner-icon class="animate-spin h-5 w-5" />
     }
     {{ isLoading() ? 'Analyzing...' : 'Generate Description' }}
   </button>

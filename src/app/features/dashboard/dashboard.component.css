@@ -3,15 +3,3 @@
 .dashboard-main {
   @apply bg-(--color-surface-card) border border-(--color-surface-border) rounded-2xl p-6 md:p-8 shadow-2xl shadow-slate-950/50 backdrop-blur-sm;
 }
-
-.usage-section {
-  @apply mt-6;
-}
-
-.usage-grid {
-  @apply surface-card flex flex-wrap justify-around;
-}
-
-.usage-item {
-  @apply text-(--color-text-secondary) italic;
-}

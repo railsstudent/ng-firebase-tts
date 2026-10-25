@@ -9,7 +9,7 @@
 }
 
 .modal-title {
-  @apply text-xl sm:text-2xl font-bold text-(--color-text-primary);
+  @apply text-(--color-text-primary);
 }
 
 .modal-close-btn {
@@ -18,10 +18,6 @@
 
 .error-block {
   @apply mt-2 mb-2 text-sm;
-}
-
-.modal-form {
-  @apply flex flex-col gap-4;
 }
 
 .form-label {
@@ -33,7 +29,7 @@
 }
 
 .error-hint {
-  @apply text-xs text-(--color-error-text) mt-1 block;
+  @apply text-xs mt-1 block text-(--color-error-text);
 }
 
 .btn-submit {

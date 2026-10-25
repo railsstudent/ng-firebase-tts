@@ -144,7 +144,7 @@ function runCssOptimizationAudit(sourceRoot, allCodeFiles, reportPath) {
   printConciseCssCategory('1. Dead / Unused CSS Classes', cssAnalysis.deadClasses);
   printConciseCssCategory('2. Short Static @apply Classes (<= 3 utilities)', cssAnalysis.shortStaticRules);
   printConciseCssCategory('3. Partial Static Splits', cssAnalysis.partialStaticRules);
-  printConciseCssCategory('4. Duplicate Multi-Utility @apply Rules', cssAnalysis.duplicateRules);
+  printConciseCssCategory('4. Duplicate @apply Rules', cssAnalysis.duplicateRules);
   return cssAnalysis;
 }
 

@@ -26,7 +26,7 @@ describe('ThoughtSummaryComponent', () => {
     fixture.componentRef.setInput('thought', '');
     fixture.detectChanges();
 
-    const wrapper = fixture.debugElement.query(By.css('.summary-container'));
+    const wrapper = fixture.debugElement.query(By.css('.section-wrapper'));
     expect(wrapper).toBeNull();
   });
 
@@ -35,8 +35,8 @@ describe('ThoughtSummaryComponent', () => {
     fixture.componentRef.setInput('thought', 'Thinking about Mars surface chemistry...');
     fixture.detectChanges();
 
-    const wrapper = fixture.debugElement.query(By.css('.summary-container'));
-    const thoughtContent = fixture.debugElement.query(By.css('.thought-content'));
+    const wrapper = fixture.debugElement.query(By.css('.section-wrapper'));
+    const thoughtContent = fixture.debugElement.query(By.css('.surface-card'));
     const thoughtText = fixture.debugElement.query(By.css('.thought-text'));
 
     expect(wrapper).toBeTruthy();
