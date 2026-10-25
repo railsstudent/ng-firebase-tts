@@ -5,15 +5,15 @@
 }
 
 .loading-state {
-  @apply flex flex-col items-center justify-center text-(--color-text-muted);
+  @apply flex flex-col items-center justify-center text-muted;
 }
 
 .loading-spinner {
-  @apply animate-spin h-10 w-10 text-(--color-primary-indigo);
+  @apply animate-spin h-10 w-10 text-primary-indigo;
 }
 
 .display-text {
-  @apply text-(--color-text-secondary);
+  @apply text-secondary;
 }
 
 @keyframes fadeIn {

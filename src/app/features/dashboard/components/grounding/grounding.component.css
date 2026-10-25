@@ -5,9 +5,9 @@
 }
 
 .list-item {
-  @apply text-(--color-text-secondary);
+  @apply text-secondary;
 }
 
 .link-anchor {
-  @apply text-(--color-primary-accent) hover:text-indigo-300 underline;
+  @apply text-primary-accent hover:text-indigo-300 underline;
 }

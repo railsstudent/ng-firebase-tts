@@ -9,9 +9,9 @@
   --color-surface-border: #334155;
   --color-surface-hover: #475569;
 
-  --color-text-primary: #f1f5f9;
-  --color-text-secondary: #cbd5e1;
-  --color-text-muted: #94a3b8;
+  --text-color-primary: #f1f5f9;
+  --text-color-secondary: #cbd5e1;
+  --text-color-muted: #94a3b8;
 
   --color-primary-indigo: #4f46e5;
   --color-primary-hover: #6366f1;
@@ -23,7 +23,7 @@
 }
 
 .error-block {
-  @apply mt-6 bg-(--color-error-bg) border border-(--color-error-border) text-(--color-error-text) px-4 py-3 rounded-lg relative;
+  @apply mt-6 bg-error-bg border border-error-border text-error-text px-4 py-3 rounded-lg relative;
 }
 
 @utility section-wrapper {
@@ -31,19 +31,19 @@
 }
 
 @utility section-title {
-  @apply text-lg font-semibold text-(--color-text-primary) mb-3;
+  @apply text-lg font-semibold text-primary mb-3;
 }
 
 @utility surface-card {
-  @apply bg-(--color-surface-card) p-4 rounded-lg border border-(--color-surface-border);
+  @apply bg-surface-card p-4 rounded-lg border border-surface-border;
 }
 
 @utility empty-message {
-  @apply text-center text-(--color-text-muted) italic;
+  @apply text-center text-muted italic;
 }
 
 @utility btn-primary {
-  @apply gap-2 text-white font-semibold py-3 px-4 rounded-lg bg-(--color-primary-indigo) hover:bg-(--color-primary-hover) disabled:bg-slate-600 disabled:cursor-not-allowed transition-all;
+  @apply gap-2 text-white font-semibold py-3 px-4 rounded-lg bg-primary-indigo hover:bg-primary-hover disabled:bg-slate-600 disabled:cursor-not-allowed transition-all;
 }
 
 @utility app-icon {
@@ -51,5 +51,5 @@
 }
 
 .form-field-label {
-  @apply text-xs font-bold text-(--color-text-muted) uppercase tracking-wider ml-1;
+  @apply text-xs font-bold text-muted uppercase tracking-wider ml-1;
 }

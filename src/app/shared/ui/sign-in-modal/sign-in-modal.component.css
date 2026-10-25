@@ -1,19 +1,19 @@
 @reference "../../../../styles.css";
 
 .modal-card {
-  @apply rounded-2xl bg-(--color-surface-card) border border-(--color-surface-border) p-6 sm:p-8 max-w-md w-full shadow-2xl backdrop-blur-md flex flex-col gap-5;
+  @apply rounded-2xl bg-surface-card border border-surface-border p-6 sm:p-8 max-w-md w-full shadow-2xl backdrop-blur-md flex flex-col gap-5;
 }
 
 .modal-header {
-  @apply flex items-center justify-between pb-2 border-b border-(--color-surface-border)/60;
+  @apply flex items-center justify-between pb-2 border-b border-surface-border/60;
 }
 
 .modal-title {
-  @apply text-(--color-text-primary);
+  @apply text-primary;
 }
 
 .modal-close-btn {
-  @apply p-1.5 rounded-lg text-(--color-text-muted) hover:text-(--color-text-primary) hover:bg-(--color-surface-hover)/60 focus:outline-none focus:ring-2 focus:ring-(--color-primary-hover) transition-all flex items-center justify-center;
+  @apply p-1.5 rounded-lg text-muted hover:text-primary hover:bg-surface-hover/60 focus:outline-none focus:ring-2 focus:ring-primary-hover transition-all flex items-center justify-center;
 }
 
 .error-block {
@@ -21,15 +21,15 @@
 }
 
 .form-label {
-  @apply text-xs uppercase font-semibold tracking-wider text-(--color-text-muted) mb-1.5 block;
+  @apply text-xs uppercase font-semibold tracking-wider text-muted mb-1.5 block;
 }
 
 .form-input {
-  @apply w-full bg-(--color-app-bg) border border-(--color-surface-border) text-(--color-text-primary) rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-(--color-primary-hover) transition-all;
+  @apply w-full bg-app-bg border border-surface-border text-primary rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-primary-hover transition-all;
 }
 
 .error-hint {
-  @apply text-xs mt-1 block text-(--color-error-text);
+  @apply text-xs mt-1 block text-error-text;
 }
 
 .btn-submit {

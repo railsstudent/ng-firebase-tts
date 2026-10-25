@@ -1,27 +1,27 @@
 @reference "../../../../../styles.css";
 
 .recommendation-card {
-  @apply bg-indigo-900/10 border border-indigo-500/20 text-sm font-medium p-4 rounded-lg text-(--color-text-secondary) w-full transition-all duration-300 hover:border-indigo-500/40;
+  @apply bg-indigo-900/10 border border-indigo-500/20 text-sm font-medium p-4 rounded-lg text-secondary w-full transition-all duration-300 hover:border-indigo-500/40;
 }
 
 .recommendation-id {
-  @apply text-(--color-primary-accent);
+  @apply text-primary-accent;
 }
 
 .recommendation-text {
-  @apply text-(--color-text-primary);
+  @apply text-primary;
 }
 
 .recommendation-reason-label {
-  @apply text-(--color-primary-accent)/80 text-xs uppercase tracking-wider block mt-2;
+  @apply text-primary-accent/80 text-xs uppercase tracking-wider block mt-2;
 }
 
 .recommendation-reason-text {
-  @apply text-(--color-text-muted) text-xs italic block mt-0.5;
+  @apply text-muted text-xs italic block mt-0.5;
 }
 
 [ngAccordionTrigger] {
-  @apply cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-(--color-primary-accent) rounded;
+  @apply cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary-accent rounded;
 }
 
 .recommendation-trigger {
@@ -29,7 +29,7 @@
 }
 
 .expand-icon {
-  @apply w-5 h-5 text-(--color-primary-accent) transition-transform duration-200 flex-shrink-0;
+  @apply w-5 h-5 text-primary-accent transition-transform duration-200 flex-shrink-0;
 }
 
 .expand-icon__expanded {

@@ -5,5 +5,5 @@
 }
 
 .thought-text {
-  @apply text-(--color-text-secondary);
+  @apply text-secondary;
 }

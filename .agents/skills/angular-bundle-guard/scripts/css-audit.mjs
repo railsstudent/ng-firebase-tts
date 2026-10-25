@@ -21,21 +21,25 @@ function extractSelectorClassNames(selector) {
   return [...selector.matchAll(/\.([a-zA-Z0-9_-]+)/g)].map((m) => m[1]);
 }
 
-function getGlobalClassNames(allCodeFiles) {
+function getGlobalCssMeta(allCodeFiles) {
   const globalPath = path.join('src', 'styles.css');
   const globalFile = allCodeFiles.find((f) => path.relative(rootDir, f.file) === globalPath);
   if (!globalFile) {
-    return new Set();
+    return { globalClassNames: new Set(), themeTokenRegex: null };
   }
   const clean = globalFile.content.replace(/\/\*[\s\S]*?\*\//g, ' ');
-  const names = new Set();
+  const globalClassNames = new Set();
   for (const match of clean.matchAll(/([^{};]+)\{[^{}]+\}/g)) {
     const selector = match[1].trim();
     if (!selector.startsWith('@') || selector.startsWith('@utility')) {
-      extractSelectorClassNames(selector).forEach((cls) => names.add(cls));
+      extractSelectorClassNames(selector).forEach((cls) => globalClassNames.add(cls));
     }
   }
-  return names;
+  const tokens = [...clean.matchAll(/--(?:text-)?color-([a-zA-Z0-9_-]+)\s*:/g)].map((m) => m[1]);
+  const themeTokenRegex = tokens.length
+    ? new RegExp(`(?:^|:)(?:bg|text|border|ring|fill|stroke|outline)-(?:${tokens.join('|')})(?:/|$)`)
+    : null;
+  return { globalClassNames, themeTokenRegex };
 }
 
 function findFileLineRefs(className, files) {
@@ -106,8 +110,9 @@ function classifyStaticApplyRule({ selector, utilities, relPath, state }) {
   if (!isEligibleForHtmlMove({ selector, className, utilities, state })) {
     return null;
   }
-  const cssClassesToKeepInCss = utilities.filter((u) => u.includes('--'));
-  const cssClassesToMoveToHtml = utilities.filter((u) => !u.includes('--'));
+  const isThemeToken = (u) => u.includes('--') || Boolean(state.themeTokenRegex?.test(u));
+  const cssClassesToKeepInCss = utilities.filter((u) => isThemeToken(u));
+  const cssClassesToMoveToHtml = utilities.filter((u) => !isThemeToken(u));
   const currentHtmlClassCount = getCurrentHtmlClassCount(className, state.siblingHtmlFiles);
   const isFullMove = cssClassesToKeepInCss.length === 0 && !state.multiRuleClasses.has(className);
   const htmlClassCountAfterMove =
@@ -178,11 +183,12 @@ function findMultiRuleClasses(clean) {
   return new Set([...counts.entries()].filter(([, c]) => c > 1).map(([cls]) => cls));
 }
 
-function createScanState({ cssFile, relPath, clean, allCodeFiles, allRuntimeFiles, globalClassNames }) {
+function createScanState({ cssFile, relPath, clean, allCodeFiles, allRuntimeFiles, globalCssMeta }) {
   const dir = path.dirname(cssFile);
   return {
     isGlobal: relPath === path.join('src', 'styles.css'),
-    globalClassNames,
+    globalClassNames: globalCssMeta.globalClassNames,
+    themeTokenRegex: globalCssMeta.themeTokenRegex,
     multiRuleClasses: findMultiRuleClasses(clean),
     allRuntimeFiles,
     extractSelectorClassNames,
@@ -201,10 +207,10 @@ function createScanState({ cssFile, relPath, clean, allCodeFiles, allRuntimeFile
   };
 }
 
-function scanCssFile({ cssFile, allCodeFiles, allRuntimeFiles, globalClassNames }) {
+function scanCssFile({ cssFile, allCodeFiles, allRuntimeFiles, globalCssMeta }) {
   const relPath = path.relative(rootDir, cssFile);
   const clean = fs.readFileSync(cssFile, 'utf8').replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
-  const state = createScanState({ cssFile, relPath, clean, allCodeFiles, allRuntimeFiles, globalClassNames });
+  const state = createScanState({ cssFile, relPath, clean, allCodeFiles, allRuntimeFiles, globalCssMeta });
 
   for (const match of clean.matchAll(/([^{};]+)\{([^{}]+)\}/g)) {
     const selector = match[1].trim();
@@ -237,12 +243,12 @@ function scanCssFile({ cssFile, allCodeFiles, allRuntimeFiles, globalClassNames 
 }
 
 export function getCssAnalysis(cssFiles, allCodeFiles) {
-  const globalClassNames = getGlobalClassNames(allCodeFiles);
+  const globalCssMeta = getGlobalCssMeta(allCodeFiles);
   const allRuntimeFiles = allCodeFiles.filter((f) => !f.file.endsWith('.spec.ts'));
   const result = { deadClasses: [], shortStaticRules: [], partialStaticRules: [], duplicateRules: [] };
   const allRemainingRules = [];
   for (const cssFile of cssFiles) {
-    const r = scanCssFile({ cssFile, allCodeFiles, allRuntimeFiles, globalClassNames });
+    const r = scanCssFile({ cssFile, allCodeFiles, allRuntimeFiles, globalCssMeta });
     result.deadClasses.push(...r.deadClasses);
     result.shortStaticRules.push(...r.shortStaticRules);
     result.partialStaticRules.push(...r.partialStaticRules);

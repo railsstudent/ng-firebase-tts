@@ -1,11 +1,11 @@
 @reference "../../../../../styles.css";
 
 .obscure-fact-text {
-  @apply text-(--color-primary-accent) italic mb-4 text-lg;
+  @apply text-primary-accent italic mb-4 text-lg;
 }
 
 .audio-customize-container {
-  @apply bg-(--color-surface-card) backdrop-blur-sm p-6 rounded-xl border border-(--color-surface-border) shadow-xl mb-6;
+  @apply bg-surface-card backdrop-blur-sm p-6 rounded-xl border border-surface-border shadow-xl mb-6;
 }
 
 .audio-customize-title {
@@ -21,7 +21,7 @@
 }
 
 .form-field-textarea {
-  @apply w-full bg-slate-900/60 border border-(--color-surface-border) rounded-lg px-4 py-2 text-(--color-text-primary) placeholder:text-(--color-text-muted) focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all;
+  @apply w-full bg-slate-900/60 border border-surface-border rounded-lg px-4 py-2 text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all;
 }
 
 .form-field-group-full {
@@ -33,9 +33,9 @@
 }
 
 .playback-figure {
-  @apply mt-6 p-4 bg-slate-900/40 border border-(--color-surface-border) rounded-xl flex flex-col gap-2;
+  @apply mt-6 p-4 bg-slate-900/40 border border-surface-border rounded-xl flex flex-col gap-2;
 }
 
 .playback-caption {
-  @apply text-(--color-text-muted);
+  @apply text-muted;
 }

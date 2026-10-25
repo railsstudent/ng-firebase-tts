@@ -17,5 +17,5 @@
 }
 
 .usage-item {
-  @apply text-(--color-text-secondary) italic font-mono text-sm tracking-wide;
+  @apply text-secondary italic font-mono text-sm tracking-wide;
 }

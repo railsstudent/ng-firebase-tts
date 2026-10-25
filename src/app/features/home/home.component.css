@@ -9,15 +9,15 @@
 }
 
 .home-badge {
-  @apply text-xs uppercase font-bold tracking-widest text-(--color-primary-accent) bg-indigo-950/60 border border-indigo-800/60 px-3 py-1 rounded-full;
+  @apply text-xs uppercase font-bold tracking-widest text-primary-accent bg-indigo-950/60 border border-indigo-800/60 px-3 py-1 rounded-full;
 }
 
 .home-title {
-  @apply text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-(--color-text-primary);
+  @apply text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-primary;
 }
 
 .home-description {
-  @apply text-sm sm:text-base text-(--color-text-muted) max-w-lg leading-relaxed;
+  @apply text-sm sm:text-base text-muted max-w-lg leading-relaxed;
 }
 
 .btn-launch {
@@ -25,7 +25,7 @@
 }
 
 .home-features-grid {
-  @apply w-full grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-6 border-t border-(--color-surface-border)/60 mt-2;
+  @apply w-full grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-6 border-t border-surface-border/60 mt-2;
 }
 
 .feature-item {
@@ -33,9 +33,9 @@
 }
 
 .feature-label {
-  @apply text-xs font-medium text-(--color-text-muted) uppercase tracking-wider;
+  @apply text-xs font-medium text-muted uppercase tracking-wider;
 }
 
 .feature-value {
-  @apply text-(--color-text-secondary);
+  @apply text-secondary;
 }
