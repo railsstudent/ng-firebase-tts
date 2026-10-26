@@ -2,6 +2,9 @@ import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-check-icon',
+  host: {
+    class: 'app-icon text-primary-accent',
+  },
   template: `
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -13,6 +16,5 @@ import { Component } from '@angular/core';
       <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
     </svg>
   `,
-  styleUrl: './check-icon.component.css',
 })
 export class CheckIconComponent {}

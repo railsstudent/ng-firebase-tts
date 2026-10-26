@@ -123,7 +123,51 @@ function auditVector4BrokenDefer(tsFiles) {
   return findings;
 }
 
-function auditVector5NestedInjectAsync(injectCalls) {
+function findMultiInjectAsyncPerCaller(injectCalls) {
+  const callsByCaller = new Map();
+  for (const call of injectCalls) {
+    const list = callsByCaller.get(call.callerRel) || [];
+    list.push(call);
+    callsByCaller.set(call.callerRel, list);
+  }
+  const findings = [];
+  for (const [callerRel, list] of callsByCaller.entries()) {
+    if (list.length > 1) {
+      const specs = list.map((c) => c.specifier).join(', ');
+      findings.push({
+        location: `${callerRel}:${list[0].line}`,
+        detail: `"${path.basename(callerRel)}" calls injectAsync() ${list.length} times (${specs}). If already inside @defer, this creates extra sequential downloads.`,
+        fix: `Use normal inject() if "${path.basename(callerRel)}" is inside @defer, or run multiple injectAsync() calls in parallel with Promise.all([...]).`,
+      });
+    }
+  }
+  return findings;
+}
+
+function findSequentialAwaitImports(tsFiles) {
+  const findings = [];
+  const blockRegex = /async\s+(?:function\s+)?([a-zA-Z0-9_]+)?\s*\([^)]*\)\s*(?::\s*[^{]+)?\{([\s\S]*?)^\s{2,4}\}/gm;
+  const awaitImportRegex = /await\s+import\(\s*['"]([^'"]+)['"]\s*\)/g;
+
+  for (const f of tsFiles) {
+    const rel = path.relative(rootDir, f.file);
+    for (const match of f.content.matchAll(blockRegex)) {
+      const imports = [...match[2].matchAll(awaitImportRegex)];
+      if (imports.length > 1) {
+        const line = getLineNumber(f.content, match.index);
+        const specs = imports.map((m) => m[1]).join(', ');
+        findings.push({
+          location: `${rel}:${line}`,
+          detail: `"${match[1] || 'async function'}()" calls "await import()" ${imports.length} times sequentially (${specs}).`,
+          fix: `Run independent dynamic imports concurrently with Promise.all([${imports.map((m) => `import('${m[1]}')`).join(', ')}]).`,
+        });
+      }
+    }
+  }
+  return findings;
+}
+
+function auditVector5NestedInjectAsync(injectCalls, tsFiles) {
   const targetRelSet = new Set(injectCalls.map((c) => `${c.resolvedRel}.ts`));
   const findings = [];
   for (const call of injectCalls) {
@@ -135,7 +179,7 @@ function auditVector5NestedInjectAsync(injectCalls) {
       });
     }
   }
-  return findings;
+  return [...findings, ...findMultiInjectAsyncPerCaller(injectCalls), ...findSequentialAwaitImports(tsFiles)];
 }
 
 function auditVector6EagerRoutes(tsFiles) {
@@ -193,7 +237,11 @@ export function getVectorAudit(allCodeFiles, mainInputs = []) {
     { id: 2, name: '2. Value Import Instead of Type Import', findings: auditVector2ValueImports(tsFiles) },
     { id: 3, name: '3. Top-Level Heavy SDK Import in Main', findings: auditVector3HeavySdkInMain(mainInputs) },
     { id: 4, name: '4. Broken @defer Boundary (viewChild by Value)', findings: auditVector4BrokenDefer(tsFiles) },
-    { id: 5, name: '5. Redundant Nested injectAsync() Hops', findings: auditVector5NestedInjectAsync(injectCalls) },
+    {
+      id: 5,
+      name: '5. Redundant Nested injectAsync() & Sequential await import()',
+      findings: auditVector5NestedInjectAsync(injectCalls, tsFiles),
+    },
     { id: 6, name: '6. Non-Home Eager Route component:', findings: auditVector6EagerRoutes(tsFiles) },
     { id: 7, name: '7. app.config.ts Eager Feature/Core Imports', findings: auditVector7AppConfig(tsFiles) },
     { id: 8, name: '8. Static JSON Assets in Main Bundle', findings: auditVector8StaticJsonInMain(mainInputs) },

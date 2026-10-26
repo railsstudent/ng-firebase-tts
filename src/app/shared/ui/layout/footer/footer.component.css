@@ -1,9 +1,0 @@
-@reference "../../../../../styles.css";
-
-.app-footer {
-  @apply bg-surface-card border border-surface-border rounded-2xl w-full;
-}
-
-.footer-content {
-  @apply container mx-auto px-6 py-4 text-center text-muted text-sm;
-}

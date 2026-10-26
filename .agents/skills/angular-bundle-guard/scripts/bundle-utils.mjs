@@ -20,6 +20,13 @@ const ALLOWED_MAIN_PACKAGES = new Set([
 
 const ROOT_APP_FILES = new Set(['src/app/app.ts', 'src/app/app.component.ts']);
 
+export const POSTCSS_CONFIG_FILES = ['postcss.config.json', '.postcssrc.json'];
+export const BUILD_CONFIG_FILES = ['angular.json', 'package.json', ...POSTCSS_CONFIG_FILES];
+
+export function getConfigSearchDirs(projectRoot = rootDir) {
+  return [...new Set([path.resolve(projectRoot), rootDir])];
+}
+
 /**
  * Resolves the target Angular application project from angular.json.
  */
@@ -58,15 +65,23 @@ function selectTargetProjectName(appProjects, projectArg) {
 export function resolveProjectConfig(projectArg) {
   const appProjects = getApplicationProjects();
   if (appProjects.size === 0) {
-    return { projectName: 'default', relSourceRoot: 'src', sourceRoot: SRC_DIR, distDir: DIST_DIR };
+    return {
+      projectName: 'default',
+      projectRoot: rootDir,
+      relSourceRoot: 'src',
+      sourceRoot: SRC_DIR,
+      distDir: DIST_DIR,
+    };
   }
   const projectName = selectTargetProjectName(appProjects, projectArg);
   const proj = appProjects.get(projectName);
+  const relProjectRoot = proj.root || '';
   const relSourceRoot = proj.sourceRoot || 'src';
   const outOpt = proj.architect?.build?.options?.outputPath;
   const relDist = (typeof outOpt === 'string' ? outOpt : outOpt?.base) || path.join('dist', projectName);
   return {
     projectName,
+    projectRoot: path.join(rootDir, relProjectRoot),
     relSourceRoot,
     sourceRoot: path.join(rootDir, relSourceRoot),
     distDir: path.join(rootDir, relDist),
@@ -92,7 +107,7 @@ export function findStatsFile(distDir = DIST_DIR) {
 }
 
 function isAnyRootConfigStale(statsMtimeMs) {
-  for (const cfgName of ['angular.json', 'package.json', '.postcssrc.json']) {
+  for (const cfgName of BUILD_CONFIG_FILES) {
     const cfgPath = path.join(rootDir, cfgName);
     if (fs.existsSync(cfgPath) && fs.statSync(cfgPath).mtimeMs > statsMtimeMs) {
       return true;

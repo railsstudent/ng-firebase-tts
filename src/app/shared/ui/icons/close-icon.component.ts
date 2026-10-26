@@ -2,6 +2,9 @@ import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-close-icon',
+  host: {
+    class: 'app-icon',
+  },
   template: `
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -18,6 +21,5 @@ import { Component } from '@angular/core';
       <line x1="6" y1="6" x2="18" y2="18" />
     </svg>
   `,
-  styleUrl: './icon.css',
 })
 export class CloseIconComponent {}

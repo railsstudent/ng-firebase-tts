@@ -9,7 +9,6 @@ import { PwaUpdateService } from './pwa/pwa-update.service';
   selector: 'app-root',
   imports: [PwaUpdateBanner, HeaderComponent, FooterComponent, RouterOutlet],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css',
 })
 export class AppComponent {
   readonly #pwaService = inject(PwaUpdateService);

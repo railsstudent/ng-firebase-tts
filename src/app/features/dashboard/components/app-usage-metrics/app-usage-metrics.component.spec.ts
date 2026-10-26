@@ -88,4 +88,29 @@ describe('AppUsageMetricsComponent', () => {
       tokensSaved: '0',
     });
   });
+
+  it('should format file sizes across bytes, KB, and MB in formattedMetrics', () => {
+    const baseMetrics: ImageOptimizationMetrics = {
+      originalSizeBytes: 500,
+      optimizedSizeBytes: 0,
+      originalDimensions: { width: 768, height: 576 },
+      optimizedDimensions: { width: 768, height: 576 },
+      estimatedOriginalTokens: 258,
+      actualImageTokens: 258,
+      tokensSaved: 0,
+      bytesSavedPercent: 0,
+    };
+
+    fixture.componentRef.setInput('optimizationMetrics', baseMetrics);
+    expect(component.formattedMetrics().originalSize).toBe('500 B');
+    expect(component.formattedMetrics().optimizedSize).toBe('0 B');
+
+    fixture.componentRef.setInput('optimizationMetrics', {
+      ...baseMetrics,
+      originalSizeBytes: 4.8 * 1024 * 1024,
+      optimizedSizeBytes: 56 * 1024,
+    });
+    expect(component.formattedMetrics().originalSize).toBe('4.8 MB');
+    expect(component.formattedMetrics().optimizedSize).toBe('56 KB');
+  });
 });

@@ -1,4 +1,4 @@
-import { formatFileSize, preprocessImageForVision } from './image.util';
+import { preprocessImageForVision } from './image.util';
 
 interface MockOffscreenCanvasInstance {
   getContext: ReturnType<typeof vi.fn>;
@@ -6,15 +6,6 @@ interface MockOffscreenCanvasInstance {
 }
 
 describe('image.util', () => {
-  describe('formatFileSize', () => {
-    it('should format bytes to human-readable strings', () => {
-      expect(formatFileSize(0)).toBe('0 B');
-      expect(formatFileSize(500)).toBe('500 B');
-      expect(formatFileSize(56 * 1024)).toBe('56 KB');
-      expect(formatFileSize(4.8 * 1024 * 1024)).toBe('4.8 MB');
-    });
-  });
-
   describe('preprocessImageForVision', () => {
     it('should process image and return base64 and metrics with mock window OffscreenCanvas', async () => {
       const dummyBlob = new Blob(['mock-binary-data'], { type: 'image/jpeg' });

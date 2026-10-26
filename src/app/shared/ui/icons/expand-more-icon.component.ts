@@ -2,6 +2,9 @@ import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-expand-more-icon',
+  host: {
+    class: 'app-icon',
+  },
   template: `
     <svg viewBox="0 0 20 20" fill="currentColor" class="w-full h-full" aria-hidden="true">
       <path
@@ -12,6 +15,5 @@ import { Component } from '@angular/core';
       />
     </svg>
   `,
-  styleUrl: './icon.css',
 })
 export class ExpandMoreIconComponent {}

@@ -10,6 +10,9 @@ import { afterRenderEffect, Component, computed, model, signal, viewChild } from
 
 @Component({
   selector: 'app-voice-selector',
+  host: {
+    class: 'block w-full md:col-span-2',
+  },
   templateUrl: './voice-selector.component.html',
   styleUrl: './voice-selector.component.css',
   imports: [

@@ -38,7 +38,7 @@ This document outlines project-specific coding standards and architectural conve
 
 ## 5. UI Icons & Static Asset Optimization
 
-- **Zero-Dependency Icons**: UI icons MUST be standalone SVG components under `src/app/shared/ui/icons/` referencing `styleUrl: './icon.css'` (`:host { @apply app-icon; }`) with `<svg class="w-full h-full" fill="currentColor" aria-hidden="true">`. Do not install icon font packages.
+- **Zero-Dependency Icons**: UI icons MUST be standalone SVG components under `src/app/shared/ui/icons/` using `host: { class: 'app-icon ...' }` (without `styleUrl`) and `<svg class="w-full h-full" fill="currentColor" aria-hidden="true">`. Do not install icon font packages.
 - **External Dependencies**: Prefer native Angular/TypeScript primitives over third-party utility packages.
 - **PWA Icon Dimensions**: PWA icons in `public/icons/` must strictly match designated physical pixel dimensions (192x192 for `icon-192.png`, 512x512 for `icon-512.png`). Downscale raw assets before committing.
 

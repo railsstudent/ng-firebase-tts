@@ -1,26 +1,24 @@
 import {
+  AudioPlayerService,
   DEFAULT_AUDIO_TYPE,
   DEFAULT_PLAYBACK_RATE,
   MAX_PLAYBACK_RATE,
   MIN_PLAYBACK_RATE,
   PERCENT,
+  recordStreamChunks,
+  TextToSpeechService,
+  toWavBlob,
 } from '@/core/speech';
-import { recordStreamChunks, toWavBlob } from '@/core/speech/audio.util';
 import { revokeBlobURL } from '@/core/utils/blob.util';
 import type { GeneratedAudioRecord } from '@/features/dashboard/components/speech-studio/interfaces/audio.interface';
 import type { FactConfig } from '@/features/dashboard/interfaces/fact-config.interface';
 import type { GenerateSpeechMode } from '@/features/dashboard/types/generate-speech-mode.type';
-import { DestroyRef, inject, Injectable, injectAsync, signal } from '@angular/core';
+import { DestroyRef, inject, Injectable, signal } from '@angular/core';
 
 @Injectable()
 export class SpeechStudioViewService {
-  readonly #asyncSpeechService = injectAsync(() =>
-    import('@/core/speech/text-to-speech.service').then((m) => m.TextToSpeechService),
-  );
-
-  readonly #asyncAudioPlayerService = injectAsync(() =>
-    import('@/core/speech/audio-player.service').then((m) => m.AudioPlayerService),
-  );
+  readonly #speechService = inject(TextToSpeechService);
+  readonly #audioPlayerService = inject(AudioPlayerService);
 
   readonly #destroyRef$ = inject(DestroyRef);
   readonly #activeAudio = signal<GeneratedAudioRecord | undefined>(undefined);
@@ -48,14 +46,12 @@ export class SpeechStudioViewService {
 
   private async handlePlaybackError(e: unknown): Promise<void> {
     console.error('Streaming playback failed:', e);
-    const audioPlayerService = await this.#asyncAudioPlayerService();
-    await audioPlayerService.stopAll();
+    await this.#audioPlayerService.stopAll();
   }
 
   private async handleSync(promptArgs: FactConfig): Promise<void> {
     try {
-      const speechService = await this.#asyncSpeechService();
-      const blob = await speechService.synthesize({ text: promptArgs.prompt, voice: promptArgs.voice });
+      const blob = await this.#speechService.synthesize({ text: promptArgs.prompt, voice: promptArgs.voice });
       this.setGeneratedAudioRecord(blob, promptArgs.prompt, promptArgs.voice);
     } catch (e) {
       await this.handlePlaybackError(e);
@@ -76,14 +72,12 @@ export class SpeechStudioViewService {
       const rate = shouldWait ? 1 : this.calculateRandomPlaybackRate();
       this.#playbackRate.set(rate);
 
-      const speechService = await this.#asyncSpeechService();
-      const stream = speechService.synthesizeStream({ text: prompt, voice });
+      const stream = this.#speechService.synthesizeStream({ text: prompt, voice });
 
       const rawChunks: Uint8Array[] = [];
       const activeStream = shouldWait ? recordStreamChunks(stream, rawChunks) : stream;
 
-      const audioPlayerService = await this.#asyncAudioPlayerService();
-      await audioPlayerService.playStream(activeStream, {
+      await this.#audioPlayerService.playStream(activeStream, {
         playbackRate: rate,
         signal: abortController.signal,
       });

@@ -1,9 +1,5 @@
 @reference "../../../../../styles.css";
 
-:host {
-  @apply block w-full md:col-span-2;
-}
-
 .form-field-group-full {
   @apply flex flex-col gap-1.5 w-full;
 }
@@ -44,13 +40,6 @@
 
 [ngOption][aria-selected='true'] {
   @apply bg-indigo-950/60 text-indigo-200 font-semibold;
-}
-
-/* --- Voice Selector Icons --- */
-app-mic-icon,
-app-check-icon,
-app-arrow-drop-down-icon {
-  @apply text-primary-accent;
 }
 
 /* --- Check mark Visibility --- */

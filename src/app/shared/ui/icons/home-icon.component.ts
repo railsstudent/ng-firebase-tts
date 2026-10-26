@@ -2,6 +2,9 @@ import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-home-icon',
+  host: {
+    class: 'app-icon',
+  },
   template: `
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -18,6 +21,5 @@ import { Component } from '@angular/core';
       <polyline points="9 22 9 12 15 12 15 22" />
     </svg>
   `,
-  styleUrl: './icon.css',
 })
 export class HomeIconComponent {}

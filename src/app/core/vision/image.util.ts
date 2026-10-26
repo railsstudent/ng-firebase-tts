@@ -8,7 +8,6 @@ import type {
   WindowWithCanvas,
 } from './image-processing.interface';
 
-const BASE_UNIT = 1024;
 const ONE_DECIMAL_PLACE = 1;
 const NOT_FOUND_INDEX = -1;
 const PAYLOAD_OFFSET = 1;
@@ -66,17 +65,6 @@ function calculateOptimizationMetrics(params: OptimizationMetricsParams): ImageO
     tokensSaved,
     bytesSavedPercent,
   };
-}
-
-export function formatFileSize(bytes: number): string {
-  if (bytes <= 0) {
-    return '0 B';
-  }
-  const units = ['B', 'KB', 'MB', 'GB'];
-  const digitGroup = Math.min(Math.floor(Math.log(bytes) / Math.log(BASE_UNIT)), units.length - 1);
-  const value = bytes / Math.pow(BASE_UNIT, digitGroup);
-  const formatted = digitGroup === 0 ? value.toString() : Number(value.toFixed(ONE_DECIMAL_PLACE)).toString();
-  return `${formatted} ${units[digitGroup]}`;
 }
 
 export async function preprocessImageForVision(file: File, win?: Window | null): Promise<ImageProcessingResult> {

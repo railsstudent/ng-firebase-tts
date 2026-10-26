@@ -9,7 +9,6 @@ import { Router, RouterLink } from '@angular/router';
   selector: 'app-header',
   imports: [HomeIconComponent, RouterLink, SignOutIconComponent],
   templateUrl: './header.component.html',
-  styleUrl: './header.component.css',
 })
 export class HeaderComponent {
   readonly homeLink = APP_LINKS.HOME;

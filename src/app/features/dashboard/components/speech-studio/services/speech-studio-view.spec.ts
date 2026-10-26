@@ -1,7 +1,6 @@
 import { AudioPlayerService } from '@/core/speech/audio-player.service';
 import type { AudioStreamChunk } from '@/core/speech/text-to-speech.interface';
 import { TextToSpeechService } from '@/core/speech/text-to-speech.service';
-import { Injector } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { SpeechStudioViewService } from './speech-studio-view';
 
@@ -305,18 +304,6 @@ describe('SpeechStudioViewService', () => {
       const invalidMode = 'invalid_mode' as unknown as Parameters<typeof service.generateSpeech>[0];
 
       await expect(service.generateSpeech(invalidMode, config)).rejects.toThrow('Error generating speech (Sync).');
-    });
-  });
-
-  describe('Dynamic Service Resolution on Demand', () => {
-    it('should not synchronously resolve TextToSpeechService or AudioPlayerService from injector during construction', () => {
-      const injector = TestBed.inject(Injector);
-      const getSpy = vi.spyOn(injector, 'get');
-
-      TestBed.runInInjectionContext(() => new SpeechStudioViewService());
-
-      expect(getSpy).not.toHaveBeenCalledWith(TextToSpeechService);
-      expect(getSpy).not.toHaveBeenCalledWith(AudioPlayerService);
     });
   });
 

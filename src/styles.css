@@ -45,3 +45,5 @@
 .form-field-label {
   @apply text-xs font-bold text-muted uppercase tracking-wider ml-1;
 }
+
+@import './layout.css';

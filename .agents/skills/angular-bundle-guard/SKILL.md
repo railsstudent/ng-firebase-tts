@@ -7,68 +7,53 @@ description: Audit Angular initial bundle size (main.js, vendor chunks, initial 
 
 Begin your response with `🛡️ **[angular-bundle-guard]**` so the user knows this skill is active.
 
-Guard initial bundle size (`main.js`, vendor/shared initial chunks, and initial total) and lazy chunks by comparing production build output against the **previous build size**, classifying every increase as expected or a **leak**, and identifying actionable ways to remove leaks or optimize lazy and initial chunks.
-
 ## Process
 
 ### 1. Resolve target project, ask permission, and run the bundle analyzer script once
 
 1. **Resolve Target Project & Ask Permission First (Single-Pass Workflow)**:
    - Check `angular.json` for `"projectType": "application"` entries:
-     - **Simple App (1 application project in `angular.json`)**: Select that project automatically.
-     - **Monorepo (2+ application projects in `angular.json`)**: If the user did not specify a project name—or specified a project name that does not match a valid application in `angular.json`—ask the user to choose from the valid application projects listed in `angular.json`.
-   - Before executing the script, **ask the user for permission** to run the bundle audit and generate `<tmpdir>/bundle-audit-report-<hash>.html` via `os.tmpdir()` (in a monorepo with an unspecified/invalid project name, combine project selection and permission into a single prompt).
-   - **If the user declines**: Stop immediately and **do not** run `analyze-bundle.mjs`.
+     - **Simple App (1 application project)**: Select it automatically.
+     - **Monorepo (2+ application projects)**: If the user did not specify a valid application project name, ask the user to choose from the applications in `angular.json`.
+   - Ask the user for permission to run the bundle audit and generate `<tmpdir>/bundle-audit-report-<hash>.html` (in a monorepo, combine project selection and permission into one prompt). Stop immediately if the user declines.
 2. **Execute the Analyzer Script Once (When Approved)**:
-   - Run `node .agents/skills/angular-bundle-guard/scripts/analyze-bundle.mjs [project-name]` (pass `--rebuild` only when forcing a fresh `npx ng build [project-name] --stats-json`).
-   - At startup, the script computes an **8-char SHA-256 content hash (`<hash>`)** over the target project's `sourceRoot`, `angular.json`, `package.json`, and `.agents/skills/angular-bundle-guard/scripts/`, and checks if `path.join(os.tmpdir(), 'bundle-audit-report-<hash>.html')` already exists:
-     - **If the file already exists (no changes)**: The script skips `ng build` and scanning, prints the cached summary + report path, and exits immediately.
-     - **If the file does not exist (code modified or first run)**: The script ensures fresh stats, runs the JS + 8 Initial Bundle Vectors + CSS audit on the target project, writes the exhaustive itemized tables to `<tmpdir>/bundle-audit-report-<hash>.html`, and prints a bounded summary to stdout.
-3. Record the current **Initial chunk files** and **Lazy chunk files** tables:
-   - `main.js` (raw and estimated transfer size)
-   - Initial vendor / framework chunks (`chunk-*.js`, `polyfills.js`, `styles.css`)
-   - **Initial total** (raw and transfer)
-   - **Lazy chunk files** list, count, and individual raw/transfer sizes
-4. Determine the **previous build size ("before" numbers)** using the first available source in this order:
-   - **Source A — User Memory / Target**: If the user provides the expected size from memory (e.g., "`main.js` was ~132 kB") or asks if it grew, use that number directly.
-   - **Source B — Earlier Build in the Current Session**: If a build was already run earlier in the conversation before the recent edits, use those recorded numbers.
-   - **Source C — Previous Git Commit (`HEAD` or `main`)**: If no "before" numbers exist in memory or the session, measure the clean commit without disturbing the working tree (e.g., `git worktree add --detach /tmp/bundle-before HEAD`, run the build or link `node_modules`, record the `Initial chunk files` table, and `git worktree remove /tmp/bundle-before`)—or ask the user what size they expect if they already have a number in mind.
-
-**Completion criterion**: User permission is obtained before running the script, `<tmpdir>/bundle-audit-report-<hash>.html` is generated (or reused from cache) in a single pass, and "before" and "after" kB numbers for `main.js`, initial vendor chunks, and `Initial total` are side by side.
+   - Run `node .agents/skills/angular-bundle-guard/scripts/analyze-bundle.mjs [project-name]` (pass `--rebuild` only to force a fresh `ng build`). The script automatically reuses `<tmpdir>/bundle-audit-report-<hash>.html` when source files haven't changed, or builds, writes the full HTML report, and prints a bounded summary to stdout.
+3. **Record Current & Previous Build Sizes**:
+   - Record current `main.js`, initial vendor chunks (`chunk-*.js`, `polyfills.js`, `styles.css`), `Initial total`, and lazy chunk count/sizes (raw and transfer).
+   - Determine the **previous ("before") build size** from the first available source:
+     - **Source A — User Memory / Target**: Use the size provided by the user (e.g., "`main.js` was ~132 kB").
+     - **Source B — Earlier Build in Session**: Use numbers recorded earlier in the conversation.
+     - **Source C — Previous Git Commit (`HEAD` or `main`)**: Measure via a temporary detached worktree (`git worktree add --detach /tmp/bundle-before HEAD` ... `git worktree remove /tmp/bundle-before`) or ask the user for their expected baseline.
 
 ### 2. Classify the change
 
 Compare current initial sizes against the previous build size:
 
-- **Decrease** (`after < before`): Celebrate the reduction! Report the exact kB saved on `main.js` and `Initial total`, and explain which boundary change or dead-code removal unlocked it. Stop here unless the user also asked how to reduce the bundle size further or audit lazy chunks.
-- **No change** (`after === before`): Confirm zero initial bundle regression (`0 B` delta on `main.js`) and verify lazy chunks absorbed any new lazy feature code. Stop here unless the user asked how to reduce the bundle size further or audit lazy chunks (in which case, proceed to Step 3).
-- **Increase** (`after > before`): Classify whether the increase is **expected** or a **leak** before accepting the build, and proceed to Step 3:
-  - **Expected increase**: Intentional new code or dependencies genuinely required on initial first paint (root shell, default/home landing route, startup auth/config).
-  - **Leak**: Code, services, or third-party SDKs intended for non-landing lazy routes, `@defer` blocks, or on-demand actions that got hoisted into `main.js` or an initial chunk.
-
-**Completion criterion**: Every byte of increase in `main.js` or initial chunks is attributed to specific modules and classified as **Expected** or **Leak** (or proactive reduction / lazy audit mode is entered when requested).
+- **Decrease** (`after < before`): Celebrate the reduction, report the exact kB saved on `main.js` and `Initial total`, and explain what unlocked it. Stop here unless asked to reduce further or audit lazy chunks.
+- **No change** (`after === before`): Confirm `0 B` delta on `main.js` and verify lazy chunks absorbed any new lazy code. Stop here unless asked to reduce further or audit lazy chunks (proceed to Step 3).
+- **Increase** (`after > before`): Classify every increase before accepting the build, and proceed to Step 3:
+  - **Expected increase**: Code or dependencies required on initial first paint (root shell, Home landing route, startup auth/config).
+  - **Leak**: Code, services, or SDKs intended for secondary routes, `@defer` blocks, or on-demand actions that got bundled into initial chunks.
 
 ### 3. Diagnose leaks, audit lazy chunks, or find reduction opportunities
 
-When an increase is a leak, when auditing lazy chunks, **or** when the user asks how to reduce the bundle size, read [`references/audit-reference.md`](references/audit-reference.md) for the script output terminology, the **8 Initial Bundle Vectors**, and the **4 Lazy Chunk & Component CSS Vectors**, then trace retention paths from `src/main.ts` or lazy entry points:
+When an increase is a leak, when auditing lazy chunks, or when asked how to reduce bundle size, read [`references/audit-reference.md`](references/audit-reference.md) and apply these rules:
 
-1. **Inspect `analyze-bundle.mjs` output and `stats.json`**:
-   - Group and rank `inputs` bundled into `main-*.js`, initial vendor `chunk-*.js`, and individual lazy `chunk-*.js` by `bytesInOutput` (descending).
-   - Trace the `imports` chain that pulled each heavy module into the initial or lazy chunk.
-2. **Audit against the Initial & Lazy Bundle Vectors in [`references/audit-reference.md`](references/audit-reference.md)**:
-   - Check the **8 Initial Bundle Vectors** (mixed barrel `index.ts`, value vs. `import type`, top-level heavy SDK import, missing/broken `@defer`, redundant nested `injectAsync()`, non-Home eager route `component:`, `app.config.ts` initializers, and static JSON vs. `resource()` vendor overhead).
-   - Check the **4 Lazy Chunk & Component CSS Vectors** (bloated lazy route chunk, sequential lazy waterfall, shared lazy vendor chunk leak, and component CSS bloat / dead CSS classes / `<= 3` short static `@apply` classes).
+1. **Zero-Permission-Prompt Rule (Never Read `dist/` or `<tmpdir>`)**:
+   - **Never** call file-reading tools on `<tmpdir>/bundle-audit-report-<hash>.html` or any file inside `dist/` (`stats.json`, `browser-stats.json`, `chunk-*.js`), as reading gitignored or external files triggers repeated permission prompts. Rely exclusively on `analyze-bundle.mjs` stdout and git-tracked files under `src/`.
+2. **Audit Against [`references/audit-reference.md`](references/audit-reference.md)**:
+   - Check the **8 Initial Bundle Vectors**, the **4 Lazy Chunk & Component CSS Vectors**, and all CSS guardrails in [`references/audit-reference.md`](references/audit-reference.md) (keep the Home component eager).
+3. **Never Hide a Trade-off**:
+   - When a pattern is not strictly dead code but still costs bundle bytes (for example, a global `@utility` or rule in `styles.css` unused in `.html`/`.ts` and only consumed via `@apply` inside a component `styleUrl` file), always **surface the finding with the trade-off and fix** rather than silently hiding it or telling the user to blindly delete it.
 
-**Completion criterion**: The exact import edge (`File A -> File B -> Module`) or CSS rule and its byte contribution are identified and cited against the vectors in [`references/audit-reference.md`](references/audit-reference.md), respecting the guardrail that the Home component stays eagerly loaded.
+### 4. Report findings in everyday English, link the HTML report, and wait for approval
 
-### 4. Report the reason, link the HTML report, list the fix/reduction plan, and wait for approval
-
-1. **Do not modify files automatically.** Keep the chat response **concise** so the **Plan** is always clearly visible:
-   - **HTML Audit Report Link**: Provide a clickable link `[bundle-audit-report-<hash>.html](file:///<tmpdir>/bundle-audit-report-<hash>.html)` to the generated (or cached) HTML report containing the Output Chunks table, the **8 Initial Bundle Vectors Audit** scorecard table, and all exhaustive itemized CSS tables with clickable file/line links and unit test warnings.
-   - **Before vs. After Table** (or **Top Contributors Table** for initial/lazy chunks from `stats.json`).
-   - **Verdict & Retention Path**: Expected increase, Leak, or Ranked Reduction Opportunities (preserving eager loading for the Home component and avoiding sequential network waterfalls), with the exact import chain (`File A -> File B -> Module`) and vector citation.
-   - **CSS Optimization Summary Table**: In chat, present a compact 4-row summary table for the 4 CSS categories (`1. Dead / Unused CSS Classes`, `2. Short Static @apply Classes`, `3. Partial Static Splits`, and `4. Duplicate @apply Rules`) showing item counts, estimated byte savings, and `⚠️ Test Warning` counts, directing the user to `<tmpdir>/bundle-audit-report-<hash>.html` for the full itemized list. Follow the guardrails in [`references/audit-reference.md`](references/audit-reference.md) (never inline global overrides from `src/styles.css`, preserve unit test selectors, and consolidate duplicate `@apply` rules).
-   - **Actionable Implementation Plan**: Present a numbered step-by-step plan and wait for approval.
-2. **Wait for explicit user direction** before applying any fix. Once the user asks to apply a specific fix, make the surgical edits and re-run `node .agents/skills/angular-bundle-guard/scripts/analyze-bundle.mjs [project-name]` (which will detect the changed hash, rebuild, and write a new `<tmpdir>/bundle-audit-report-<new-hash>.html`) to prove the chunks decreased as expected.
-
-**Completion criterion**: The chat response stays concise with a clickable link to `<tmpdir>/bundle-audit-report-<hash>.html`, a clear summary table, and a visible step-by-step Plan, with zero unapproved file modifications.
+1. **Use Plain, Everyday English (No Jargon)**:
+   - Across both chat responses and HTML reports, never use bundler or Angular compiler jargon (*"retention path"*, *"waterfall"*, *"hoisted"*, *"reverse chunk coupling"*, *"Vector L2"*, *"`[_nghost-%COMP%]`"*, *"ViewEncapsulation"*, *"fesm2022"*, *"stylesheet pipeline"*).
+   - When explaining CSS impact on JS chunks, state the rule plainly: **anything in global `styles.css` stays in the `.css` file (`0 B` in `main.js`), whereas any component with `styleUrl` copies its CSS rules inside `main.js` and lazy `.js` chunks**.
+2. **Present a Concise Report & Plan**:
+   - **HTML Audit Report Link**: `[bundle-audit-report-<hash>.html](file:///<tmpdir>/bundle-audit-report-<hash>.html)`.
+   - **Before vs. After Table** (or **Top Contributors Table** from `analyze-bundle.mjs` stdout).
+   - **Plain-English Findings**: For each finding, state in 1–2 simple sentences: (1) **What is happening**, (2) **Why it matters** (kB impact or extra files), and (3) **Simple fix**.
+   - **CSS Optimization Summary Table**: A 4-row summary table for the 4 CSS categories showing item counts, estimated byte savings, and `⚠️ Test Warning` counts, pointing to the HTML report for the itemized list.
+   - **Actionable Implementation Plan**: A numbered step-by-step plan. **Do not modify files until the user approves.** After applying approved fixes, re-run `node .agents/skills/angular-bundle-guard/scripts/analyze-bundle.mjs [project-name]` to verify the size reduction.

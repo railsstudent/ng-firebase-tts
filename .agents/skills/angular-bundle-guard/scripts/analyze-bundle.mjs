@@ -130,17 +130,23 @@ function printVectorAuditSummary(vectorAudit, reportPath) {
   for (const v of vectorAudit) {
     const badge = v.findings.length > 0 ? `⚠️ ${v.findings.length} issue(s)` : '✅ Pass';
     console.log(`  * Vector ${v.id} (${v.name}): ${badge}`);
+    for (const f of v.findings) {
+      console.log(`      -> ${f.location} — ${f.detail}`);
+    }
   }
 }
 
-function runCssOptimizationAudit(sourceRoot, allCodeFiles, reportPath) {
+function runCssOptimizationAudit(projectConfig, allCodeFiles, reportPath) {
   console.log('\n------------------------------------------------------');
   console.log('Component CSS & Dead Class Optimization Summary');
   console.log(`(Full itemized tables in ${reportPath})`);
   console.log('------------------------------------------------------');
 
-  const cssFiles = getSourceFiles(sourceRoot, ['.css']);
-  const cssAnalysis = getCssAnalysis(cssFiles, allCodeFiles);
+  const cssFiles = getSourceFiles(projectConfig.sourceRoot, ['.css']);
+  const cssAnalysis = getCssAnalysis(cssFiles, allCodeFiles, projectConfig);
+  if (cssAnalysis.postcssRecommendation) {
+    console.log(`  💡 ${cssAnalysis.postcssRecommendation}`);
+  }
   printConciseCssCategory('1. Dead / Unused CSS Classes', cssAnalysis.deadClasses);
   printConciseCssCategory('2. Short Static @apply Classes (<= 3 utilities)', cssAnalysis.shortStaticRules);
   printConciseCssCategory('3. Partial Static Splits', cssAnalysis.partialStaticRules);
@@ -201,7 +207,7 @@ function executeFullAudit(projectConfig, hash, reportPath) {
 
   const vectorAudit = getVectorAudit(allCodeFiles, inputEntries);
   printVectorAuditSummary(vectorAudit, reportPath);
-  const cssAnalysis = runCssOptimizationAudit(projectConfig.sourceRoot, allCodeFiles, reportPath);
+  const cssAnalysis = runCssOptimizationAudit(projectConfig, allCodeFiles, reportPath);
   printLeakAudit(inputEntries);
 
   console.log = origLog;

@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL, URL } from 'node:url';
-import { formatBytes, rootDir } from './bundle-utils.mjs';
+import { BUILD_CONFIG_FILES, formatBytes, getConfigSearchDirs, rootDir } from './bundle-utils.mjs';
 import { getSourceFiles } from './css-audit.mjs';
 
 const SUMMARY_START = '<!-- BUNDLE_AUDIT_SUMMARY_START\n';
@@ -21,10 +21,12 @@ export function computeProjectHash(projectConfig) {
   const hasher = crypto.createHash('sha256');
   hasher.update(`project:${projectConfig.projectName}\n`);
 
-  for (const cfgName of ['angular.json', 'package.json', '.postcssrc.json']) {
-    const cfgPath = path.join(rootDir, cfgName);
-    if (fs.existsSync(cfgPath)) {
-      hasher.update(`${cfgName}:${fs.readFileSync(cfgPath, 'utf8')}\n`);
+  for (const dir of getConfigSearchDirs(projectConfig.projectRoot)) {
+    for (const cfgName of BUILD_CONFIG_FILES) {
+      const cfgPath = path.join(dir, cfgName);
+      if (fs.existsSync(cfgPath)) {
+        hasher.update(`${path.relative(rootDir, cfgPath)}:${fs.readFileSync(cfgPath, 'utf8')}\n`);
+      }
     }
   }
 
@@ -69,8 +71,7 @@ function formatFileLinks(refList) {
       const fileUrl = pathToFileURL(absPath).href;
       const label = escapeHtml(ref).replaceAll('/', '/<wbr>');
       const lineCount = linesPart ? linesPart.split(',').length : 0;
-      const multiBadge =
-        lineCount > 1 ? ` <span class="badge badge-warn">⚠️ ${lineCount}x in file</span>` : '';
+      const multiBadge = lineCount > 1 ? ` <span class="badge badge-warn">⚠️ ${lineCount}x in file</span>` : '';
       return `<a href="${escapeHtml(fileUrl)}"><code>${label}</code></a>${multiBadge}`;
     })
     .join('<br>');
@@ -94,10 +95,21 @@ function renderChunkTable(chunks) {
     </tr>`,
     )
     .join('\n');
-  return `<table>
-    <thead><tr><th>Chunk</th><th>Raw Size</th><th>Top Inputs</th><th>Embedded Styles</th></tr></thead>
-    <tbody>${rows}</tbody>
-  </table>`;
+  return `<table><thead><tr><th>Chunk</th><th>Raw Size</th><th>Top Inputs</th><th>Embedded Styles</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function formatDeadCssAction(d) {
+  if (d.themeIssueAction) {
+    return d.themeIssueAction;
+  }
+  if (d.isOrphanFile) {
+    return 'Delete unused CSS file — no component in this folder loads it via <code>styleUrl</code>.';
+  }
+  if (d.cssApplyRefs) {
+    const cls = escapeHtml(d.className || d.selector.replace(/^(@utility\s+|\.)/, ''));
+    return `<div><strong>Only used via <code>@apply</code> in CSS:</strong> ${formatFileLinks(d.cssApplyRefs)} (never in <code>.html</code> or <code>.ts</code>).</div><div class="small-ref">When a component loads that <code>.css</code> file with <code>styleUrl</code>, Angular copies these CSS rules inside <code>main.js</code> and lazy <code>.js</code> chunks. Do not delete this rule while <code>@apply</code> still uses it — instead, replace <code>styleUrl</code> with <code>host: { class: '${cls}' }</code> on the component (or <code>class="${cls}"</code> in HTML) so the style stays in <code>styles.css</code> (<code>0 B</code> in JS chunks).</div>`;
+  }
+  return `Delete unused <code>${escapeHtml(d.selector)}</code> rule from CSS (not used in any <code>.html</code>, <code>.ts</code>, or <code>.css</code> file).`;
 }
 
 function renderDeadCssTable(deadClasses) {
@@ -111,14 +123,11 @@ function renderDeadCssTable(deadClasses) {
       <td class="col-sel"><code>${escapeHtml(d.selector)}</code></td>
       <td class="num">~${escapeHtml(formatBytes(d.estBytes))}</td>
       <td class="col-badge">${formatTestBadge(d.specRefs)}</td>
-      <td class="col-util">Delete unused <code>${escapeHtml(d.selector)}</code> rule from CSS.</td>
+      <td class="col-util">${formatDeadCssAction(d)}</td>
     </tr>`,
     )
     .join('\n');
-  return `<table>
-    <thead><tr><th>CSS Location</th><th>Selector</th><th>Est. Saved</th><th>Unit Test Check</th><th>Action</th></tr></thead>
-    <tbody>${rows}</tbody>
-  </table>`;
+  return `<table><thead><tr><th>CSS Location</th><th>Selector</th><th>Est. Saved</th><th>Unit Test Check</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 function renderShortStaticTable(shortRules) {
@@ -228,8 +237,15 @@ function renderVectorAuditSection(vectorAudit = []) {
 }
 
 function renderCssSections(cssAnalysis = {}) {
-  const { deadClasses = [], shortStaticRules = [], partialStaticRules = [], duplicateRules = [] } = cssAnalysis;
-  return `<details open>
+  const {
+    postcssRecommendation = null,
+    deadClasses = [],
+    shortStaticRules = [],
+    partialStaticRules = [],
+    duplicateRules = [],
+  } = cssAnalysis;
+  const postcssBanner = postcssRecommendation ? `<p>💡 <strong>${escapeHtml(postcssRecommendation)}</strong></p>` : '';
+  return `${postcssBanner}<details open>
       <summary>1. Dead / Unused CSS Classes (${deadClasses.length})</summary>
       ${renderDeadCssTable(deadClasses)}
     </details>
