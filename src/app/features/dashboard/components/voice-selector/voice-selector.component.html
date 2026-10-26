@@ -1,4 +1,4 @@
-<div class="form-field-group-full">
+<div class="flex flex-col form-field-group-full">
   <label for="voiceOption" class="form-field-label">AI Voice Model</label>
   <div
     id="voiceOption"
@@ -6,7 +6,7 @@
     #comboboxRef="ngCombobox"
     [(expanded)]="popupExpanded"
     [preserveContent]="true"
-    class="form-field-select voice-trigger"
+    class="voice-trigger justify-between bg-slate-900/60"
     aria-label="AI Voice Model"
   >
     <div class="flex items-center gap-2.5">
@@ -21,7 +21,7 @@
       [cdkConnectedOverlayOpen]="popupExpanded()"
     >
       <ng-template ngComboboxPopup [combobox]="comboboxRef">
-        <div class="voice-popup-container">
+        <div class="voice-popup-container shadow-2xl backdrop-blur-md">
           <div
             #listbox="ngListbox"
             ngListbox

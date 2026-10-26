@@ -68,7 +68,7 @@ describe('RecommendationsDisplay', () => {
       const trigger = fixture.debugElement.query(By.css('[ngAccordionTrigger]'));
       const reasonEl = fixture.debugElement.query(By.css('.recommendation-reason-text'));
       const heading = fixture.debugElement.query(By.css('h4'));
-      const icon = fixture.debugElement.query(By.css('.expand-icon'));
+      const icon = fixture.debugElement.query(By.css('app-expand-more-icon'));
 
       expect(heading).toBeTruthy();
       expect(trigger).toBeTruthy();
@@ -79,7 +79,7 @@ describe('RecommendationsDisplay', () => {
 
     it('should mount reason and toggle icon class on trigger click, and unmount on collapse', async () => {
       const trigger = fixture.debugElement.query(By.css('[ngAccordionTrigger]'));
-      const icon = fixture.debugElement.query(By.css('.expand-icon'));
+      const icon = fixture.debugElement.query(By.css('app-expand-more-icon'));
 
       // Click to expand
       trigger.nativeElement.click();

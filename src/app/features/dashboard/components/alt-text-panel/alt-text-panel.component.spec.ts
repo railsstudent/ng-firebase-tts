@@ -43,7 +43,7 @@ describe('AltTextPanel', () => {
 
     const emptyState = fixture.debugElement.query(By.css('.text-center'));
     const loadingState = fixture.debugElement.query(By.css('.loading-state'));
-    const spinner = fixture.debugElement.query(By.css('.loading-spinner'));
+    const spinner = fixture.debugElement.query(By.css('app-spinner-icon'));
 
     expect(emptyState).toBeNull();
     expect(loadingState).toBeTruthy();

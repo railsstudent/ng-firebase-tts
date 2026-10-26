@@ -1,37 +1,29 @@
 @reference "../../../../../styles.css";
 
 .obscure-fact-text {
-  @apply text-primary-accent italic mb-4 text-lg;
+  @apply text-primary-accent italic;
 }
 
 .audio-customize-container {
-  @apply bg-surface-card backdrop-blur-sm p-6 rounded-xl border border-surface-border shadow-xl mb-6;
+  @apply bg-surface-card p-6 rounded-xl border border-surface-border mb-6;
 }
 
 .audio-customize-title {
-  @apply text-indigo-300 font-bold mb-4 flex items-center gap-2;
+  @apply mb-4 flex items-center gap-2;
 }
 
 .audio-customize-grid {
-  @apply grid grid-cols-1 md:grid-cols-2 gap-4;
-}
-
-.form-field-group {
-  @apply flex flex-col gap-1.5;
+  @apply grid-cols-1 md:grid-cols-2;
 }
 
 .form-field-textarea {
-  @apply w-full bg-slate-900/60 border border-surface-border rounded-lg px-4 py-2 text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all;
-}
-
-.form-field-group-full {
-  @apply flex flex-col gap-1.5 md:col-span-2;
+  @apply border border-surface-border rounded-lg px-4 py-2 text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all;
 }
 
 .btn-audio {
-  @apply mt-6 flex items-center justify-center px-4 py-2 btn-primary shadow-md;
+  @apply mt-6 flex items-center justify-center px-4 py-2;
 }
 
 .playback-figure {
-  @apply mt-6 p-4 bg-slate-900/40 border border-surface-border rounded-xl flex flex-col gap-2;
+  @apply mt-6 p-4 border border-surface-border flex flex-col gap-2;
 }

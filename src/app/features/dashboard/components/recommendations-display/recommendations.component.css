@@ -1,15 +1,15 @@
 @reference "../../../../../styles.css";
 
 .recommendation-card {
-  @apply bg-indigo-900/10 border border-indigo-500/20 text-sm font-medium p-4 rounded-lg text-secondary w-full transition-all duration-300 hover:border-indigo-500/40;
+  @apply border border-indigo-500/20 text-sm p-4 rounded-lg text-secondary w-full transition-all duration-300 hover:border-indigo-500/40;
 }
 
 .recommendation-reason-label {
-  @apply text-primary-accent/80 text-xs uppercase tracking-wider block mt-2;
+  @apply text-xs uppercase block mt-2;
 }
 
 .recommendation-reason-text {
-  @apply text-muted text-xs italic block mt-0.5;
+  @apply text-muted text-xs block;
 }
 
 [ngAccordionTrigger] {
@@ -17,11 +17,7 @@
 }
 
 .recommendation-trigger {
-  @apply flex items-center justify-between w-full py-1;
-}
-
-.expand-icon {
-  @apply w-5 h-5 text-primary-accent transition-transform duration-200 flex-shrink-0;
+  @apply flex items-center justify-between;
 }
 
 .expand-icon__expanded {

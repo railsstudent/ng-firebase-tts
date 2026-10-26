@@ -18,7 +18,7 @@
     "prepare": "husky",
     "format": "prettier --write \"**/*.{ts,js,mjs,json,html}\"",
     "cspell": "cspell --no-must-find-files --config cspell.config.mjs .",
-    "cspell:collect": "cspell --words-only --unique \"{.,.scratch,.agents}/**/*.{ts,html,md,txt}\" | sort -u >> .cspell/project-words.txt",
+    "cspell:collect": "cspell --words-only --unique --no-must-find-files --config cspell.config.mjs . .scratch | sort -u -o .cspell/project-words.txt .cspell/project-words.txt -",
     "preview": "npx serve dist/ng-firebase-tts/browser -p 5005 -s",
     "preview:emulator": "npx serve dist/ng-firebase-tts/browser --listen $PORT",
     "firebase:emulate": "cd firebase; firebase emulators:start --project default",

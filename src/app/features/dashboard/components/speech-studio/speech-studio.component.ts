@@ -88,7 +88,7 @@ export class SpeechStudioComponent {
       type: 'textarea',
       field: this.audioPromptForm.scene,
       placeholder: 'Describe the environment...',
-      groupClass: 'form-field-group-full',
+      groupClass: 'md:col-span-2',
     },
     {
       id: 'emotion',
@@ -96,7 +96,6 @@ export class SpeechStudioComponent {
       type: 'text',
       field: this.audioPromptForm.emotion,
       placeholder: 'e.g., panicked, whispers',
-      groupClass: 'form-field-group',
     },
     {
       id: 'pace',
@@ -104,7 +103,6 @@ export class SpeechStudioComponent {
       type: 'text',
       field: this.audioPromptForm.pace,
       placeholder: 'e.g., very slow, rapid',
-      groupClass: 'form-field-group',
     },
   ];
 

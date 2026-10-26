@@ -1,5 +1,5 @@
 @reference "../../../styles.css";
 
 .dashboard-main {
-  @apply bg-surface-card border border-surface-border rounded-2xl p-6 md:p-8 shadow-2xl shadow-slate-950/50 backdrop-blur-sm;
+  @apply bg-surface-card border border-surface-border rounded-2xl p-6 md:p-8 backdrop-blur-sm;
 }

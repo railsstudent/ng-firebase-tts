@@ -1,7 +1,10 @@
-import { Component, input } from '@angular/core';
+import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-photo-icon',
+  host: {
+    class: 'app-icon w-12 h-12 sm:w-16 sm:h-16 pointer-events-none text-muted',
+  },
   template: `
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -9,7 +12,8 @@ import { Component, input } from '@angular/core';
       viewBox="0 0 24 24"
       stroke-width="1.5"
       stroke="currentColor"
-      [class]="svgClass()"
+      class="w-full h-full"
+      aria-hidden="true"
     >
       <path
         stroke-linecap="round"
@@ -19,6 +23,4 @@ import { Component, input } from '@angular/core';
     </svg>
   `,
 })
-export class PhotoIconComponent {
-  svgClass = input<string>('');
-}
+export class PhotoIconComponent {}

@@ -1,4 +1,4 @@
-<div class="panel-grid">
+<div class="panel-grid grid gap-8">
   <!-- Left Side: Uploader, Tags, and Obscure Fact -->
   <div>
     @let imageAnalysis = analysis();
@@ -38,7 +38,7 @@
     <!-- Right Side: Results -->
     <app-alt-text-panel [analysis]="analysis()" [error]="error()" [isLoading]="isLoading()" />
   } @placeholder {
-    <div class="panel-container">
+    <div class="panel-container self-start w-full">
       <div class="text-center text-muted italic">
         <p>Upload an image and click "Generate" to see the results.</p>
       </div>

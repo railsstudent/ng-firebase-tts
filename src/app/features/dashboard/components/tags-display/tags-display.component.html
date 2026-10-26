@@ -10,7 +10,9 @@
   >
     @for (tag of tags(); track tag) {
       <div ngOption #optionRef="ngOption" [value]="tag" [label]="tag" class="tag-option">
-        <span class="tag-pill" [class]="{ 'tag-pill-selected': optionRef.selected() }">{{ tag }}</span>
+        <span class="tag-pill font-medium rounded-full" [class]="{ 'tag-pill-selected': optionRef.selected() }">{{
+          tag
+        }}</span>
       </div>
     } @empty {
       <p class="text-center text-muted italic">No tags were generated for this image.</p>

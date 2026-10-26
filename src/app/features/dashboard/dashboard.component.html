@@ -1,4 +1,4 @@
-<section class="dashboard-main">
+<section class="dashboard-main shadow-2xl shadow-slate-950/50">
   <app-analyzer-panel [(analysis)]="analysis" />
   @let imageAnalysis = analysis();
   @defer (when imageAnalysis?.tokenUsage || imageAnalysis?.optimizationMetrics) {

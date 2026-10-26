@@ -1,9 +1,12 @@
-import { Component, input } from '@angular/core';
+import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-spinner-icon',
+  host: {
+    class: 'app-icon animate-spin',
+  },
   template: `
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" [class]="svgClass()">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="w-full h-full" aria-hidden="true">
       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
       <path
         class="opacity-75"
@@ -13,6 +16,4 @@ import { Component, input } from '@angular/core';
     </svg>
   `,
 })
-export class SpinnerIconComponent {
-  svgClass = input<string>('');
-}
+export class SpinnerIconComponent {}

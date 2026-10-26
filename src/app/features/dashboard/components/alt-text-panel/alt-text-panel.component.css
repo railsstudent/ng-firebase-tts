@@ -1,15 +1,11 @@
 @reference "../../../../../styles.css";
 
 .panel-container {
-  @apply flex flex-col justify-center min-h-auto md:min-h-[20rem];
+  @apply justify-center min-h-auto md:min-h-[20rem];
 }
 
 .loading-state {
-  @apply flex flex-col items-center justify-center text-muted;
-}
-
-.loading-spinner {
-  @apply animate-spin h-10 w-10 text-primary-indigo;
+  @apply flex flex-col justify-center;
 }
 
 @keyframes fadeIn {

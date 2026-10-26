@@ -3,7 +3,7 @@ import { Component } from '@angular/core';
 @Component({
   selector: 'app-arrow-drop-down-icon',
   host: {
-    class: 'app-icon text-muted transition-transform duration-200',
+    class: 'app-icon w-5 h-5 text-muted transition-transform duration-200',
   },
   template: `
     <svg

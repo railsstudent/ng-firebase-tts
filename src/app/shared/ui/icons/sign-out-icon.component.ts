@@ -3,7 +3,7 @@ import { Component } from '@angular/core';
 @Component({
   selector: 'app-sign-out-icon',
   host: {
-    class: 'app-icon',
+    class: 'app-icon w-5 h-5',
   },
   template: `
     <svg

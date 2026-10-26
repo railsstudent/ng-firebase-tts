@@ -6,5 +6,5 @@ export interface FormFieldConfig {
   type: 'textarea' | 'text';
   field: FieldTree<string>;
   placeholder: string;
-  groupClass: string;
+  groupClass?: string;
 }

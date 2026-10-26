@@ -213,7 +213,6 @@ describe('VoiceSelectorComponent', () => {
   describe('Seam 4: Visual State & CSS Class Verification', () => {
     it('should apply trigger classes to the combobox host', () => {
       const triggerEl = fixture.debugElement.query(By.css('[ngCombobox]'));
-      expect(triggerEl.nativeElement.classList.contains('form-field-select')).toBe(true);
       expect(triggerEl.nativeElement.classList.contains('voice-trigger')).toBe(true);
     });
 

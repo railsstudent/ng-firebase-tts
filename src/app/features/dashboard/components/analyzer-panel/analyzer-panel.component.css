@@ -1,9 +1,9 @@
 @reference "../../../../../styles.css";
 
 .panel-grid {
-  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8;
+  @apply grid-cols-1 md:grid-cols-2 lg:grid-cols-2;
 }
 
 .panel-container {
-  @apply flex flex-col justify-center min-h-auto md:min-h-[20rem] self-start w-full;
+  @apply flex flex-col justify-center min-h-auto md:min-h-[20rem];
 }

@@ -23,5 +23,6 @@ export default defineConfig({
     'firebase.config',
     'skills-lock.json',
     'DESIGN.md',
+    '.agents',
   ],
 });

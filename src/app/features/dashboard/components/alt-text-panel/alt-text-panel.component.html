@@ -1,4 +1,4 @@
-<div class="panel-container">
+<div class="panel-container flex flex-col">
   @let imageAnalysis = analysis();
   @let errorMessage = error() || '';
   <app-error-display [error]="errorMessage" />
@@ -8,8 +8,8 @@
     </div>
   }
   @if (isLoading()) {
-    <div class="loading-state">
-      <app-spinner-icon class="loading-spinner" />
+    <div class="loading-state items-center text-muted">
+      <app-spinner-icon class="h-10 w-10 text-primary-indigo" />
       <p class="mt-4 text-lg">Firebase AI is thinking...</p>
     </div>
   }

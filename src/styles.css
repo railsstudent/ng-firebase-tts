@@ -39,7 +39,7 @@
 }
 
 @utility app-icon {
-  @apply inline-flex items-center justify-center shrink-0 w-5 h-5 select-none;
+  @apply inline-flex items-center justify-center shrink-0 select-none;
 }
 
 .form-field-label {

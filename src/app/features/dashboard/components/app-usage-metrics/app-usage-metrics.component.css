@@ -5,17 +5,17 @@
 }
 
 .metrics-container {
-  @apply flex flex-col md:flex-row gap-4 mt-6;
+  @apply flex flex-col md:flex-row;
 }
 
 .metrics-card {
-  @apply bg-slate-700/50 p-4 rounded-lg border border-slate-600 flex-1;
+  @apply p-4 rounded-lg border flex-1;
 }
 
 .usage-grid {
-  @apply flex flex-wrap justify-around gap-2;
+  @apply flex flex-wrap;
 }
 
 .usage-item {
-  @apply text-secondary italic font-mono text-sm tracking-wide;
+  @apply text-secondary italic text-sm;
 }

@@ -1,10 +1,10 @@
-<section class="home-container">
-  <div class="home-card surface-card">
-    <span class="home-badge">Firebase AI Logic &amp; Vertex AI</span>
+<section class="home-container py-8 sm:py-16">
+  <div class="home-card surface-card backdrop-blur-sm">
+    <span class="home-badge bg-indigo-950/60 border-indigo-800/60">Firebase AI Logic &amp; Vertex AI</span>
 
-    <h2 class="home-title">Multimodal Vision &amp; Real-Time Speech Studio</h2>
+    <h2 class="home-title font-bold tracking-tight">Multimodal Vision &amp; Real-Time Speech Studio</h2>
 
-    <p class="home-description">
+    <p class="home-description text-muted max-w-lg">
       Analyze images with Gemini multimodal intelligence, discover grounded obscure facts, and generate real-time
       streaming audio with customizable voice personas.
     </p>
@@ -20,10 +20,10 @@
       </button>
     }
 
-    <div class="home-features-grid">
+    <div class="home-features-grid border-t border-surface-border/60">
       @for (feature of features; track feature.label) {
-        <div class="feature-item">
-          <span class="feature-label">{{ feature.label }}</span>
+        <div class="feature-item bg-slate-900/60 border-slate-800">
+          <span class="feature-label font-medium tracking-wider">{{ feature.label }}</span>
           <span class="text-sm font-semibold text-secondary">{{ feature.value }}</span>
         </div>
       }

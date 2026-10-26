@@ -1,41 +1,37 @@
 @reference "../../../../../styles.css";
 
 .upload-wrapper {
-  @apply flex flex-col items-center justify-center;
+  @apply flex flex-col;
 }
 
 .dropzone {
-  @apply w-full h-48 sm:h-64 md:h-80 border-2 border-dashed border-surface-border rounded-xl flex flex-col items-center justify-center text-muted hover:bg-surface-card hover:border-surface-hover focus-visible:ring-2 focus-visible:ring-primary-accent focus-visible:outline-hidden transition-colors cursor-pointer p-4;
+  @apply h-48 sm:h-64 md:h-80 border-2 border-dashed border-surface-border flex flex-col items-center justify-center text-muted hover:bg-surface-card hover:border-surface-hover focus-visible:ring-2 focus-visible:ring-primary-accent focus-visible:outline-hidden transition-colors cursor-pointer p-4;
 }
 
 .dropzone.drag-active {
   @apply bg-surface-hover border-primary-indigo text-primary-accent scale-102 shadow-indigo-500/20 shadow-md;
 }
 
-.photo-icon {
-  @apply w-12 h-12 sm:w-16 sm:h-16 text-muted;
-}
-
 .upload-title {
-  @apply mt-2 sm:mt-4 text-sm sm:text-base font-semibold text-primary;
+  @apply mt-2 sm:mt-4 text-sm sm:text-base text-primary;
 }
 
 .upload-subtitle {
-  @apply text-xs sm:text-sm text-muted;
+  @apply text-xs sm:text-sm;
 }
 
 .preview-image {
-  @apply w-full h-auto max-h-96 object-contain rounded-xl shadow-lg;
+  @apply w-full h-auto max-h-96 object-contain;
 }
 
 .action-overlay {
-  @apply flex flex-col absolute top-3 right-6;
+  @apply flex flex-col absolute;
 }
 
 .btn-generate {
-  @apply mt-6 w-full flex items-center justify-center;
+  @apply w-full flex items-center justify-center;
 }
 
 .btn-image-selector {
-  @apply bg-app-bg/50 text-primary px-3 py-1.5 text-sm rounded-md hover:bg-app-bg/80 transition-all opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-primary-accent focus-visible:outline-hidden backdrop-blur-sm;
+  @apply bg-app-bg/50 text-primary px-3 py-1.5 text-sm rounded-md hover:bg-app-bg/80 transition-all opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-primary-accent focus-visible:outline-hidden;
 }

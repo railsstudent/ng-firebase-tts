@@ -1,23 +1,23 @@
 @reference "../../../styles.css";
 
 .home-container {
-  @apply w-full flex-1 flex flex-col items-center justify-center py-8 sm:py-16;
+  @apply w-full flex-1 flex flex-col items-center justify-center;
 }
 
 .home-card {
-  @apply max-w-2xl w-full p-6 sm:p-12 text-center flex flex-col items-center gap-6 rounded-2xl shadow-2xl backdrop-blur-sm;
+  @apply max-w-2xl w-full p-6 sm:p-12 text-center flex flex-col items-center gap-6 rounded-2xl shadow-2xl;
 }
 
 .home-badge {
-  @apply text-xs uppercase font-bold tracking-widest text-primary-accent bg-indigo-950/60 border border-indigo-800/60 px-3 py-1 rounded-full;
+  @apply text-xs uppercase font-bold tracking-widest text-primary-accent border px-3 py-1 rounded-full;
 }
 
 .home-title {
-  @apply text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-primary;
+  @apply text-2xl sm:text-3xl lg:text-4xl text-primary;
 }
 
 .home-description {
-  @apply text-sm sm:text-base text-muted max-w-lg leading-relaxed;
+  @apply text-sm sm:text-base leading-relaxed;
 }
 
 .btn-launch {
@@ -25,13 +25,13 @@
 }
 
 .home-features-grid {
-  @apply w-full grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-6 border-t border-surface-border/60 mt-2;
+  @apply w-full grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-6 mt-2;
 }
 
 .feature-item {
-  @apply bg-slate-900/60 border border-slate-800 rounded-xl p-3 sm:p-4 flex flex-col items-center gap-1 text-center;
+  @apply border rounded-xl p-3 sm:p-4 flex flex-col items-center gap-1 text-center;
 }
 
 .feature-label {
-  @apply text-xs font-medium text-muted uppercase tracking-wider;
+  @apply text-xs text-muted uppercase;
 }

@@ -3,7 +3,7 @@ import { Component } from '@angular/core';
 @Component({
   selector: 'app-mic-icon',
   host: {
-    class: 'app-icon text-primary-accent',
+    class: 'app-icon w-5 h-5 text-primary-accent',
   },
   template: `
     <svg

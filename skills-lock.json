@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "angular-bundle-guard": {
+      "source": "railsstudent/angular-bundle-guard",
+      "sourceType": "github",
+      "skillPath": "skills/angular-bundle-guard/SKILL.md",
+      "computedHash": "ed6d49d00a2310c2d0be859851c6397fc5e2ef79d6798ab891f67ca57f7434c1"
+    },
     "angular-developer": {
       "source": "angular/skills",
       "sourceType": "github",

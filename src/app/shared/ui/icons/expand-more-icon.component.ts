@@ -3,7 +3,7 @@ import { Component } from '@angular/core';
 @Component({
   selector: 'app-expand-more-icon',
   host: {
-    class: 'app-icon',
+    class: 'app-icon w-5 h-5',
   },
   template: `
     <svg viewBox="0 0 20 20" fill="currentColor" class="w-full h-full" aria-hidden="true">

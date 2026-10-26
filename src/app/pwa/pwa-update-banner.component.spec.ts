@@ -3,20 +3,20 @@ import { signal } from '@angular/core';
 import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { PwaUpdateBanner } from './pwa-update-banner';
+import { PwaUpdateBannerComponent } from './pwa-update-banner.component';
 import { PwaUpdateService } from './pwa-update.service';
 
-describe('PwaUpdateBanner', () => {
+describe('PwaUpdateBannerComponent', () => {
   let updateAvailableSignal: WritableSignal<boolean>;
   let reloadPageSpy: ReturnType<typeof vi.fn>;
-  let fixture: ComponentFixture<PwaUpdateBanner>;
+  let fixture: ComponentFixture<PwaUpdateBannerComponent>;
 
   beforeEach(async () => {
     updateAvailableSignal = signal(false);
     reloadPageSpy = vi.fn().mockResolvedValue(undefined);
 
     await TestBed.configureTestingModule({
-      imports: [PwaUpdateBanner],
+      imports: [PwaUpdateBannerComponent],
       providers: [
         {
           provide: PwaUpdateService,
@@ -28,7 +28,7 @@ describe('PwaUpdateBanner', () => {
       ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(PwaUpdateBanner);
+    fixture = TestBed.createComponent(PwaUpdateBannerComponent);
   });
 
   it('should not render the banner when updateAvailable is false', () => {
