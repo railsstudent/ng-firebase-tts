@@ -1,0 +1,32 @@
+{
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "Firebase TTS"
+  },
+  "entries": [
+    {
+      "identifier": "urn:air:ng-firebase-tts:vision:image-analyzer",
+      "displayName": "Gemini 3.8 Image Analyzer",
+      "type": "application/a2a-agent-card+json",
+      "url": "http://localhost:5005/dashboard",
+      "description": "Uses Gemini 3.8 to analyze a selected image and generate an obscure fact, descriptive tags, and accessibility alt-text.",
+      "representativeQueries": [
+        "Analyze this image to generate an obscure fact, tags, and alt-text",
+        "Extract descriptive tags and accessibility alt-text from the selected photo"
+      ],
+      "tags": ["gemini-3.8", "vision", "image-analysis", "obscure-fact", "alt-text", "tags"]
+    },
+    {
+      "identifier": "urn:air:ng-firebase-tts:tts:single-speaker-reader",
+      "displayName": "Gemini TTS 3.1 Preview Single-Speaker Reader",
+      "type": "application/a2a-agent-card+json",
+      "url": "http://localhost:5005/dashboard",
+      "description": "Uses Gemini TTS 3.1 preview with a single-speaker voice profile to read the generated text aloud with the selected emotion tag.",
+      "representativeQueries": [
+        "Read the generated obscure fact aloud using a single-speaker profile and emotion tag",
+        "Synthesize expressive single-speaker speech with an emotion tag using Gemini TTS 3.1 preview"
+      ],
+      "tags": ["gemini-tts-3.1-preview", "tts", "single-speaker", "emotion-tag", "speech-synthesis"]
+    }
+  ]
+}
