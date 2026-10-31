@@ -1,29 +1,13 @@
 @reference "../../../styles.css";
 
-.home-container {
-  @apply w-full flex-1 flex flex-col items-center justify-center;
-}
-
 .home-card {
-  @apply max-w-2xl w-full p-6 sm:p-12 text-center flex flex-col items-center gap-6 rounded-2xl;
+  @apply max-w-2xl mx-auto sm:p-10 flex flex-col items-center gap-6;
 }
 
 .home-badge {
   @apply text-xs text-primary-accent px-3 py-1 rounded-full bg-app-bg border-primary-indigo;
 }
 
-.home-title {
-  @apply text-2xl sm:text-3xl lg:text-4xl;
-}
-
-.home-description {
-  @apply text-sm sm:text-base;
-}
-
 .home-features-grid {
-  @apply w-full grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-6 mt-2;
-}
-
-.feature-item {
-  @apply border-surface-border rounded-xl p-3 flex flex-col gap-1;
+  @apply w-full grid sm:grid-cols-3 gap-4 pt-6 mt-2;
 }

@@ -66,8 +66,8 @@ describe('HomeComponent', () => {
 
   it('should render the category badge, title, and description', () => {
     const badgeEl = fixture.debugElement.query(By.css('.home-badge'));
-    const titleEl = fixture.debugElement.query(By.css('.home-title'));
-    const descEl = fixture.debugElement.query(By.css('.home-description'));
+    const titleEl = fixture.debugElement.query(By.css('.home-card > h2'));
+    const descEl = fixture.debugElement.query(By.css('.home-card > p'));
 
     expect(badgeEl).toBeTruthy();
     expect(badgeEl.nativeElement.textContent.trim()).toContain('FIREBASE AI LOGIC');
@@ -105,7 +105,7 @@ describe('HomeComponent', () => {
   });
 
   it('should render the 3 capabilities metadata items without status badge pills', () => {
-    const featureItems = fixture.debugElement.queryAll(By.css('.feature-item'));
+    const featureItems = fixture.debugElement.queryAll(By.css('.home-features-grid > div'));
     expect(featureItems.length).toBe(3);
 
     const labels = featureItems.map((item) => item.query(By.css('.text-muted')).nativeElement.textContent.trim());
@@ -115,7 +115,9 @@ describe('HomeComponent', () => {
     expect(values).toEqual(['Gemini 3.8 Flash', 'Gemini-TTS Streaming', 'Google Search Tool']);
 
     // Assert strictly no badge pills or chips in feature items
-    const badgePills = fixture.debugElement.queryAll(By.css('.feature-item .badge, .feature-item .chip'));
+    const badgePills = fixture.debugElement.queryAll(
+      By.css('.home-features-grid > div .badge, .home-features-grid > div .chip'),
+    );
     expect(badgePills.length).toBe(0);
   });
 
