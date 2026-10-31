@@ -13,7 +13,7 @@
 
 /* app styles */
 .app-shell {
-  @apply min-h-screen bg-app-bg text-primary font-sans flex flex-col items-center p-4 sm:p-6 lg:p-8;
+  @apply min-h-screen bg-app-bg text-primary flex flex-col items-center p-4 sm:p-6 lg:p-8;
 }
 
 .app-container {

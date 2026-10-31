@@ -6,7 +6,7 @@ import { Component } from '@angular/core';
     class: 'app-icon w-5 h-5',
   },
   template: `
-    <svg viewBox="0 0 20 20" fill="currentColor" class="w-full h-full" aria-hidden="true">
+    <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
       <path
         fill-rule="evenodd"
         d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0

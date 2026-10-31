@@ -1,8 +1,8 @@
 <section class="home-container py-8 sm:py-16">
   <div class="home-card surface-card backdrop-blur-sm">
-    <span class="home-badge bg-indigo-950/60 border-indigo-800/60">Firebase AI Logic &amp; Vertex AI</span>
+    <span class="home-badge border-2 font-bold">FIREBASE AI LOGIC &amp; AGENT PLATFORM</span>
 
-    <h2 class="home-title font-bold tracking-tight">Multimodal Vision &amp; Real-Time Speech Studio</h2>
+    <h2 class="home-title font-bold">Multimodal Vision &amp; Real-Time Speech Studio</h2>
 
     <p class="home-description text-muted max-w-lg">
       Analyze images with Gemini multimodal intelligence, discover grounded obscure facts, and generate real-time
@@ -20,10 +20,10 @@
       </button>
     }
 
-    <div class="home-features-grid border-t border-surface-border/60">
+    <div class="home-features-grid border-t border-surface-border">
       @for (feature of features; track feature.label) {
-        <div class="feature-item bg-slate-900/60 border-slate-800">
-          <span class="feature-label font-medium tracking-wider">{{ feature.label }}</span>
+        <div class="feature-item bg-app-bg border">
+          <span class="feature-label font-medium">{{ feature.label }}</span>
           <span class="text-sm font-semibold text-secondary">{{ feature.value }}</span>
         </div>
       }

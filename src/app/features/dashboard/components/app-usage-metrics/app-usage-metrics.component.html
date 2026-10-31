@@ -3,16 +3,16 @@
     <div class="metrics-card bg-slate-700/50 border-slate-600">
       <h3 class="section-title">Text Generation Token Usage</h3>
       <div class="usage-grid font-mono justify-around gap-2">
-        <p class="usage-item">
+        <p class="text-secondary italic text-sm">
           <span>Input: </span><span>{{ usage.input || 0 }}</span>
         </p>
-        <p class="usage-item">
+        <p class="text-secondary italic text-sm">
           <span>Output: </span><span>{{ usage.output || 0 }}</span>
         </p>
-        <p class="usage-item">
+        <p class="text-secondary italic text-sm">
           <span>Thought: </span><span>{{ usage.thought || 0 }}</span>
         </p>
-        <p class="usage-item">
+        <p class="text-secondary italic text-sm">
           <span>Total: </span><span>{{ usage.total || 0 }}</span>
         </p>
       </div>
@@ -21,19 +21,19 @@
 
   @if (optimizationMetrics()) {
     @let metrics = formattedMetrics();
-    <div class="metrics-card bg-slate-700/50 border-slate-600">
+    <div class="metrics-card border bg-slate-700/50 border-slate-600">
       <h3 class="section-title">Image Optimization Efficiency</h3>
       <div class="usage-grid font-mono justify-around gap-2">
-        <p class="usage-item">
+        <p class="text-secondary italic text-sm">
           <span>Original Size: </span><span>{{ metrics.originalSize }}</span>
         </p>
-        <p class="usage-item">
+        <p class="text-secondary italic text-sm">
           <span>Optimized Size: </span><span>{{ metrics.optimizedSize }}</span>
         </p>
-        <p class="usage-item">
+        <p class="text-secondary italic text-sm">
           <span>Payload Saved: </span><span>{{ metrics.payloadSaved }}</span>
         </p>
-        <p class="usage-item">
+        <p class="text-secondary italic text-sm">
           <span>Tokens Saved: </span><span>{{ metrics.tokensSaved }}</span>
         </p>
       </div>

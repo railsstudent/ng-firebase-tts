@@ -14,7 +14,6 @@ import { Component } from '@angular/core';
       stroke-width="2"
       stroke-linecap="round"
       stroke-linejoin="round"
-      class="w-full h-full"
       aria-hidden="true"
     >
       <line x1="18" y1="6" x2="6" y2="18" />

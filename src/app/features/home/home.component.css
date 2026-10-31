@@ -5,11 +5,11 @@
 }
 
 .home-card {
-  @apply max-w-2xl w-full p-6 sm:p-12 text-center flex flex-col items-center gap-6 rounded-2xl shadow-2xl;
+  @apply max-w-2xl w-full p-6 sm:p-12 text-center flex flex-col items-center gap-6 rounded-2xl;
 }
 
 .home-badge {
-  @apply text-xs uppercase font-bold tracking-widest text-primary-accent border px-3 py-1 rounded-full;
+  @apply text-xs text-primary-accent px-3 py-1 rounded-full bg-app-bg border-primary-indigo;
 }
 
 .home-title {
@@ -21,7 +21,7 @@
 }
 
 .btn-launch {
-  @apply px-8 py-3.5 text-base shadow-lg shadow-indigo-500/20 flex items-center justify-center;
+  @apply px-8 py-3.5 flex items-center justify-center;
 }
 
 .home-features-grid {
@@ -29,7 +29,7 @@
 }
 
 .feature-item {
-  @apply border rounded-xl p-3 sm:p-4 flex flex-col items-center gap-1 text-center;
+  @apply border-surface-border rounded-xl p-3 sm:p-4 flex flex-col items-center gap-1 text-center;
 }
 
 .feature-label {

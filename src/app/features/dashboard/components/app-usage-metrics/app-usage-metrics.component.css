@@ -9,13 +9,9 @@
 }
 
 .metrics-card {
-  @apply p-4 rounded-lg border flex-1;
+  @apply p-4 rounded-lg flex-1;
 }
 
 .usage-grid {
   @apply flex flex-wrap;
-}
-
-.usage-item {
-  @apply text-secondary italic text-sm;
 }
