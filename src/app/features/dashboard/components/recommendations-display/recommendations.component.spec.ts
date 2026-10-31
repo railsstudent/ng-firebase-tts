@@ -66,7 +66,7 @@ describe('RecommendationsDisplay', () => {
 
     it('should render trigger with collapsed aria-expanded and reason absent from DOM initially', () => {
       const trigger = fixture.debugElement.query(By.css('[ngAccordionTrigger]'));
-      const reasonEl = fixture.debugElement.query(By.css('.recommendation-reason-text'));
+      const reasonEl = fixture.debugElement.query(By.css('[ngAccordionPanel] span:last-child'));
       const heading = fixture.debugElement.query(By.css('h4'));
       const icon = fixture.debugElement.query(By.css('app-expand-more-icon'));
 
@@ -74,7 +74,7 @@ describe('RecommendationsDisplay', () => {
       expect(trigger).toBeTruthy();
       expect(trigger.nativeElement.getAttribute('aria-expanded')).toBe('false');
       expect(reasonEl).toBeNull();
-      expect(icon.nativeElement.classList.contains('expand-icon__expanded')).toBe(false);
+      expect(icon.nativeElement.classList.contains('rotate-180')).toBe(false);
     });
 
     it('should mount reason and toggle icon class on trigger click, and unmount on collapse', async () => {
@@ -87,9 +87,9 @@ describe('RecommendationsDisplay', () => {
       await fixture.whenStable();
 
       expect(trigger.nativeElement.getAttribute('aria-expanded')).toBe('true');
-      expect(icon.nativeElement.classList.contains('expand-icon__expanded')).toBe(true);
+      expect(icon.nativeElement.classList.contains('rotate-180')).toBe(true);
 
-      const reasonEl = fixture.debugElement.query(By.css('.recommendation-reason-text'));
+      const reasonEl = fixture.debugElement.query(By.css('[ngAccordionPanel] span:last-child'));
       expect(reasonEl).not.toBeNull();
       expect(reasonEl.nativeElement.textContent).toContain('High opacity background makes it difficult to read');
 
@@ -99,8 +99,8 @@ describe('RecommendationsDisplay', () => {
       await fixture.whenStable();
 
       expect(trigger.nativeElement.getAttribute('aria-expanded')).toBe('false');
-      expect(icon.nativeElement.classList.contains('expand-icon__expanded')).toBe(false);
-      expect(fixture.debugElement.query(By.css('.recommendation-reason-text'))).toBeNull();
+      expect(icon.nativeElement.classList.contains('rotate-180')).toBe(false);
+      expect(fixture.debugElement.query(By.css('[ngAccordionPanel] span:last-child'))).toBeNull();
     });
   });
 
@@ -120,7 +120,7 @@ describe('RecommendationsDisplay', () => {
       await fixture.whenStable();
 
       expect(trigger.nativeElement.getAttribute('aria-expanded')).toBe('true');
-      expect(fixture.debugElement.query(By.css('.recommendation-reason-text'))).not.toBeNull();
+      expect(fixture.debugElement.query(By.css('[ngAccordionPanel] span:last-child'))).not.toBeNull();
     });
 
     it('should toggle expansion via Space key', async () => {
@@ -133,7 +133,7 @@ describe('RecommendationsDisplay', () => {
       await fixture.whenStable();
 
       expect(trigger.nativeElement.getAttribute('aria-expanded')).toBe('true');
-      expect(fixture.debugElement.query(By.css('.recommendation-reason-text'))).not.toBeNull();
+      expect(fixture.debugElement.query(By.css('[ngAccordionPanel] span:last-child'))).not.toBeNull();
     });
 
     it('should link aria-controls on the trigger to the panel DOM id', () => {
@@ -170,7 +170,7 @@ describe('RecommendationsDisplay', () => {
       fixture.detectChanges();
       await fixture.whenStable();
 
-      const reasonElements = fixture.debugElement.queryAll(By.css('.recommendation-reason-text'));
+      const reasonElements = fixture.debugElement.queryAll(By.css('[ngAccordionPanel] span:last-child'));
       expect(reasonElements.length).toBe(2);
       expect(reasonElements[0].nativeElement.textContent).toContain('Reason 1');
       expect(reasonElements[1].nativeElement.textContent).toContain('Reason 2');

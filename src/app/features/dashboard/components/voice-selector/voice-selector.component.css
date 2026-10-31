@@ -6,17 +6,12 @@
 
 /* --- Combobox Trigger Styles --- */
 .voice-trigger {
-  @apply border border-surface-border rounded-lg px-4 py-2.5 text-primary focus:outline-none focus:border-primary-hover transition-all cursor-pointer flex items-center select-none;
-}
-
-/* --- Dropdown Caret Rotation --- */
-.voice-trigger[aria-expanded='true'] app-arrow-drop-down-icon {
-  @apply rotate-180 text-primary-accent;
+  @apply cursor-pointer flex items-center select-none;
 }
 
 /* --- Popup Overlay Container --- */
 .voice-popup-container {
-  @apply w-full bg-app-bg border border-surface-border rounded-xl overflow-hidden mt-1 max-h-60 z-50;
+  @apply w-full bg-app-bg rounded-xl overflow-hidden mt-1 max-h-60 z-50;
 }
 
 /* --- Listbox Container --- */

@@ -25,7 +25,7 @@
 }
 
 .error-block {
-  @apply mt-6 bg-error-bg border border-error-border text-error-text px-4 py-3 rounded-lg relative;
+  @apply bg-error-bg border border-error-border text-error-text px-4 py-3 rounded-lg relative;
 }
 
 @utility section-title {
@@ -33,7 +33,7 @@
 }
 
 @utility surface-card {
-  @apply bg-surface-card p-4 rounded-lg border border-surface-border;
+  @apply bg-surface-card p-4 rounded-xl border border-surface-border;
 }
 
 @utility btn-primary {
@@ -50,6 +50,10 @@
 
 .form-field-label {
   @apply text-xs font-bold text-muted ml-1;
+}
+
+@utility form-input {
+  @apply border border-surface-border text-primary rounded-lg focus:outline-none focus:border-primary-hover transition-all p-4 placeholder:text-muted w-full bg-app-bg;
 }
 
 @import './layout.css';

@@ -1,29 +1,9 @@
 @reference "../../../../styles.css";
 
-.modal-card {
-  @apply rounded-2xl bg-surface-card border border-surface-border p-6 sm:p-8 max-w-md w-full flex flex-col gap-5;
-}
-
 .modal-header {
-  @apply flex items-center justify-between pb-2;
-}
-
-.modal-title {
-  @apply text-xl sm:text-2xl;
+  @apply flex items-center justify-between pb-3 mb-4;
 }
 
 .modal-close-btn {
-  @apply text-muted hover:text-primary hover:bg-surface-hover/60 focus-visible:outline-2 focus-visible:outline-primary-hover transition-all flex items-center justify-center;
-}
-
-.error-block {
-  @apply mt-2 mb-2 text-sm;
-}
-
-.form-input {
-  @apply border border-surface-border text-primary rounded-lg p-2.5 focus:outline-none focus:border-primary-hover transition-all;
-}
-
-.error-hint {
-  @apply text-xs text-error-text;
+  @apply text-muted hover:text-primary hover:bg-surface-hover p-1.5 rounded-lg transition-all flex items-center justify-center;
 }

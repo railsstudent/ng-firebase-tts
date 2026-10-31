@@ -4,10 +4,6 @@
   @apply text-primary-accent italic;
 }
 
-.audio-customize-container {
-  @apply bg-surface-card p-6 rounded-xl border border-surface-border mb-6;
-}
-
 .audio-customize-title {
   @apply mb-4 flex items-center gap-2;
 }
@@ -16,10 +12,6 @@
   @apply grid-cols-1 md:grid-cols-2;
 }
 
-.form-field-textarea {
-  @apply border border-surface-border rounded-lg px-4 py-2 text-primary placeholder:text-muted focus:outline-none focus:border-primary-hover transition-all;
-}
-
 .playback-figure {
-  @apply mt-6 p-4 border border-surface-border flex flex-col gap-2;
+  @apply mt-6 p-4 rounded-xl border-surface-border flex flex-col gap-2;
 }

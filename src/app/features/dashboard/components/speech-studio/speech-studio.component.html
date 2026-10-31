@@ -4,7 +4,7 @@
     <p class="obscure-fact-text mb-4 text-lg">{{ interestingFact() }}</p>
   }
 
-  <div class="audio-customize-container backdrop-blur-sm shadow-xl">
+  <div class="surface-card p-6 mb-6">
     <h3 class="audio-customize-title text-primary-accent font-bold"><span>🎙️</span> Customize Audio Generation</h3>
 
     <div class="audio-customize-grid grid gap-4">
@@ -12,20 +12,9 @@
         <div class="flex flex-col gap-1.5" [class]="f.groupClass">
           <label [for]="f.id" class="form-field-label">{{ f.label }}</label>
           @if (f.type === 'textarea') {
-            <textarea
-              [id]="f.id"
-              [formField]="f.field"
-              [placeholder]="f.placeholder"
-              class="form-field-textarea w-full bg-app-bg"
-            ></textarea>
+            <textarea [id]="f.id" [formField]="f.field" [placeholder]="f.placeholder" class="form-input"></textarea>
           } @else {
-            <input
-              type="text"
-              [id]="f.id"
-              [formField]="f.field"
-              [placeholder]="f.placeholder"
-              class="form-field-textarea w-full bg-app-bg"
-            />
+            <input type="text" [id]="f.id" [formField]="f.field" [placeholder]="f.placeholder" class="form-input" />
           }
         </div>
       }
@@ -57,7 +46,7 @@
   </div>
 
   @if (!isLoading() && audioUrl(); as url) {
-    <figure class="playback-figure bg-app-bg rounded-xl">
+    <figure class="playback-figure border bg-app-bg">
       <figcaption class="text-sm font-medium text-muted">Listen to the Gemini-TTS:</figcaption>
       <audio controls [src]="url" [playbackRate]="'1.25'" class="w-full outline-none"></audio>
     </figure>

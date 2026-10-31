@@ -2,13 +2,13 @@
   <h3 class="section-title">Recommendations</h3>
   <div class="flex flex-col gap-3" ngAccordionGroup [multiExpandable]="true">
     @for (item of recommendations(); track item.id) {
-      <div class="recommendation-card bg-app-bg font-medium">
+      <div class="surface-card recommendation-card font-medium">
         <h4 class="m-0">
           <p
             ngAccordionTrigger
             [panel]="panelRef"
             #triggerRef="ngAccordionTrigger"
-            class="recommendation-trigger w-full py-1"
+            class="recommendation-trigger focus-visible:outline-2 focus-visible:outline-primary-accent"
           >
             <span class="flex-1 pr-2">
               <span class="text-primary-accent font-bold">{{ item.id }}: </span>
@@ -17,15 +17,15 @@
 
             <!-- 2. Bind rotate class directly to the triggerRef.expanded() signal -->
             <app-expand-more-icon
-              class="text-primary-accent transition-transform"
-              [class.expand-icon__expanded]="triggerRef.expanded()"
+              class="transition-transform"
+              [class]="triggerRef.expanded() ? 'rotate-180 text-primary' : 'text-primary-accent'"
             />
           </p>
         </h4>
-        <p ngAccordionPanel #panelRef="ngAccordionPanel">
+        <p class="text-xs" ngAccordionPanel #panelRef="ngAccordionPanel">
           <ng-template ngAccordionContent>
-            <span class="recommendation-reason-label mt-2 text-primary-accent/80">REASON:</span>
-            <span class="recommendation-reason-text italic mt-0.5">{{ item.reason }}</span>
+            <span class="block mt-2 text-primary-accent/80">REASON:</span>
+            <span class="text-muted block italic mt-0.5">{{ item.reason }}</span>
           </ng-template>
         </p>
       </div>

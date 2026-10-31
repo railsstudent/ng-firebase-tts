@@ -1,25 +1,9 @@
 @reference "../../../../../styles.css";
 
 .recommendation-card {
-  @apply border border-surface-border text-sm p-4 rounded-lg text-secondary w-full transition-all hover:border-primary-indigo;
-}
-
-.recommendation-reason-label {
-  @apply text-xs block;
-}
-
-.recommendation-reason-text {
-  @apply text-muted text-xs block;
-}
-
-[ngAccordionTrigger] {
-  @apply cursor-pointer focus-visible:outline-2 focus-visible:outline-primary-accent rounded;
+  @apply bg-app-bg text-sm text-secondary w-full transition-all hover:border-primary-indigo;
 }
 
 .recommendation-trigger {
-  @apply flex items-center justify-between;
-}
-
-.expand-icon__expanded {
-  @apply rotate-180 text-primary;
+  @apply flex items-center justify-between cursor-pointer rounded w-full py-1;
 }

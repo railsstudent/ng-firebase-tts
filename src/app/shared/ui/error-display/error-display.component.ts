@@ -4,7 +4,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   selector: 'app-error-display',
   template: `
     @if (error()) {
-      <div class="error-block" role="alert">
+      <div class="error-block mt-6" role="alert">
         <strong class="font-bold">Error:</strong>
         <span class="block sm:inline ml-2">{{ error() }}</span>
       </div>
