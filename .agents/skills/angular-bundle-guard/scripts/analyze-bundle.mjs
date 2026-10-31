@@ -1,4 +1,3 @@
-import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import {
@@ -12,7 +11,8 @@ import {
   printLimitedList,
   resolveProjectConfig,
 } from './bundle-utils.mjs';
-import { getCssAnalysis, getSourceFiles } from './css-audit.mjs';
+import { getCssAnalysis } from './css-audit.mjs';
+import { loadSourceFilesWithContent, resolveBrowserDir } from './fs-utils.mjs';
 import { computeProjectHash, readCachedReport, writeHtmlReport } from './html-report.mjs';
 import { getLazyVectorAudit } from './lazy-vector-audit.mjs';
 import { getVectorAudit } from './vector-audit.mjs';
@@ -23,69 +23,102 @@ function formatChunkLine(name, bytes) {
   return `  ${sizeStr}  ${rawStr}  ${name}`;
 }
 
-function formatJsChunkRow([name, data], bytes, browserDir) {
-  const lines = [formatChunkLine(name, bytes)];
+function formatTopInputs(inputs = {}) {
+  return Object.entries(inputs)
+    .reduce((acc, [filePath, { bytesInOutput }]) => {
+      if (bytesInOutput <= 0 || (acc.length === 3 && bytesInOutput <= acc[2].bytesInOutput)) {
+        return acc;
+      }
+      const entry = { filePath, bytesInOutput };
+      if (acc.length < 3) {
+        acc.push(entry);
+      } else {
+        acc[2] = entry;
+      }
+      return acc.sort((a, b) => b.bytesInOutput - a.bytesInOutput);
+    }, [])
+    .map(({ filePath, bytesInOutput }) => `${path.basename(filePath)} (${formatBytes(bytesInOutput)})`)
+    .join(', ');
+}
 
-  if (!name.startsWith('main-')) {
-    const topInputs = Object.entries(data.inputs || {})
-      .filter(([, v]) => v.bytesInOutput > 0)
-      .sort((a, b) => b[1].bytesInOutput - a[1].bytesInOutput)
-      .slice(0, 3)
-      .map(([p, v]) => `${path.basename(p)} (${formatBytes(v.bytesInOutput)})`)
-      .join(', ');
-    if (topInputs) {
-      lines.push(`                                  Inputs: ${topInputs}`);
-    }
+function buildChunkRows(outputEntries, statsFile) {
+  const browserDir = resolveBrowserDir(statsFile);
+  return outputEntries
+    .reduce((rows, [name, data]) => {
+      const isJs = name.endsWith('.js');
+      if (isJs || name.endsWith('.css')) {
+        rows.push({
+          name,
+          bytes: data.bytes,
+          topInputs: isJs ? formatTopInputs(data.inputs) : '',
+          stylesSummary: isJs ? getEmbeddedStylesSummary(path.join(browserDir, name), data.bytes) : null,
+        });
+      }
+      return rows;
+    }, [])
+    .sort((a, b) => b.bytes - a.bytes);
+}
+
+function formatJsChunkRow(chunk) {
+  const lines = [formatChunkLine(chunk.name, chunk.bytes)];
+  if (!chunk.name.startsWith('main-') && chunk.topInputs) {
+    lines.push(`                                  Inputs: ${chunk.topInputs}`);
   }
-
-  const stylesSummary = getEmbeddedStylesSummary(path.join(browserDir, name), bytes);
-  if (stylesSummary) {
-    lines.push(`                                  Styles: ${stylesSummary}`);
+  if (chunk.stylesSummary) {
+    lines.push(`                                  Styles: ${chunk.stylesSummary}`);
   }
   return lines.join('\n');
 }
 
-function printOutputChunks(outputEntries, statsFile) {
+function printOutputChunks(chunkRows) {
   console.log('\n======================================================');
   console.log('               BUNDLE ANALYSIS REPORT                 ');
   console.log('======================================================\n');
   console.log('--- Output Chunks (Sorted by Size) ---');
 
-  const statsDir = path.dirname(statsFile);
-  const browserDir = fs.existsSync(path.join(statsDir, 'browser')) ? path.join(statsDir, 'browser') : statsDir;
-  const sortedOutputs = [...outputEntries].sort((a, b) => b[1].bytes - a[1].bytes);
-
   printLimitedList({
-    items: sortedOutputs.filter(([name]) => name.endsWith('.js')),
+    items: chunkRows.filter((c) => c.name.endsWith('.js')),
     label: 'JavaScript Chunks',
-    formatRow: (item, bytes) => formatJsChunkRow(item, bytes, browserDir),
+    getBytes: (c) => c.bytes,
+    formatRow: (c) => formatJsChunkRow(c),
   });
 
   printLimitedList({
-    items: sortedOutputs.filter(([name]) => name.endsWith('.css')),
+    items: chunkRows.filter((c) => c.name.endsWith('.css')),
     label: 'CSS Chunks',
-    formatRow: ([name], bytes) => formatChunkLine(name, bytes),
+    getBytes: (c) => c.bytes,
+    formatRow: (c) => formatChunkLine(c.name, c.bytes),
   });
 }
 
-function printMainBreakdown([mainName, mainData], sortedInputs, relSourceRoot = 'src') {
-  const mainBytes = mainData.bytes;
+function printMainBreakdown(mainEntry, inputEntries, relSourceRoot = 'src') {
+  if (!mainEntry) {
+    console.log('\n[analyze-bundle] Notice: No main-*.js bundle found in outputs.');
+    return;
+  }
+  const [mainName, { bytes: mainBytes }] = mainEntry;
+  const { inputs, groups } = inputEntries.reduce(
+    (acc, entry) => {
+      const [inputPath, { bytesInOutput }] = entry;
+      if (bytesInOutput > 0) {
+        acc.inputs.push(entry);
+        const groupName = categorizeInput(inputPath, relSourceRoot);
+        acc.groups.set(groupName, (acc.groups.get(groupName) || 0) + bytesInOutput);
+      }
+      return acc;
+    },
+    { inputs: [], groups: new Map() },
+  );
   console.log('\n------------------------------------------------------');
   console.log(`Main Bundle Breakdown: ${mainName} (${formatBytes(mainBytes)} / ${mainBytes.toLocaleString()} bytes)`);
   console.log('------------------------------------------------------');
 
   printLimitedList({
-    items: sortedInputs,
+    items: inputs.sort((a, b) => b[1].bytesInOutput - a[1].bytesInOutput),
     label: 'Top Input Contributors in Main',
     unitName: 'inputs',
     formatRow: formatPercentageRow,
   });
-
-  const groups = new Map();
-  for (const [inputPath, val] of sortedInputs) {
-    const groupName = categorizeInput(inputPath, relSourceRoot);
-    groups.set(groupName, (groups.get(groupName) || 0) + val.bytesInOutput);
-  }
 
   printLimitedList({
     items: [...groups.entries()].sort((a, b) => b[1] - a[1]),
@@ -152,47 +185,24 @@ function printLazyVectorAuditSummary(lazyVectorAudit, reportPath) {
   }
 }
 
-function runCssOptimizationAudit(projectConfig, allCodeFiles, reportPath) {
+function runCssOptimizationAudit({ projectConfig, allCodeFiles, outputEntries, statsFile, reportPath }) {
   console.log('\n------------------------------------------------------');
   console.log('Component CSS & Dead Class Optimization Summary');
   console.log(`(Full itemized tables in ${reportPath})`);
   console.log('------------------------------------------------------');
 
-  const cssFiles = getSourceFiles(projectConfig.sourceRoot, ['.css']);
-  const cssAnalysis = getCssAnalysis(cssFiles, allCodeFiles, projectConfig);
+  const cssAnalysis = getCssAnalysis({ allCodeFiles, outputEntries, statsFile, projectConfig });
   if (cssAnalysis.postcssRecommendation) {
     console.log(`  💡 ${cssAnalysis.postcssRecommendation}`);
   }
-  printConciseCssCategory('1. Dead / Unused CSS Classes', cssAnalysis.deadClasses);
+  printConciseCssCategory('1. Dead / Unused CSS & Vanilla Rules', cssAnalysis.deadClasses);
   printConciseCssCategory('2. Short Static @apply Classes (<= 3 utilities)', cssAnalysis.shortStaticRules);
   printConciseCssCategory('3. Partial Static Splits', cssAnalysis.partialStaticRules);
-  printConciseCssCategory('4. Duplicate @apply Rules', cssAnalysis.duplicateRules);
+  printConciseCssCategory('4. Duplicate @apply & @keyframes Rules', cssAnalysis.duplicateRules);
   return cssAnalysis;
 }
 
-function buildHtmlChunkRows(outputEntries, statsFile) {
-  const statsDir = path.dirname(statsFile);
-  const browserDir = fs.existsSync(path.join(statsDir, 'browser')) ? path.join(statsDir, 'browser') : statsDir;
-  return [...outputEntries]
-    .filter(([name]) => name.endsWith('.js') || name.endsWith('.css'))
-    .sort((a, b) => b[1].bytes - a[1].bytes)
-    .map(([name, data]) => {
-      const topInputs = Object.entries(data.inputs || {})
-        .filter(([, v]) => v.bytesInOutput > 0)
-        .sort((a, b) => b[1].bytesInOutput - a[1].bytesInOutput)
-        .slice(0, 3)
-        .map(([p, v]) => `${path.basename(p)} (${formatBytes(v.bytesInOutput)})`)
-        .join(', ');
-      return {
-        name,
-        bytes: data.bytes,
-        topInputs,
-        stylesSummary: name.endsWith('.js') ? getEmbeddedStylesSummary(path.join(browserDir, name), data.bytes) : null,
-      };
-    });
-}
-
-function runAuditsAndCollectData({ allCodeFiles, outputEntries, inputEntries, projectConfig, reportPath }) {
+function runAuditsAndCollectData({ allCodeFiles, outputEntries, inputEntries, statsFile, projectConfig, reportPath }) {
   const vectorAudit = getVectorAudit(allCodeFiles, inputEntries, projectConfig);
   printVectorAuditSummary(vectorAudit, reportPath);
   const lazyVectorAudit = getLazyVectorAudit({
@@ -202,7 +212,7 @@ function runAuditsAndCollectData({ allCodeFiles, outputEntries, inputEntries, pr
     projectConfig,
   });
   printLazyVectorAuditSummary(lazyVectorAudit, reportPath);
-  const cssAnalysis = runCssOptimizationAudit(projectConfig, allCodeFiles, reportPath);
+  const cssAnalysis = runCssOptimizationAudit({ projectConfig, allCodeFiles, outputEntries, statsFile, reportPath });
   printLeakAudit(inputEntries, projectConfig.relSourceRoot);
   return { vectorAudit, lazyVectorAudit, cssAnalysis };
 }
@@ -218,33 +228,32 @@ function executeFullAudit(projectConfig, hash, reportPath) {
 
   const { stats, statsFile } = loadStats(projectConfig.distDir);
   const outputEntries = Object.entries(stats.outputs || {});
-  printOutputChunks(outputEntries, statsFile);
+  const chunkRows = buildChunkRows(outputEntries, statsFile);
+  printOutputChunks(chunkRows);
 
   const mainEntry = outputEntries.find(([name]) => name.startsWith('main-') && name.endsWith('.js'));
-  const allCodeFiles = getSourceFiles(projectConfig.sourceRoot, ['.html', '.ts', '.css']).map((f) => ({
-    file: f,
-    content: fs.readFileSync(f, 'utf8'),
-  }));
+  const allCodeFiles = loadSourceFilesWithContent(projectConfig.sourceRoot, ['.html', '.ts', '.css']);
   const inputEntries = mainEntry ? Object.entries(mainEntry[1].inputs || {}) : [];
-  if (!mainEntry) {
-    console.log('\n[analyze-bundle] Notice: No main-*.js bundle found in outputs.');
-  } else {
-    const sortedInputs = inputEntries
-      .filter(([, val]) => val.bytesInOutput > 0)
-      .sort((a, b) => b[1].bytesInOutput - a[1].bytesInOutput);
-    printMainBreakdown(mainEntry, sortedInputs, projectConfig.relSourceRoot);
-  }
+  printMainBreakdown(mainEntry, inputEntries, projectConfig.relSourceRoot);
 
-  const auditResults = runAuditsAndCollectData({ allCodeFiles, outputEntries, inputEntries, projectConfig, reportPath });
+  const auditResults = runAuditsAndCollectData({
+    allCodeFiles,
+    outputEntries,
+    inputEntries,
+    statsFile,
+    projectConfig,
+    reportPath,
+  });
   console.log = origLog;
-  const summaryText = logLines.join('\n');
-  const chunks = buildHtmlChunkRows(outputEntries, statsFile);
+  const { componentCss } = auditResults.cssAnalysis;
+  const componentCssNames = new Set((componentCss?.files || []).map((f) => f.outputName));
+  const chunks = chunkRows.filter((c) => !componentCssNames.has(c.name));
   writeHtmlReport({
     reportPath,
     hash,
     projectConfig,
-    summaryText,
-    auditData: { chunks, ...auditResults },
+    summaryText: logLines.join('\n'),
+    auditData: { chunks, componentCss, ...auditResults },
   });
   console.log(`[HTML Report] Generated: ${reportPath}\n`);
 }
@@ -264,4 +273,3 @@ if (cachedSummary) {
   ensureFreshStats(forceRebuild, projectConfig);
   executeFullAudit(projectConfig, hash, reportPath);
 }
-

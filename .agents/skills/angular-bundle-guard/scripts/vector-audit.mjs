@@ -1,6 +1,6 @@
-import fs from 'node:fs';
 import path from 'node:path';
 import { detectLeakedDependencies, formatBytes, rootDir } from './bundle-utils.mjs';
+import { fileExists } from './fs-utils.mjs';
 import {
   collectInjectAsyncCalls,
   findChainedInjectAsyncCalls,
@@ -37,18 +37,18 @@ function auditVector1MixedBarrels({ injectCalls, tsFiles, mainInputs, aliasConfi
   const seen = new Set();
   for (const call of injectCalls) {
     const asIndexAbs = path.join(rootDir, call.resolvedRel, 'index.ts');
-    if (fs.existsSync(asIndexAbs)) {
+    if (fileExists(asIndexAbs)) {
       findings.push({
         location: `${call.callerRel}:${call.line}`,
         detail: `injectAsync() imports barrel "${call.specifier}" (${path.join(call.resolvedRel, 'index.ts')}) instead of a direct file path, emitting an extra barrel wrapper chunk.`,
         fix: `Import the concrete file directly instead of the barrel index.ts.`,
       });
-      continue;
-    }
-    const barrelIssue = checkBarrelReExport(call, tsFiles);
-    if (barrelIssue && !seen.has(barrelIssue.location)) {
-      seen.add(barrelIssue.location);
-      findings.push(barrelIssue);
+    } else {
+      const barrelIssue = checkBarrelReExport(call, tsFiles);
+      if (barrelIssue && !seen.has(barrelIssue.location)) {
+        seen.add(barrelIssue.location);
+        findings.push(barrelIssue);
+      }
     }
   }
   for (const unusedIssue of findUnusedBarrelExportsInChunk({
@@ -71,7 +71,10 @@ function auditVector2ValueImports(tsFiles) {
   for (const f of tsFiles) {
     const rel = path.relative(rootDir, f.file);
     for (const match of f.content.matchAll(regex)) {
-      const symbols = match[1].split(',').map((s) => s.trim()).filter(Boolean);
+      const symbols = match[1]
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
       if (symbols.some((s) => !s.startsWith('type '))) {
         findings.push({
           location: `${rel}:${getLineNumber(f.content, match.index)}`,
@@ -112,9 +115,7 @@ function auditVector4BrokenDefer(tsFiles) {
 }
 
 function auditVector5NestedInjectAsync(injectCalls, tsFiles, mainInputs) {
-  const mainRelSet = new Set(
-    mainInputs.filter(([, v]) => v.bytesInOutput > 0).map(([p]) => path.normalize(p)),
-  );
+  const mainRelSet = new Set(mainInputs.filter(([, v]) => v.bytesInOutput > 0).map(([p]) => path.normalize(p)));
   const scopedCalls = mainRelSet.size > 0 ? injectCalls.filter((c) => mainRelSet.has(c.callerRel)) : injectCalls;
   const scopedFiles =
     mainRelSet.size > 0 ? tsFiles.filter((f) => mainRelSet.has(path.relative(rootDir, f.file))) : tsFiles;
@@ -145,15 +146,14 @@ function auditVector6EagerRoutes(tsFiles) {
   const regex = /path:\s*(['"][^'"]*['"]|[A-Za-z0-9_.]+)[^}]*?component:\s*([A-Z][a-zA-Z0-9_]*)/g;
   for (const match of routesFile.content.matchAll(regex)) {
     const rawPath = match[1].trim();
-    if (exemptTargets.has(rawPath)) {
-      continue;
+    if (!exemptTargets.has(rawPath)) {
+      const displayPath = rawPath.replace(/^['"]|['"]$/g, '');
+      findings.push({
+        location: `${rel}:${getLineNumber(routesFile.content, match.index)}`,
+        detail: `Non-default route "${displayPath}" uses eager "component: ${match[2]}" instead of lazy loadComponent.`,
+        fix: `Convert route "${displayPath}" to use loadComponent: () => import(...).`,
+      });
     }
-    const displayPath = rawPath.replace(/^['"]|['"]$/g, '');
-    findings.push({
-      location: `${rel}:${getLineNumber(routesFile.content, match.index)}`,
-      detail: `Non-default route "${displayPath}" uses eager "component: ${match[2]}" instead of lazy loadComponent.`,
-      fix: `Convert route "${displayPath}" to use loadComponent: () => import(...).`,
-    });
   }
   return findings;
 }

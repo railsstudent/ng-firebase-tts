@@ -150,6 +150,23 @@ a:hover {
   margin-top: 4px;
 }
 
+.toggle-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.small-css-row {
+  display: none;
+}
+
+details:has(.toggle-small-css:checked) .small-css-row {
+  display: table-row;
+}
+
 .badge {
   display: inline-block;
   padding: 2px 8px;

@@ -1,6 +1,6 @@
-import fs from 'node:fs';
 import path from 'node:path';
 import { formatBytes, rootDir } from './bundle-utils.mjs';
+import { readJsonFile } from './fs-utils.mjs';
 
 export function getLineNumber(content, index) {
   return content.slice(0, index).split('\n').length;
@@ -8,12 +8,11 @@ export function getLineNumber(content, index) {
 
 export function loadTsConfigPathAliases() {
   const tsconfigPath = path.join(rootDir, 'tsconfig.json');
-  if (!fs.existsSync(tsconfigPath)) {
-    return { baseUrl: '.', paths: {} };
-  }
   try {
-    const cleaned = fs.readFileSync(tsconfigPath, 'utf8').replace(/\/\*[\s\S]*?\*\/|^\s*\/\/.*$/gm, '');
-    const parsed = JSON.parse(cleaned);
+    const parsed = readJsonFile(tsconfigPath, { stripComments: true });
+    if (!parsed) {
+      return { baseUrl: '.', paths: {} };
+    }
     const co = parsed.compilerOptions || {};
     return { baseUrl: co.baseUrl || '.', paths: co.paths || {} };
   } catch {
@@ -23,14 +22,13 @@ export function loadTsConfigPathAliases() {
 
 function resolveAliasFromPaths(specifier, aliasConfig) {
   for (const [pattern, targets] of Object.entries(aliasConfig.paths)) {
-    if (!Array.isArray(targets) || targets.length === 0) {
-      continue;
-    }
-    const prefix = pattern.replace(/\*$/, '');
-    if (specifier.startsWith(prefix)) {
-      const rest = specifier.slice(prefix.length);
-      const target = targets[0].replace(/\*$/, '');
-      return path.normalize(path.join(aliasConfig.baseUrl, target, rest));
+    if (Array.isArray(targets) && targets.length > 0) {
+      const prefix = pattern.replace(/\*$/, '');
+      if (specifier.startsWith(prefix)) {
+        const rest = specifier.slice(prefix.length);
+        const target = targets[0].replace(/\*$/, '');
+        return path.normalize(path.join(aliasConfig.baseUrl, target, rest));
+      }
     }
   }
   return null;
@@ -81,7 +79,10 @@ function extractExportedRuntimeIds(content) {
     for (const raw of m[1].split(',')) {
       const part = raw.trim();
       if (part && !part.startsWith('type ')) {
-        const exportedName = part.split(/\s+as\s+/).pop().trim();
+        const exportedName = part
+          .split(/\s+as\s+/)
+          .pop()
+          .trim();
         if (exportedName) {
           ids.add(exportedName);
         }
@@ -91,12 +92,26 @@ function extractExportedRuntimeIds(content) {
   return [...ids];
 }
 
-function checkBarrelTargetInChunk({ barrelFile, match, tsByRel, chunkBytes, otherChunkFiles, aliasConfig, chunkLabel }) {
+function ensureTsExtension(rel) {
+  if (!rel) {
+    return null;
+  }
+  return rel.endsWith('.ts') ? rel : `${rel}.ts`;
+}
+
+function checkBarrelTargetInChunk({
+  barrelFile,
+  match,
+  tsByRel,
+  chunkBytes,
+  otherChunkFiles,
+  aliasConfig,
+  chunkLabel,
+}) {
   const specifier = match[1];
-  const resolved = resolveImportToRelPath(specifier, barrelFile.file, aliasConfig);
-  const targetRel = resolved ? (resolved.endsWith('.ts') ? resolved : `${resolved}.ts`) : null;
-  const bytes = targetRel ? chunkBytes.get(targetRel) : 0;
-  const targetFile = targetRel ? tsByRel.get(targetRel) : null;
+  const targetRel = ensureTsExtension(resolveImportToRelPath(specifier, barrelFile.file, aliasConfig));
+  const bytes = chunkBytes.get(targetRel) || 0;
+  const targetFile = tsByRel.get(targetRel);
   if (!bytes || !targetFile || otherChunkFiles.length <= 1) {
     return null;
   }

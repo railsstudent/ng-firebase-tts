@@ -1,7 +1,7 @@
 import { execSync } from 'node:child_process';
-import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { clearFsCache, fileExists, getFileMtimeMs, getSourceFiles, readJsonFile, readTextFile } from './fs-utils.mjs';
 
 export const rootDir = process.cwd();
 export const DIST_DIR = path.join(rootDir, 'dist');
@@ -30,10 +30,10 @@ export function getConfigSearchDirs(projectRoot = rootDir) {
  */
 function getApplicationProjects() {
   const angularJsonPath = path.join(rootDir, 'angular.json');
-  if (!fs.existsSync(angularJsonPath)) {
+  const angularJson = readJsonFile(angularJsonPath);
+  if (!angularJson) {
     return new Map();
   }
-  const angularJson = JSON.parse(fs.readFileSync(angularJsonPath, 'utf8'));
   const entries = Object.entries(angularJson.projects || {}).filter(
     ([, proj]) => proj.projectType === 'application' || Boolean(proj.architect?.build),
   );
@@ -44,13 +44,17 @@ function selectTargetProjectName(appProjects, projectArg) {
   const appNames = [...appProjects.keys()];
   if (projectArg) {
     if (!appProjects.has(projectArg)) {
-      console.error(`\n[analyze-bundle] Error: Invalid application project "${projectArg}". Available: ${appNames.join(', ')}`);
+      console.error(
+        `\n[analyze-bundle] Error: Invalid application project "${projectArg}". Available: ${appNames.join(', ')}`,
+      );
       process.exit(1);
     }
     return projectArg;
   }
   if (appNames.length > 1) {
-    console.error(`\n[analyze-bundle] Error: Multiple application projects in angular.json. Specify one: ${appNames.join(', ')}`);
+    console.error(
+      `\n[analyze-bundle] Error: Multiple application projects in angular.json. Specify one: ${appNames.join(', ')}`,
+    );
     process.exit(1);
   }
   return appNames[0];
@@ -58,10 +62,13 @@ function selectTargetProjectName(appProjects, projectArg) {
 
 function extractGlobalStyleEntries(proj, relSourceRoot) {
   const rawStyles = proj.architect?.build?.options?.styles || [];
-  const cssEntries = rawStyles
-    .map((entry) => (typeof entry === 'string' ? entry : entry?.input))
-    .filter((entry) => typeof entry === 'string' && entry.endsWith('.css'))
-    .map((entry) => path.normalize(entry));
+  const cssEntries = rawStyles.reduce((acc, entry) => {
+    const input = typeof entry === 'string' ? entry : entry?.input;
+    if (typeof input === 'string' && input.endsWith('.css')) {
+      acc.push(path.normalize(input));
+    }
+    return acc;
+  }, []);
   return cssEntries.length > 0 ? cssEntries : [path.join(relSourceRoot, 'styles.css')];
 }
 
@@ -96,54 +103,27 @@ export function resolveProjectConfig(projectArg) {
  * Dynamically locates browser-stats.json or stats.json inside dist/.
  */
 export function findStatsFile(distDir = DIST_DIR) {
-  const searchDir = fs.existsSync(distDir) ? distDir : DIST_DIR;
-  if (!fs.existsSync(searchDir)) {
-    return null;
-  }
-  const entries = fs.readdirSync(searchDir, { recursive: true, withFileTypes: true });
-  for (const entry of entries) {
-    if (entry.isFile() && (entry.name === 'browser-stats.json' || entry.name === 'stats.json')) {
-      const parent = entry.parentPath || entry.path;
-      return path.join(parent, entry.name);
-    }
-  }
-  return null;
+  const searchDir = fileExists(distDir) ? distDir : DIST_DIR;
+  return (
+    getSourceFiles(searchDir, ['.json']).find((f) => {
+      const base = path.basename(f);
+      return base === 'browser-stats.json' || base === 'stats.json';
+    }) || null
+  );
 }
 
 function isAnyRootConfigStale(statsMtimeMs) {
-  for (const cfgName of BUILD_CONFIG_FILES) {
-    const cfgPath = path.join(rootDir, cfgName);
-    if (fs.existsSync(cfgPath) && fs.statSync(cfgPath).mtimeMs > statsMtimeMs) {
-      return true;
-    }
-  }
-  return false;
+  return BUILD_CONFIG_FILES.some((cfgName) => getFileMtimeMs(path.join(rootDir, cfgName)) > statsMtimeMs);
 }
 
 /**
  * Checks if any file in sourceRoot or root build configs has an mtimeMs greater than the given timestamp.
  */
 function isStatsStale(statsMtimeMs, sourceRoot = SRC_DIR) {
-  if (isAnyRootConfigStale(statsMtimeMs)) {
-    return true;
-  }
-  if (!fs.existsSync(sourceRoot)) {
-    return false;
-  }
-  const entries = fs.readdirSync(sourceRoot, { recursive: true, withFileTypes: true });
-  for (const entry of entries) {
-    if (entry.isFile()) {
-      const fullPath = path.join(entry.parentPath || entry.path, entry.name);
-      try {
-        if (fs.statSync(fullPath).mtimeMs > statsMtimeMs) {
-          return true;
-        }
-      } catch {
-        // Ignore unreadable or transient files
-      }
-    }
-  }
-  return false;
+  return (
+    isAnyRootConfigStale(statsMtimeMs) ||
+    getSourceFiles(sourceRoot).some((fullPath) => getFileMtimeMs(fullPath) > statsMtimeMs)
+  );
 }
 
 function getBuildReason(forceRebuild, distDir, sourceRoot) {
@@ -154,7 +134,7 @@ function getBuildReason(forceRebuild, distDir, sourceRoot) {
   if (!existingStats) {
     return 'browser-stats.json is missing.';
   }
-  if (isStatsStale(fs.statSync(existingStats).mtimeMs, sourceRoot)) {
+  if (isStatsStale(getFileMtimeMs(existingStats), sourceRoot)) {
     return `Source files in ${path.relative(rootDir, sourceRoot) || 'src'} are newer than browser-stats.json.`;
   }
   return null;
@@ -171,10 +151,12 @@ export function ensureFreshStats(forceRebuild, projectConfig = {}) {
     return;
   }
 
-  const buildCmd = projectName !== 'default' ? `npx ng build ${projectName} --stats-json` : 'npx ng build --stats-json';
+  const projectTarget = projectName !== 'default' ? ` ${projectName}` : '';
+  const buildCmd = `npx ng build${projectTarget} --stats-json --progress=false`;
   console.log(`\n[analyze-bundle] ${reason}\n[analyze-bundle] Executing "${buildCmd}" to generate fresh stats...\n`);
   try {
     execSync(buildCmd, { cwd: rootDir, stdio: 'inherit', env: process.env });
+    clearFsCache();
   } catch (error) {
     console.error('\n[analyze-bundle] Build failed:', error.message);
     process.exit(1);
@@ -183,14 +165,13 @@ export function ensureFreshStats(forceRebuild, projectConfig = {}) {
 
 export function loadStats(distDir = DIST_DIR) {
   const statsFile = findStatsFile(distDir);
-  if (!statsFile || !fs.existsSync(statsFile)) {
+  if (!statsFile || !fileExists(statsFile)) {
     console.error(`\n[analyze-bundle] Error: Stats file not found inside ${distDir}`);
     process.exit(1);
   }
 
   try {
-    const raw = fs.readFileSync(statsFile, 'utf8');
-    return { stats: JSON.parse(raw), statsFile };
+    return { stats: readJsonFile(statsFile), statsFile };
   } catch (error) {
     console.error('\n[analyze-bundle] Error parsing stats JSON:', error.message);
     process.exit(1);
@@ -259,22 +240,22 @@ export function categorizeInput(inputPath, relSourceRoot = 'src') {
 }
 
 export function getEmbeddedStylesSummary(chunkPath, chunkBytes) {
-  if (!fs.existsSync(chunkPath) || chunkBytes <= 0) {
+  const chunkContent = chunkBytes > 0 ? readTextFile(chunkPath) : null;
+  if (!chunkContent) {
     return null;
   }
-  const matches = fs.readFileSync(chunkPath, 'utf8').match(/styles:\s*\[`[^`]+`\]/g) || [];
+  const arrayMatches = chunkContent.matchAll(/styles:\s*\[((?:`[^`]*`|"[^"]*"|'[^']*'|\s|,)+)\]/g);
   let stylesTotal = 0;
-  let rulesBytes = 0;
   let propertyBytes = 0;
 
-  for (const m of matches) {
-    stylesTotal += m.length;
-    const propIdx = m.indexOf('@property');
-    if (propIdx !== -1) {
-      rulesBytes += propIdx;
-      propertyBytes += m.length - propIdx;
-    } else {
-      rulesBytes += m.length;
+  for (const arrMatch of arrayMatches) {
+    for (const strMatch of arrMatch[1].matchAll(/`([^`]*)`|"([^"]*)"|'([^']*)'/g)) {
+      const m = strMatch[1] ?? strMatch[2] ?? strMatch[3] ?? '';
+      stylesTotal += m.length;
+      const propIdx = m.indexOf('@property');
+      if (propIdx !== -1) {
+        propertyBytes += m.length - propIdx;
+      }
     }
   }
 
@@ -282,7 +263,7 @@ export function getEmbeddedStylesSummary(chunkPath, chunkBytes) {
     return null;
   }
   const pct = ((stylesTotal / chunkBytes) * 100).toFixed(1);
-  return `${formatBytes(stylesTotal)} (${pct}% of chunk) [Rules: ${formatBytes(rulesBytes)}, Tailwind @property: ${formatBytes(propertyBytes)}]`;
+  return `${formatBytes(stylesTotal)} (${pct}% of chunk) [Tailwind @property overhead: ${formatBytes(propertyBytes)}]`;
 }
 
 function isAngularComponentFile(inputPath, relSourceRoot = 'src') {
@@ -292,8 +273,8 @@ function isAngularComponentFile(inputPath, relSourceRoot = 'src') {
   if (!inputPath.startsWith(appPrefix) || !inputPath.endsWith('.ts') || rootAppFiles.has(inputPath)) {
     return false;
   }
-  const fullPath = path.join(rootDir, inputPath);
-  return fs.existsSync(fullPath) && fs.readFileSync(fullPath, 'utf8').includes('@Component(');
+  const content = readTextFile(path.join(rootDir, inputPath));
+  return Boolean(content && content.includes('@Component('));
 }
 
 function recordPackageLeak(packageLeaks, inputPath, bytes) {
@@ -321,19 +302,18 @@ export function detectLeakedDependencies(inputEntries, relSourceRoot = 'src') {
   const eagerComponents = [];
 
   for (const [inputPath, val] of inputEntries) {
-    if (val.bytesInOutput <= 0) {
-      continue;
-    }
-
-    if (isAngularComponentFile(inputPath, relSourceRoot)) {
-      eagerComponents.push({
-        type: 'Eager Component in Main',
-        path: inputPath,
-        bytes: val.bytesInOutput,
-        advice: 'Verify this component belongs on the initial startup view; lazy-load secondary routes via loadComponent or @defer.',
-      });
-    } else if (inputPath.startsWith('node_modules/')) {
-      recordPackageLeak(packageLeaks, inputPath, val.bytesInOutput);
+    if (val.bytesInOutput > 0) {
+      if (isAngularComponentFile(inputPath, relSourceRoot)) {
+        eagerComponents.push({
+          type: 'Eager Component in Main',
+          path: inputPath,
+          bytes: val.bytesInOutput,
+          advice:
+            'Verify this component belongs on the initial startup view; lazy-load secondary routes via loadComponent or @defer.',
+        });
+      } else if (inputPath.startsWith('node_modules/')) {
+        recordPackageLeak(packageLeaks, inputPath, val.bytesInOutput);
+      }
     }
   }
 

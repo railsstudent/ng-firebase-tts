@@ -18,20 +18,23 @@ function isBaselineLazyPackage(pkgName) {
   return !pkgName || pkgName.startsWith('@angular/') || BASELINE_LAZY_PACKAGES.has(pkgName);
 }
 
+function isLazyJsChunk(chunkName) {
+  return chunkName.endsWith('.js') && !chunkName.startsWith('main-') && !chunkName.startsWith('polyfills-');
+}
+
 function collectChunkComponentAndPackages(inputs, tsByRel, appPrefix) {
   const components = [];
   const packages = new Map();
   for (const [inputPath, val] of Object.entries(inputs || {})) {
-    if (val.bytesInOutput <= 0) {
-      continue;
-    }
-    const norm = path.normalize(inputPath);
-    if (norm.startsWith(appPrefix) && tsByRel.get(norm)?.content.includes('@Component(')) {
-      components.push(norm);
-    } else if (norm.startsWith('node_modules/')) {
-      const pkg = extractNodeModuleName(norm);
-      if (!isBaselineLazyPackage(pkg)) {
-        packages.set(pkg, (packages.get(pkg) || 0) + val.bytesInOutput);
+    if (val.bytesInOutput > 0) {
+      const norm = path.normalize(inputPath);
+      if (norm.startsWith(appPrefix) && tsByRel.get(norm)?.content.includes('@Component(')) {
+        components.push(norm);
+      } else if (norm.startsWith('node_modules/')) {
+        const pkg = extractNodeModuleName(norm);
+        if (!isBaselineLazyPackage(pkg)) {
+          packages.set(pkg, (packages.get(pkg) || 0) + val.bytesInOutput);
+        }
       }
     }
   }
@@ -44,22 +47,20 @@ function auditL1SdkInLazyComponentChunks({ outputEntries, tsFiles, deferredPaths
   const findings = [];
 
   for (const [chunkName, data] of outputEntries) {
-    if (!chunkName.endsWith('.js') || chunkName.startsWith('main-') || chunkName.startsWith('polyfills-')) {
-      continue;
-    }
-    const { components, packages } = collectChunkComponentAndPackages(data.inputs, tsByRel, appPrefix);
-    if (components.length === 0 || packages.size === 0) {
-      continue;
-    }
-    const primaryComp = components[0];
-    const minBytes = deferredPaths.has(primaryComp) ? DEFER_HEAVY_PKG_BYTES : 1;
-    for (const [pkg, bytes] of packages.entries()) {
-      if (bytes >= minBytes) {
-        findings.push({
-          location: primaryComp,
-          detail: `Lazy component chunk ${chunkName} bundles external package "${pkg}" (${formatBytes(bytes)}) directly alongside ${path.basename(primaryComp)}.`,
-          fix: `Load "${pkg}" on demand via injectAsync() or await import() when triggered by user interaction.`,
-        });
+    if (isLazyJsChunk(chunkName)) {
+      const { components, packages } = collectChunkComponentAndPackages(data.inputs, tsByRel, appPrefix);
+      if (components.length > 0 && packages.size > 0) {
+        const primaryComp = components[0];
+        const minBytes = deferredPaths.has(primaryComp) ? DEFER_HEAVY_PKG_BYTES : 1;
+        for (const [pkg, bytes] of packages.entries()) {
+          if (bytes >= minBytes) {
+            findings.push({
+              location: primaryComp,
+              detail: `Lazy component chunk ${chunkName} bundles external package "${pkg}" (${formatBytes(bytes)}) directly alongside ${path.basename(primaryComp)}.`,
+              fix: `Load "${pkg}" on demand via injectAsync() or await import() when triggered by user interaction.`,
+            });
+          }
+        }
       }
     }
   }
@@ -72,12 +73,11 @@ function buildFeatureSelectorMap(tsFiles, relSourceRoot) {
   const selRegex = /selector:\s*['"](app-[a-z0-9-]+)['"]/;
   for (const f of tsFiles) {
     const rel = path.relative(rootDir, f.file);
-    if (!rel.startsWith(featuresPrefix)) {
-      continue;
-    }
-    const match = selRegex.exec(f.content);
-    if (match) {
-      map.set(match[1], rel);
+    if (rel.startsWith(featuresPrefix)) {
+      const match = selRegex.exec(f.content);
+      if (match) {
+        map.set(match[1], rel);
+      }
     }
   }
   return map;
@@ -114,18 +114,17 @@ function auditL1UnwrappedIfChildrenInLazyRoutes({ allCodeFiles, tsFiles, aliasCo
   for (const compRel of lazyRoutePaths) {
     const htmlRel = compRel.replace(/\.ts$/, '.html');
     const htmlFile = htmlByRel.get(htmlRel);
-    if (!htmlFile) {
-      continue;
-    }
-    const withoutDefer = htmlFile.content.replace(/@defer\b[\s\S]*?\{[\s\S]*?\}/g, '');
-    for (const match of withoutDefer.matchAll(ifBlockRegex)) {
-      for (const [selector] of featureSelectors.entries()) {
-        if (match[1].includes(`<${selector}`)) {
-          findings.push({
-            location: `${htmlRel}:${getLineNumber(htmlFile.content, match.index)}`,
-            detail: `Lazy route template renders feature component <${selector}> inside @if without @defer, bundling <${selector}> eagerly into the route chunk.`,
-            fix: `Wrap <${selector}> in @defer so its code is downloaded only when the condition is met.`,
-          });
+    if (htmlFile) {
+      const withoutDefer = htmlFile.content.replace(/@defer\b[\s\S]*?\{[\s\S]*?\}/g, '');
+      for (const match of withoutDefer.matchAll(ifBlockRegex)) {
+        for (const [selector] of featureSelectors.entries()) {
+          if (match[1].includes(`<${selector}`)) {
+            findings.push({
+              location: `${htmlRel}:${getLineNumber(htmlFile.content, match.index)}`,
+              detail: `Lazy route template renders feature component <${selector}> inside @if without @defer, bundling <${selector}> eagerly into the route chunk.`,
+              fix: `Wrap <${selector}> in @defer so its code is downloaded only when the condition is met.`,
+            });
+          }
         }
       }
     }
@@ -175,25 +174,21 @@ function auditL2SequentialDownloads({ allCodeFiles, tsFiles, injectCalls, mainIn
   const findings = [];
 
   for (const call of injectCalls) {
-    if (!deferredPaths.has(call.callerRel)) {
-      continue;
-    }
-    const targetFile = tsByRel.get(`${call.resolvedRel}.ts`);
-    if (targetFile && !hasExternalSdkImport(targetFile.content)) {
-      findings.push({
-        location: `${call.callerRel}:${call.line}`,
-        detail: `"${path.basename(call.callerRel)}" is already inside a @defer block and calls injectAsync("${call.specifier}") on a lightweight module, causing an extra back-to-back file download.`,
-        fix: `Replace injectAsync() with synchronous inject() so the module bundles directly into the @defer chunk.`,
-      });
+    if (deferredPaths.has(call.callerRel)) {
+      const targetFile = tsByRel.get(`${call.resolvedRel}.ts`);
+      if (targetFile && !hasExternalSdkImport(targetFile.content)) {
+        findings.push({
+          location: `${call.callerRel}:${call.line}`,
+          detail: `"${path.basename(call.callerRel)}" is already inside a @defer block and calls injectAsync("${call.specifier}") on a lightweight module, causing an extra back-to-back file download.`,
+          fix: `Replace injectAsync() with synchronous inject() so the module bundles directly into the @defer chunk.`,
+        });
+      }
     }
   }
 
-  const mainRelSet = new Set(
-    mainInputs.filter(([, v]) => v.bytesInOutput > 0).map(([p]) => path.normalize(p)),
-  );
+  const mainRelSet = new Set(mainInputs.filter(([, v]) => v.bytesInOutput > 0).map(([p]) => path.normalize(p)));
   const lazyCalls = mainRelSet.size > 0 ? injectCalls.filter((c) => !mainRelSet.has(c.callerRel)) : [];
-  const lazyFiles =
-    mainRelSet.size > 0 ? tsFiles.filter((f) => !mainRelSet.has(path.relative(rootDir, f.file))) : [];
+  const lazyFiles = mainRelSet.size > 0 ? tsFiles.filter((f) => !mainRelSet.has(path.relative(rootDir, f.file))) : [];
 
   return [
     ...findings,
@@ -226,16 +221,15 @@ function checkCrossFeatureImportsInFile({ fileObj, featureName, featuresPrefix, 
   const importRegex = /^import\s+(?!type\b)[^;]+from\s+['"]([^'"]+)['"]/gm;
   for (const match of fileObj.content.matchAll(importRegex)) {
     const resolved = resolveImportToRelPath(match[1], fileObj.file, aliasConfig);
-    if (!resolved || !resolved.startsWith(featuresPrefix)) {
-      continue;
-    }
-    const targetFeature = resolved.slice(featuresPrefix.length).split(path.sep)[0];
-    if (targetFeature && targetFeature !== featureName) {
-      findings.push({
-        location: `${rel}:${getLineNumber(fileObj.content, match.index)}`,
-        detail: `Feature "${featureName}" imports runtime code from sibling feature "${targetFeature}" ("${match[1]}"), coupling their lazy chunks together.`,
-        fix: `Move shared code to "shared/" or "core/" and import the concrete file directly.`,
-      });
+    if (resolved && resolved.startsWith(featuresPrefix)) {
+      const targetFeature = resolved.slice(featuresPrefix.length).split(path.sep)[0];
+      if (targetFeature && targetFeature !== featureName) {
+        findings.push({
+          location: `${rel}:${getLineNumber(fileObj.content, match.index)}`,
+          detail: `Feature "${featureName}" imports runtime code from sibling feature "${targetFeature}" ("${match[1]}"), coupling their lazy chunks together.`,
+          fix: `Move shared code to "shared/" or "core/" and import the concrete file directly.`,
+        });
+      }
     }
   }
   return findings;
@@ -246,19 +240,18 @@ function auditL3SharedLazyAndBarrelLeaks({ outputEntries, tsFiles, aliasConfig }
   const seen = new Set(findings.map((f) => f.location));
 
   for (const [chunkName, data] of outputEntries) {
-    if (!chunkName.endsWith('.js') || chunkName.startsWith('main-') || chunkName.startsWith('polyfills-')) {
-      continue;
-    }
-    const unused = findUnusedBarrelExportsInChunk({
-      chunkInputs: Object.entries(data.inputs || {}),
-      tsFiles,
-      aliasConfig,
-      chunkLabel: chunkName,
-    });
-    for (const issue of unused) {
-      if (!seen.has(`${issue.location}:${chunkName}`)) {
-        seen.add(`${issue.location}:${chunkName}`);
-        findings.push(issue);
+    if (isLazyJsChunk(chunkName)) {
+      const unused = findUnusedBarrelExportsInChunk({
+        chunkInputs: Object.entries(data.inputs || {}),
+        tsFiles,
+        aliasConfig,
+        chunkLabel: chunkName,
+      });
+      for (const issue of unused) {
+        if (!seen.has(`${issue.location}:${chunkName}`)) {
+          seen.add(`${issue.location}:${chunkName}`);
+          findings.push(issue);
+        }
       }
     }
   }

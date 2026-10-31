@@ -45,7 +45,7 @@ function inspectLineClassUsage(line, { className, isFullMove, moveCount }) {
   let fits = false;
   let maxClasses = 0;
   for (const match of line.matchAll(/(?<!\[)\bclass\s*=\s*"([^"]*)"/g)) {
-    const classes = match[1].trim().split(/\s+/).filter(Boolean);
+    const classes = match[1].trim().split(/\s+/);
     if (classes.includes(className)) {
       matched = true;
       maxClasses = Math.max(maxClasses, classes.length);
@@ -120,7 +120,7 @@ function estimateShortRuleBytes(cssClassesToMoveToHtml) {
   );
 }
 
-function buildClassifiedResult({ base, isFullMove, utilities }) {
+function buildClassifiedResult({ base, isFullMove, utilities, hasNonApplyCss }) {
   const moveToHtml = utilities.join(' ');
   if (isFullMove) {
     return {
@@ -138,7 +138,7 @@ function buildClassifiedResult({ base, isFullMove, utilities }) {
     rule: {
       ...base,
       moveToHtml,
-      keepInCss: '(shared rule in CSS)',
+      keepInCss: hasNonApplyCss ? '(raw CSS declarations in rule)' : '(shared rule in CSS)',
       estBytes: utilities.length * 28,
     },
   };
@@ -159,14 +159,16 @@ function buildEngineerChoiceSplit({ base, utilities, freeHtmlSlots, moveCount })
   };
 }
 
-export function classifyStaticApplyRule({ selector, utilities, relPath, state }) {
+function canClassifyStaticApplyRule({ className, utilities, state, isFullMove }) {
+  return (
+    isEligibleForHtmlMove({ className, utilities, state }) && utilities.length > 0 && (!state.isGlobal || isFullMove)
+  );
+}
+
+export function classifyStaticApplyRule({ selector, utilities, relPath, state, hasNonApplyCss = false }) {
   const className = extractApplyClassName(selector, state.isGlobal);
-  const isFullMove = !state.multiRuleClasses.has(className);
-  const canProcess =
-    isEligibleForHtmlMove({ className, utilities, state }) &&
-    utilities.length > 0 &&
-    (!state.isGlobal || isFullMove);
-  if (!canProcess) {
+  const isFullMove = !state.multiRuleClasses.has(className) && !hasNonApplyCss;
+  if (!canClassifyStaticApplyRule({ className, utilities, state, isFullMove })) {
     return null;
   }
   const { htmlFiles, specFiles } = getRuleTargetFiles(state);
@@ -188,7 +190,7 @@ export function classifyStaticApplyRule({ selector, utilities, relPath, state })
         });
   }
   const base = { relPath, selector, className, htmlLocations: htmlEval.inlineableHtmlLocations, specRefs };
-  return buildClassifiedResult({ base, isFullMove, utilities });
+  return buildClassifiedResult({ base, isFullMove, utilities, hasNonApplyCss });
 }
 
 function recordRemainingComponentRule({ selector, utilities, relPath, state }) {
@@ -209,15 +211,19 @@ function recordRemainingComponentRule({ selector, utilities, relPath, state }) {
 }
 
 export function processApplyRule({ selector, body, relPath, state }) {
-  const applyMatch = !selector.includes(':host') && body.match(/@apply\s+([^;]+);/);
-  if (!applyMatch || (state.isGlobal && !selector.startsWith('@utility '))) {
+  if (selector.includes(':host') || (state.isGlobal && !selector.startsWith('@utility '))) {
     return;
   }
-  const utilities = applyMatch[1].trim().split(/\s+/).filter(Boolean);
+  const applyMatches = [...body.matchAll(/@apply\s+([^;]+);/g)];
+  if (applyMatches.length === 0) {
+    return;
+  }
+  const utilities = applyMatches.flatMap((m) => m[1].trim().split(/\s+/));
+  const hasNonApplyCss = body.replace(/@apply\s+[^;]+;/g, '').trim().length > 0;
   if (!state.isGlobal) {
     state.fileApplyBlocks.push({ selector, utilities, loc: relPath });
   }
-  const classified = classifyStaticApplyRule({ selector, utilities, relPath, state });
+  const classified = classifyStaticApplyRule({ selector, utilities, relPath, state, hasNonApplyCss });
   if (classified?.kind === 'short') {
     state.shortStaticRules.push(classified.rule);
     return;
