@@ -6,7 +6,7 @@
 
 /* --- Combobox Trigger Styles --- */
 .voice-trigger {
-  @apply border border-surface-border rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500 transition-all cursor-pointer flex items-center select-none;
+  @apply border border-surface-border rounded-lg px-4 py-2.5 text-primary focus:outline-none focus:border-primary-hover transition-all cursor-pointer flex items-center select-none;
 }
 
 /* --- Dropdown Caret Rotation --- */
@@ -16,7 +16,7 @@
 
 /* --- Popup Overlay Container --- */
 .voice-popup-container {
-  @apply w-full bg-slate-900 border border-surface-border rounded-xl overflow-hidden mt-1 max-h-60 z-50;
+  @apply w-full bg-app-bg border border-surface-border rounded-xl overflow-hidden mt-1 max-h-60 z-50;
 }
 
 /* --- Listbox Container --- */
@@ -31,11 +31,11 @@
 
 [ngOption]:hover,
 [ngOption][data-active='true'] {
-  @apply bg-slate-800 text-white outline-none;
+  @apply bg-surface-hover text-primary outline-none;
 }
 
 [ngOption][aria-selected='true'] {
-  @apply bg-indigo-950/60 text-indigo-200 font-semibold;
+  @apply bg-surface-card text-primary-accent font-semibold;
 }
 
 /* --- Check mark Visibility --- */

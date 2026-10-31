@@ -5,5 +5,5 @@
 }
 
 .link-anchor {
-  @apply text-primary-accent hover:text-indigo-300 underline;
+  @apply text-primary-accent hover:text-primary underline;
 }

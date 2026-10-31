@@ -70,7 +70,7 @@ describe('HomeComponent', () => {
     const descEl = fixture.debugElement.query(By.css('.home-description'));
 
     expect(badgeEl).toBeTruthy();
-    expect(badgeEl.nativeElement.textContent.trim()).toContain('Firebase AI Logic');
+    expect(badgeEl.nativeElement.textContent.trim()).toContain('FIREBASE AI LOGIC');
     expect(titleEl).toBeTruthy();
     expect(titleEl.nativeElement.textContent.trim()).toBe('Multimodal Vision & Real-Time Speech Studio');
     expect(descEl).toBeTruthy();
@@ -81,8 +81,8 @@ describe('HomeComponent', () => {
     isAuthenticatedSignal.set(false);
     fixture.detectChanges();
 
-    const signInBtn = fixture.debugElement.query(By.css('button.btn-launch'));
-    const launchBtn = fixture.debugElement.query(By.css('a.btn-launch'));
+    const signInBtn = fixture.debugElement.query(By.css('button.btn-primary'));
+    const launchBtn = fixture.debugElement.query(By.css('a.btn-primary'));
 
     expect(signInBtn).toBeTruthy();
     expect(signInBtn.nativeElement.textContent.trim()).toBe('Sign In');
@@ -94,8 +94,8 @@ describe('HomeComponent', () => {
     isAuthenticatedSignal.set(true);
     fixture.detectChanges();
 
-    const launchBtn = fixture.debugElement.query(By.css('a.btn-launch'));
-    const signInBtn = fixture.debugElement.query(By.css('button.btn-sign-in'));
+    const launchBtn = fixture.debugElement.query(By.css('a.btn-primary'));
+    const signInBtn = fixture.debugElement.query(By.css('button.btn-primary'));
 
     expect(launchBtn).toBeTruthy();
     expect(launchBtn.attributes['href']).toBe('/dashboard');
@@ -108,10 +108,10 @@ describe('HomeComponent', () => {
     const featureItems = fixture.debugElement.queryAll(By.css('.feature-item'));
     expect(featureItems.length).toBe(3);
 
-    const labels = featureItems.map((item) => item.query(By.css('.feature-label')).nativeElement.textContent.trim());
+    const labels = featureItems.map((item) => item.query(By.css('.text-muted')).nativeElement.textContent.trim());
     const values = featureItems.map((item) => item.query(By.css('.text-secondary')).nativeElement.textContent.trim());
 
-    expect(labels).toEqual(['Model Pipeline', 'Audio Synthesis', 'Grounding']);
+    expect(labels).toEqual(['MODEL PIPELINE', 'AUDIO SYNTHESIS', 'GROUNDING']);
     expect(values).toEqual(['Gemini 3.8 Flash', 'Gemini-TTS Streaming', 'Google Search Tool']);
 
     // Assert strictly no badge pills or chips in feature items
@@ -123,7 +123,7 @@ describe('HomeComponent', () => {
     isAuthenticatedSignal.set(false);
     fixture.detectChanges();
 
-    const signInBtn = fixture.debugElement.query(By.css('button.btn-launch'));
+    const signInBtn = fixture.debugElement.query(By.css('button.btn-primary'));
     expect(signInBtn).toBeTruthy();
 
     const openModalSpy = vi.spyOn(fixture.componentInstance, 'openSignInModal');
@@ -145,7 +145,7 @@ describe('HomeComponent', () => {
     isAuthenticatedSignal.set(false);
     fixture.detectChanges();
 
-    const signInBtn = fixture.debugElement.query(By.css('button.btn-launch'));
+    const signInBtn = fixture.debugElement.query(By.css('button.btn-primary'));
     expect(signInBtn).toBeTruthy();
 
     const openModalSpy = vi.spyOn(fixture.componentInstance, 'openSignInModal');
@@ -164,7 +164,7 @@ describe('HomeComponent', () => {
     isAuthenticatedSignal.set(false);
     fixture.detectChanges();
 
-    const signInBtn = fixture.debugElement.query(By.css('button.btn-launch'));
+    const signInBtn = fixture.debugElement.query(By.css('button.btn-primary'));
     expect(signInBtn).toBeTruthy();
 
     const openModalSpy = vi.spyOn(fixture.componentInstance, 'openSignInModal');

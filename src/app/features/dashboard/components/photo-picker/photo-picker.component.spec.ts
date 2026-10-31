@@ -56,7 +56,7 @@ describe('PhotoPickerComponent', () => {
     fixture.componentRef.setInput('isLoading', true);
     fixture.detectChanges();
 
-    const generateBtn = fixture.debugElement.query(By.css('.btn-generate'));
+    const generateBtn = fixture.debugElement.query(By.css('.btn-primary'));
     const spinner = fixture.debugElement.query(By.css('app-spinner-icon'));
 
     expect(generateBtn.nativeElement.disabled).toBe(true);
@@ -64,18 +64,20 @@ describe('PhotoPickerComponent', () => {
   });
 
   // TEST CASE 4: Drag Interaction (Visual Indicators)
-  it('should apply drag-active class on dragover and remove on dragleave', () => {
+  it('should apply active drag classes on dragover and restore idle classes on dragleave', () => {
     const dropzone = fixture.debugElement.query(By.css('.dropzone')).nativeElement as HTMLElement;
 
     // Trigger dragover
     dropzone.dispatchEvent(new CustomEvent('dragover'));
     fixture.detectChanges();
-    expect(dropzone.classList.contains('drag-active')).toBe(true);
+    expect(component.isDragActive()).toBe(true);
+    expect(dropzone.classList.contains('bg-surface-hover')).toBe(true);
 
     // Trigger dragleave
     dropzone.dispatchEvent(new CustomEvent('dragleave'));
     fixture.detectChanges();
-    expect(dropzone.classList.contains('drag-active')).toBe(false);
+    expect(component.isDragActive()).toBe(false);
+    expect(dropzone.classList.contains('bg-surface-hover')).toBe(false);
   });
 
   // TEST CASE 1 (Option B): Drag Multiple Files - Strict Reject
@@ -180,7 +182,7 @@ describe('PhotoPickerComponent', () => {
     fixture.detectChanges();
 
     expect(emittedFile).toEqual(validFile);
-    expect(dropzone.classList.contains('drag-active')).toBe(false);
+    expect(component.isDragActive()).toBe(false);
   });
 
   // TEST CASE 5: Manual Selection - Invalid Type

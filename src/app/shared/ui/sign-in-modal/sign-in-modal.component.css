@@ -20,18 +20,10 @@
   @apply mt-2 mb-2 text-sm;
 }
 
-.form-label {
-  @apply text-xs uppercase text-muted mb-1.5 block;
-}
-
 .form-input {
   @apply border border-surface-border text-primary rounded-lg p-2.5 focus:outline-none focus:border-primary-hover transition-all;
 }
 
 .error-hint {
   @apply text-xs text-error-text;
-}
-
-.btn-submit {
-  @apply py-3 mt-2 flex items-center justify-center gap-2;
 }

@@ -84,7 +84,7 @@ export class SpeechStudioComponent {
   readonly formFields: FormFieldConfig[] = [
     {
       id: 'scene',
-      label: 'Scene Description',
+      label: 'SCENE DESCRIPTION',
       type: 'textarea',
       field: this.audioPromptForm.scene,
       placeholder: 'Describe the environment...',
@@ -92,14 +92,14 @@ export class SpeechStudioComponent {
     },
     {
       id: 'emotion',
-      label: 'Vocal Emotion',
+      label: 'VOCAL EMOTION',
       type: 'text',
       field: this.audioPromptForm.emotion,
       placeholder: 'e.g., panicked, whispers',
     },
     {
       id: 'pace',
-      label: 'Speaking Pace',
+      label: 'SPEAKING PACE',
       type: 'text',
       field: this.audioPromptForm.pace,
       placeholder: 'e.g., very slow, rapid',

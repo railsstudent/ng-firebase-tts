@@ -1,6 +1,6 @@
 <div class="metrics-container gap-4 mt-6">
   @if (tokenUsage(); as usage) {
-    <div class="metrics-card bg-slate-700/50 border-slate-600">
+    <div class="metrics-card bg-surface-card border-surface-hover">
       <h3 class="section-title">Text Generation Token Usage</h3>
       <div class="usage-grid font-mono justify-around gap-2">
         <p class="text-secondary italic text-sm">
@@ -21,7 +21,7 @@
 
   @if (optimizationMetrics()) {
     @let metrics = formattedMetrics();
-    <div class="metrics-card border bg-slate-700/50 border-slate-600">
+    <div class="metrics-card border bg-surface-card border-surface-hover">
       <h3 class="section-title">Image Optimization Efficiency</h3>
       <div class="usage-grid font-mono justify-around gap-2">
         <p class="text-secondary italic text-sm">

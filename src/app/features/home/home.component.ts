@@ -21,9 +21,9 @@ export class HomeComponent {
   #isOpeningModal = false;
 
   readonly features = [
-    { label: 'Model Pipeline', value: 'Gemini 3.8 Flash' },
-    { label: 'Audio Synthesis', value: 'Gemini-TTS Streaming' },
-    { label: 'Grounding', value: 'Google Search Tool' },
+    { label: 'MODEL PIPELINE', value: 'Gemini 3.8 Flash' },
+    { label: 'AUDIO SYNTHESIS', value: 'Gemini-TTS Streaming' },
+    { label: 'GROUNDING', value: 'Google Search Tool' },
   ];
 
   constructor() {

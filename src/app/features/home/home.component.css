@@ -13,15 +13,11 @@
 }
 
 .home-title {
-  @apply text-2xl sm:text-3xl lg:text-4xl text-primary;
+  @apply text-2xl sm:text-3xl lg:text-4xl;
 }
 
 .home-description {
   @apply text-sm sm:text-base;
-}
-
-.btn-launch {
-  @apply px-8 py-3.5 flex items-center justify-center;
 }
 
 .home-features-grid {
@@ -29,9 +25,5 @@
 }
 
 .feature-item {
-  @apply border-surface-border rounded-xl p-3 sm:p-4 flex flex-col items-center gap-1 text-center;
-}
-
-.feature-label {
-  @apply text-xs text-muted uppercase;
+  @apply border-surface-border rounded-xl p-3 flex flex-col gap-1;
 }

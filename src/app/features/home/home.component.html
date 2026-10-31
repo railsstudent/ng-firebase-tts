@@ -2,7 +2,7 @@
   <div class="home-card surface-card backdrop-blur-sm">
     <span class="home-badge border-2 font-bold">FIREBASE AI LOGIC &amp; AGENT PLATFORM</span>
 
-    <h2 class="home-title font-bold">Multimodal Vision &amp; Real-Time Speech Studio</h2>
+    <h2 class="home-title font-bold text-primary">Multimodal Vision &amp; Real-Time Speech Studio</h2>
 
     <p class="home-description text-muted max-w-lg">
       Analyze images with Gemini multimodal intelligence, discover grounded obscure facts, and generate real-time
@@ -10,12 +10,12 @@
     </p>
 
     @if (isAuthenticated()) {
-      <a [routerLink]="dashboard" class="btn-primary btn-launch group">
+      <a [routerLink]="dashboard" class="btn-primary px-8 group">
         <span>Launch Studio</span>
         <app-arrow-right-icon class="transition-transform group-hover:translate-x-1" />
       </a>
     } @else {
-      <button type="button" class="btn-primary btn-launch" (click)="openSignInModal()">
+      <button type="button" class="btn-primary px-8" (click)="openSignInModal()">
         <span>Sign In</span>
       </button>
     }
@@ -23,7 +23,7 @@
     <div class="home-features-grid border-t border-surface-border">
       @for (feature of features; track feature.label) {
         <div class="feature-item bg-app-bg border">
-          <span class="feature-label font-medium">{{ feature.label }}</span>
+          <span class="text-xs text-muted font-medium">{{ feature.label }}</span>
           <span class="text-sm font-semibold text-secondary">{{ feature.value }}</span>
         </div>
       }

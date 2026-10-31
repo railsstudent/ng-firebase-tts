@@ -5,7 +5,7 @@
   }
 
   <div class="audio-customize-container backdrop-blur-sm shadow-xl">
-    <h3 class="audio-customize-title text-indigo-300 font-bold"><span>🎙️</span> Customize Audio Generation</h3>
+    <h3 class="audio-customize-title text-primary-accent font-bold"><span>🎙️</span> Customize Audio Generation</h3>
 
     <div class="audio-customize-grid grid gap-4">
       @for (f of formFields; track f.id) {
@@ -16,7 +16,7 @@
               [id]="f.id"
               [formField]="f.field"
               [placeholder]="f.placeholder"
-              class="form-field-textarea w-full bg-slate-900/60"
+              class="form-field-textarea w-full bg-app-bg"
             ></textarea>
           } @else {
             <input
@@ -24,7 +24,7 @@
               [id]="f.id"
               [formField]="f.field"
               [placeholder]="f.placeholder"
-              class="form-field-textarea w-full bg-slate-900/60"
+              class="form-field-textarea w-full bg-app-bg"
             />
           }
         </div>
@@ -43,7 +43,7 @@
           (click)="generateSpeech(c.mode)"
           [aria-label]="c.ariaLabel"
           [disabled]="isLoading()"
-          class="btn-audio btn-primary shadow-md"
+          class="mt-6 btn-primary shadow-md"
         >
           @let isModeLoading = loadingMode() === c.mode;
           @let genText = c.getGenText ? c.getGenText() : 'Generating Speech...';
@@ -57,7 +57,7 @@
   </div>
 
   @if (!isLoading() && audioUrl(); as url) {
-    <figure class="playback-figure bg-slate-900/40 rounded-xl">
+    <figure class="playback-figure bg-app-bg rounded-xl">
       <figcaption class="text-sm font-medium text-muted">Listen to the Gemini-TTS:</figcaption>
       <audio controls [src]="url" [playbackRate]="'1.25'" class="w-full outline-none"></audio>
     </figure>

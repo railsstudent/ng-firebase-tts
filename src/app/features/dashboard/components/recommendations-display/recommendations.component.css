@@ -1,11 +1,11 @@
 @reference "../../../../../styles.css";
 
 .recommendation-card {
-  @apply border border-indigo-500/20 text-sm p-4 rounded-lg text-secondary w-full transition-all hover:border-indigo-500/40;
+  @apply border border-surface-border text-sm p-4 rounded-lg text-secondary w-full transition-all hover:border-primary-indigo;
 }
 
 .recommendation-reason-label {
-  @apply text-xs uppercase block mt-2;
+  @apply text-xs block;
 }
 
 .recommendation-reason-text {
@@ -21,5 +21,5 @@
 }
 
 .expand-icon__expanded {
-  @apply rotate-180 text-indigo-300;
+  @apply rotate-180 text-primary;
 }

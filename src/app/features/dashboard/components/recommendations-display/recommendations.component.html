@@ -2,7 +2,7 @@
   <h3 class="section-title">Recommendations</h3>
   <div class="flex flex-col gap-3" ngAccordionGroup [multiExpandable]="true">
     @for (item of recommendations(); track item.id) {
-      <div class="recommendation-card bg-indigo-900/10 font-medium">
+      <div class="recommendation-card bg-app-bg font-medium">
         <h4 class="m-0">
           <p
             ngAccordionTrigger
@@ -24,7 +24,7 @@
         </h4>
         <p ngAccordionPanel #panelRef="ngAccordionPanel">
           <ng-template ngAccordionContent>
-            <span class="recommendation-reason-label text-primary-accent/80 tracking-wider">Reason:</span>
+            <span class="recommendation-reason-label mt-2 text-primary-accent/80">REASON:</span>
             <span class="recommendation-reason-text italic mt-0.5">{{ item.reason }}</span>
           </ng-template>
         </p>

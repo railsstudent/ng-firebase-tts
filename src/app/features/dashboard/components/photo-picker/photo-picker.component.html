@@ -1,18 +1,20 @@
-<div class="upload-wrapper items-center justify-center">
+<div class="flex flex-col items-center">
   <input #fileInput type="file" (change)="onFileChange($event)" [attr.accept]="accepted" class="hidden" />
   @if (!previewUrl()) {
+    @let dragClasses = 'bg-surface-hover border-primary-indigo text-primary-accent scale-102';
+    @let normalClasses = 'border-surface-border text-muted hover:bg-surface-card hover:border-surface-hover';
     <button
       type="button"
       (click)="fileInput.click()"
       (dragover)="handleDrag($event)"
       (dragleave)="handleDrag($event, false)"
       (drop)="onDrop($event)"
-      class="dropzone w-full rounded-xl"
-      [class.drag-active]="isDragActive()"
+      class="dropzone border-2 border-dashed"
+      [class]="isDragActive() ? dragClasses : normalClasses"
     >
       <app-photo-icon />
       <p class="upload-title pointer-events-none font-semibold">Click to upload an image</p>
-      <p class="upload-subtitle pointer-events-none text-muted">PNG, JPG, JPEG or WEBP</p>
+      <p class="pointer-events-none text-xs sm:text-sm">PNG, JPG, JPEG or WEBP</p>
     </button>
   } @else {
     <div class="w-full relative group">
@@ -41,7 +43,7 @@
     type="button"
     (click)="generate.emit()"
     [disabled]="!previewUrl() || isLoading()"
-    class="btn-generate btn-primary mt-6"
+    class="w-full btn-primary mt-6"
   >
     @if (isLoading()) {
       <app-spinner-icon class="w-5 h-5" />

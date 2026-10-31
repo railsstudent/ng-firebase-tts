@@ -1,16 +1,16 @@
 <div class="flex flex-col form-field-group-full">
-  <label for="voiceOption" class="form-field-label">AI Voice Model</label>
+  <label for="voiceOption" class="form-field-label">AI VOICE MODEL</label>
   <div
     id="voiceOption"
     ngCombobox
     #comboboxRef="ngCombobox"
     [(expanded)]="popupExpanded"
     [preserveContent]="true"
-    class="voice-trigger justify-between bg-slate-900/60"
+    class="voice-trigger justify-between bg-app-bg"
     aria-label="AI Voice Model"
   >
     <div class="flex items-center gap-2.5">
-      <span class="font-medium text-white">
+      <span class="font-medium text-primary">
         {{ displayLabel() }}
       </span>
       <app-arrow-drop-down-icon />

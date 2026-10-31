@@ -1,23 +1,11 @@
 @reference "../../../../../styles.css";
 
-.upload-wrapper {
-  @apply flex flex-col;
-}
-
 .dropzone {
-  @apply h-48 sm:h-64 md:h-80 border-2 border-dashed border-surface-border flex flex-col items-center justify-center text-muted hover:bg-surface-card hover:border-surface-hover focus-visible:border-primary-accent focus-visible:outline-hidden transition-colors cursor-pointer p-4;
-}
-
-.dropzone.drag-active {
-  @apply bg-surface-hover border-primary-indigo text-primary-accent scale-102 shadow-indigo-500/20 shadow-md;
+  @apply w-full rounded-xl h-48 sm:h-64 md:h-80 flex flex-col items-center justify-center focus-visible:border-primary-accent focus-visible:outline-hidden transition-colors cursor-pointer p-4;
 }
 
 .upload-title {
   @apply mt-2 sm:mt-4 text-sm sm:text-base text-primary;
-}
-
-.upload-subtitle {
-  @apply text-xs sm:text-sm;
 }
 
 .preview-image {
@@ -26,10 +14,6 @@
 
 .action-overlay {
   @apply flex flex-col absolute;
-}
-
-.btn-generate {
-  @apply w-full flex items-center justify-center;
 }
 
 .btn-image-selector {

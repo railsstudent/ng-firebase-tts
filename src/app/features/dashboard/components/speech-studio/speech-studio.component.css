@@ -17,11 +17,7 @@
 }
 
 .form-field-textarea {
-  @apply border border-surface-border rounded-lg px-4 py-2 text-primary placeholder:text-muted focus:outline-none focus:border-indigo-500 transition-all;
-}
-
-.btn-audio {
-  @apply mt-6 flex items-center justify-center px-4 py-2;
+  @apply border border-surface-border rounded-lg px-4 py-2 text-primary placeholder:text-muted focus:outline-none focus:border-primary-hover transition-all;
 }
 
 .playback-figure {
