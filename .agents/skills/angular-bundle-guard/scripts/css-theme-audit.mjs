@@ -65,6 +65,7 @@ function buildThemeTokenUtilityRegex(tokenName) {
     ['--container-', (s) => `(?:max-w|min-w|w)-${s}`],
     ['--radius-', (s) => `rounded(?:-[a-z]+)?-${s}`],
     ['--shadow-', (s) => `(?:inset-|drop-)?shadow-${s}`],
+    ['--default-transition-', () => 'transition(?:-[a-z]+)?'],
   ];
   const matched = rules.find(([prefix]) => tokenName.startsWith(prefix));
   const utilPattern = matched ? matched[1](tokenName.slice(matched[0].length)) : tokenName.replace(/^--/, '');

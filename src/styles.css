@@ -20,6 +20,8 @@
   --color-error-bg: #7f1d1d;
   --color-error-border: #b91c1c;
   --color-error-text: #fecaca;
+
+  --default-transition-duration: 200ms;
 }
 
 .error-block {

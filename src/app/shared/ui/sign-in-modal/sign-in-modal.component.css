@@ -13,7 +13,7 @@
 }
 
 .modal-close-btn {
-  @apply text-muted hover:text-primary hover:bg-surface-hover/60 focus:outline-none focus:ring-2 focus:ring-primary-hover transition-all flex items-center justify-center;
+  @apply text-muted hover:text-primary hover:bg-surface-hover/60 focus-visible:outline-2 focus-visible:outline-primary-hover transition-all flex items-center justify-center;
 }
 
 .error-block {
@@ -25,7 +25,7 @@
 }
 
 .form-input {
-  @apply border border-surface-border text-primary rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-primary-hover transition-all;
+  @apply border border-surface-border text-primary rounded-lg p-2.5 focus:outline-none focus:border-primary-hover transition-all;
 }
 
 .error-hint {

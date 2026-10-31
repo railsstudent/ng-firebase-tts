@@ -17,7 +17,7 @@
 }
 
 .home-description {
-  @apply text-sm sm:text-base leading-relaxed;
+  @apply text-sm sm:text-base;
 }
 
 .btn-launch {

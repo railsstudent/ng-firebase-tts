@@ -5,7 +5,7 @@
 }
 
 .dropzone {
-  @apply h-48 sm:h-64 md:h-80 border-2 border-dashed border-surface-border flex flex-col items-center justify-center text-muted hover:bg-surface-card hover:border-surface-hover focus-visible:ring-2 focus-visible:ring-primary-accent focus-visible:outline-hidden transition-colors cursor-pointer p-4;
+  @apply h-48 sm:h-64 md:h-80 border-2 border-dashed border-surface-border flex flex-col items-center justify-center text-muted hover:bg-surface-card hover:border-surface-hover focus-visible:border-primary-accent focus-visible:outline-hidden transition-colors cursor-pointer p-4;
 }
 
 .dropzone.drag-active {
@@ -33,5 +33,5 @@
 }
 
 .btn-image-selector {
-  @apply bg-app-bg/50 text-primary px-3 py-1.5 text-sm rounded-md hover:bg-app-bg/80 transition-all opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-primary-accent focus-visible:outline-hidden;
+  @apply bg-app-bg/50 text-primary px-3 py-1.5 text-sm rounded-md hover:bg-app-bg/80 transition-all opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-primary-accent;
 }

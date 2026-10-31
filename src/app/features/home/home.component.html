@@ -12,7 +12,7 @@
     @if (isAuthenticated()) {
       <a [routerLink]="dashboard" class="btn-primary btn-launch group">
         <span>Launch Studio</span>
-        <app-arrow-right-icon class="transition-transform duration-200 group-hover:translate-x-1" />
+        <app-arrow-right-icon class="transition-transform group-hover:translate-x-1" />
       </a>
     } @else {
       <button type="button" class="btn-primary btn-launch" (click)="openSignInModal()">

@@ -17,7 +17,7 @@
 }
 
 .form-field-textarea {
-  @apply border border-surface-border rounded-lg px-4 py-2 text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all;
+  @apply border border-surface-border rounded-lg px-4 py-2 text-primary placeholder:text-muted focus:outline-none focus:border-indigo-500 transition-all;
 }
 
 .btn-audio {
