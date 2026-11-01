@@ -4,16 +4,8 @@
   @apply w-full rounded-xl h-48 sm:h-64 md:h-80 flex flex-col items-center justify-center focus-visible:border-primary-accent transition-colors cursor-pointer p-4;
 }
 
-.upload-title {
-  @apply mt-2 sm:mt-4 text-sm sm:text-base text-primary;
-}
-
 .preview-image {
   @apply w-full max-h-96 object-contain rounded-xl;
-}
-
-.action-overlay {
-  @apply flex flex-col absolute gap-2;
 }
 
 .btn-image-selector {

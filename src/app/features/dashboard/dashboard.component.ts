@@ -8,7 +8,6 @@ import { ThoughtSummaryComponent } from './components/thought-summary/thought-su
   selector: 'app-dashboard',
   imports: [ThoughtSummaryComponent, AnalyzerPanelComponent, AppUsageMetricsComponent],
   templateUrl: './dashboard.component.html',
-  styleUrl: './dashboard.component.css',
 })
 export default class DashboardComponent {
   analysis = signal<ImageAnalysisResponse | undefined>(undefined);

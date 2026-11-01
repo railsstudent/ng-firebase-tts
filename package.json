@@ -31,7 +31,8 @@
     "chrome:debug:stop": "node scripts/chrome-debug.mjs stop",
     "chrome:debug:status": "node scripts/chrome-debug.mjs status",
     "firebase:deploy": "cp firebase/firebase.json .; firebase deploy --only apphosting; rm firebase.json",
-    "firebase:emulate:auth": "firebase --config firebase/firebase.json emulators:start --only auth"
+    "firebase:emulate:auth": "firebase --config firebase/firebase.json emulators:start --only auth",
+    "launch": "concurrently \"npm run firebase:emulate:auth\" \"npm run start\""
   },
   "private": true,
   "packageManager": "npm@12.2.0",
@@ -62,6 +63,7 @@
     "@types/node": "26.6.4",
     "@vitest/coverage-v8": "^4.1.11",
     "angular-eslint": "22.5.0",
+    "concurrently": "10.0.6",
     "cspell": "10.3.6",
     "eslint": "^10.12.0",
     "eslint-plugin-unicorn": "77.0.0",

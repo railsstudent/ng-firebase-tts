@@ -1,5 +1,0 @@
-@reference "../../../styles.css";
-
-.dashboard-main {
-  @apply border-surface-border bg-surface-card rounded-2xl p-6 md:p-8;
-}

@@ -1,4 +1,4 @@
-<section class="dashboard-main backdrop-blur-sm border">
+<section class="surface-card p-6">
   <app-analyzer-panel [(analysis)]="analysis" />
   @let imageAnalysis = analysis();
   @defer (when imageAnalysis?.tokenUsage || imageAnalysis?.optimizationMetrics) {

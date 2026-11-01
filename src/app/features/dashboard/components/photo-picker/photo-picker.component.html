@@ -14,18 +14,18 @@
       [class]="isDragActive() ? dragClasses : normalClasses"
     >
       <app-photo-icon />
-      <p class="upload-title pointer-events-none font-semibold">Click to upload an image</p>
+      <p class="mt-2 text-primary pointer-events-none font-semibold">Click to upload an image</p>
       <p class="pointer-events-none text-xs sm:text-sm">PNG, JPG, JPEG or WEBP</p>
     </button>
   } @else {
     <div class="w-full relative group">
       <img [src]="previewUrl()" alt="Selected preview" class="preview-image border-2 border-surface-border" />
-      <div class="action-overlay top-3 right-6">
+      <div class="grid absolute top-3 right-6">
         <button
           type="button"
           (click)="fileInput.click()"
           aria-label="Select a new image"
-          class="btn-image-selector focus-visible:outline-2 focus-visible:outline-primary-accent"
+          class="mb-2 btn-image-selector focus-visible:outline-2 focus-visible:outline-primary-accent"
         >
           Change Image
         </button>

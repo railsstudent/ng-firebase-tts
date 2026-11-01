@@ -31,7 +31,7 @@ describe('DashboardComponent', () => {
 
   // TEST CASE 1: Render structural elements
   it('should render main dashboard wrapper, analyzer panel, and no token usage or thought summary by default', () => {
-    const mainEl = fixture.debugElement.query(By.css('.dashboard-main'));
+    const mainEl = fixture.debugElement.query(By.css('section.surface-card'));
     const analyzerPanel = fixture.debugElement.query(By.css('app-analyzer-panel'));
     const tokenUsage = fixture.debugElement.query(By.css('app-usage-metrics'));
     const thoughtSummary = fixture.debugElement.query(By.css('app-thought-summary'));

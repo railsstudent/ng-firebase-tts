@@ -44,7 +44,7 @@ export class HomeComponent {
       runInInjectionContext(this.#injector, () => {
         const dialog = inject(Dialog);
         const dialogRef = dialog.open(SignInModalComponent, {
-          backdropClass: ['backdrop-blur-sm', 'bg-black/40'],
+          backdropClass: ['bg-surface-card'],
         });
 
         this.#dialogRef = dialogRef;

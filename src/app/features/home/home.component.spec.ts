@@ -138,7 +138,7 @@ describe('HomeComponent', () => {
     expect(mockDialog.open).toHaveBeenCalledWith(
       SignInModalComponent,
       expect.objectContaining({
-        backdropClass: ['backdrop-blur-sm', 'bg-black/40'],
+        backdropClass: ['bg-surface-card'],
       }),
     );
   });
