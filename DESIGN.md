@@ -219,100 +219,101 @@ The **Firebase AI Logic Multimodal Speech Generator** is a focused AI studio web
 
 ### 1. App Header (`HeaderComponent`)
 
-- **Container (`.app-header`)**: Relative wrapper with centered text block (`relative flex items-center justify-center text-center mb-6 sm:mb-8 min-h-[4rem]`).
+- **Container (`.header-card`)**: Relative wrapper with centered text block (`relative flex items-center justify-center text-center mb-6 sm:mb-8 min-h-[4rem]`).
 - **Shared Action Button (`.header-btn`)**:
   - Styling: `absolute top-1/2 -translate-y-1/2 p-2 rounded-lg text-muted hover:text-primary hover:bg-surface-hover/60 focus:outline-none focus:ring-2 focus:ring-primary-hover active:scale-95 transition-all flex items-center justify-center`.
 - **Home Navigation Action (`.header-btn left-0`)**:
-  - Left-anchored link housing `<app-home-icon />` (`@apply app-icon`).
+  - Left-anchored link housing `<app-home-icon />` (`host: { class: 'app-icon w-6 h-6' }`).
   - Accessible label: `aria-label="Go to Home Screen"`.
   - Target: `[routerLink]="homeLink"` (`/home`).
 - **Sign Out Action (`.header-btn right-0`)**:
   - Right-anchored button rendered conditionally when `isAuthenticated()` is `true`.
-  - Element: `<button type="button" class="header-btn right-0" aria-label="Sign out">` housing `<app-sign-out-icon />` (`@apply app-icon`).
+  - Element: `<button type="button" class="header-btn right-0" aria-label="Sign out">` housing `<app-sign-out-icon />` (`host: { class: 'app-icon w-6 h-6' }`).
   - Interaction: Signs out the user and redirects to the Home screen upon completion.
-- **Title (`h1.header-title`)**: `"Firebase AI Logic Obscure Fact Speech Generator"` (`text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-emerald-400 px-12`).
+- **Title (`h1.header-title`)**: `"Firebase AI Logic Obscure Fact Speech Generator"` (`text-xl sm:text-3xl lg:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary-accent to-emerald-400 px-12`).
 - **Constraints**: Strictly NO subtitles, secondary paragraphs, tabs, breadcrumbs, search bars, user avatars, or secondary dropdown menus. Only the designated left-anchored Home navigation button, right-anchored conditional Sign-Out button, and centered `h1` title are permitted.
 
 ### 2. App Footer (`FooterComponent`)
 
-- **Container (`.app-footer`)**: Rounded floating card (`bg-surface-card border border-surface-border rounded-2xl w-full`).
-- **Content (`.footer-content`)**: Centered text (`container mx-auto px-6 py-4 text-center text-muted text-sm`):
+- **Container (`footer.surface-card.footer-card.text-muted`)**: Rounded surface card (`bg-surface-card p-4 rounded-xl border border-surface-border px-6 text-center text-sm text-muted`).
+- **Content**: Centered text:
   - `© 2026 Image Analysis and Text-to-Speech Application.`
   - `Built with Angular, Firebase AI Logic, and TailwindCSS 4.`
 
-### 3. PWA Update Notification Banner (`PwaUpdateBanner`)
+### 3. PWA Update Notification Banner (`PwaUpdateBannerComponent`)
 
-- **Positioning & Card (`.pwa-banner`)**: `fixed bottom-6 right-6 bg-slate-800 text-primary p-4 rounded-lg shadow-2xl flex items-center gap-4 z-50 border border-surface-border`.
-- **Message**: `"A new version is available!"` (`text-sm font-medium`).
-- **Action Button (`.pwa-button`)**: `"Reload"` (`bg-primary-indigo hover:bg-primary-hover text-white px-3 py-1.5 rounded-md text-sm font-semibold transition-all`).
+- **Positioning & Card (`.pwa-banner border text-sm`)**: `fixed bottom-6 right-6 bg-app-bg text-primary p-4 flex items-center gap-4 z-50 rounded-lg border-surface-border` (with `border text-sm` in HTML).
+- **Message**: `"A new version is available!"` (`font-medium`).
+- **Action Button (`.pwa-button font-semibold rounded-md`)**: `"Reload"` (`bg-primary-indigo hover:bg-primary-hover px-3 py-1.5 transition-all` with `font-semibold rounded-md` in HTML).
 
 ### 4. Photo Picker & Dropzone (`PhotoPickerComponent`)
 
-- **Dropzone Area (`.dropzone`)**: `w-full h-48 sm:h-64 md:h-80 border-2 border-dashed border-surface-border rounded-xl flex flex-col items-center justify-center text-muted hover:bg-surface-card hover:border-surface-hover focus-visible:ring-2 focus-visible:ring-primary-accent focus-visible:outline-hidden transition-colors cursor-pointer p-4`.
-- **Drag-Active State (`.dropzone.drag-active`)**: `bg-surface-hover border-primary-indigo text-primary-accent scale-102 shadow-indigo-500/20 shadow-md`.
-- **Icons & Text**: Centered camera/photo SVG icon (`.photo-icon`: `w-12 h-12 sm:w-16 sm:h-16 text-muted`), `.upload-title` (`mt-2 sm:mt-4 text-sm sm:text-base font-semibold text-primary`), `.upload-subtitle` (`text-xs sm:text-sm text-muted`).
-- **Preview State (`.preview-image`)**: Rounded image thumbnail (`w-full h-auto max-h-96 object-contain rounded-xl shadow-lg`) with floating `"Change Image"` action overlay (`.btn-image-selector`: `bg-app-bg/50 text-primary px-3 py-1.5 text-sm rounded-md hover:bg-app-bg/80`).
-- **Action CTA (`.btn-generate`)**: Full-width primary button (`@apply btn-primary`) **"Analyze Image"** with animated SVG loading spinner.
+- **Dropzone Area (`.dropzone border-2 border-dashed`)**: `w-full rounded-xl h-48 sm:h-64 md:h-80 flex flex-col items-center justify-center focus-visible:border-primary-accent transition-colors cursor-pointer p-4` combined with `@let normalClasses = 'outline-none border-surface-border text-muted hover:bg-surface-card hover:border-surface-hover'`.
+- **Drag-Active State (`dragClasses`)**: `outline-none bg-surface-hover border-primary-indigo text-primary-accent scale-102`.
+- **Icons & Text**: Centered camera/photo SVG icon (`<app-photo-icon />`: `app-icon w-12 h-12 sm:w-16 sm:h-16 pointer-events-none text-muted`), upload title (`mt-2 text-primary pointer-events-none font-semibold`), and upload subtitle (`pointer-events-none text-xs sm:text-sm`).
+- **Preview State (`.preview-image border-2 border-surface-border`)**: Rounded image thumbnail (`w-full max-h-96 object-contain rounded-xl`) with floating action overlay (`grid absolute top-3 right-6`) containing `"Change Image"` and `"Remove Image"` buttons (`.btn-image-selector`: `bg-app-bg text-primary px-3 py-1.5 text-sm rounded-md hover:bg-surface-hover transition-all opacity-0 group-hover:opacity-100 focus-visible:opacity-100` plus `focus-visible:outline-2 focus-visible:outline-primary-accent` in HTML).
+- **Action CTA (`w-full btn-primary mt-6`)**: Full-width primary button **"Generate Description"** (or **"Analyzing..."** with `<app-spinner-icon class="w-5 h-5" />`).
 
 ### 5. Suggested Tags Display (`TagsDisplayComponent`)
 
 - **Container**: Horizontal wrapping tag row (`flex flex-wrap gap-2`).
-- **Pill Badges (`.tag-pill`)**: `bg-indigo-900/20 text-indigo-200 border border-indigo-500/30 text-sm font-medium px-3 py-1 rounded-full`, with active highlight state (`.tag-pill-selected`: `bg-primary-indigo text-white border-indigo-400 shadow-md shadow-indigo-500/20`).
+- **Pill Badges (`.tag-pill border font-medium`)**: `bg-app-bg text-primary-accent border-primary-indigo text-sm px-3 py-1 rounded-full`, with active highlight state (`.tag-pill-selected, .tag-option[aria-selected='true'] .tag-pill`: `bg-primary-indigo text-primary border-primary-accent`).
 
 ### 6. Vocal Customization (Audio Tags) & Voice Profile Selector (`SpeechStudioComponent` & `VoiceSelectorComponent`)
 
 - **Obscure Fact Heading (`.section-title`)**: `"A surprising or obscure fact about the tags"` (`@apply section-title`).
-- **Obscure Fact Text (`.obscure-fact-text`)**: `text-primary-accent italic mb-4 text-lg`.
-- **Customizer Container (`.audio-customize-container`)**: `bg-surface-card backdrop-blur-sm p-6 rounded-xl border border-surface-border shadow-xl mb-6`.
-- **Form Inputs (`.form-field-textarea`)**: Scene (textarea), Emotion (input), and Pace (input) styled with `w-full bg-slate-900/60 border border-surface-border rounded-lg px-4 py-2 text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all`.
-- **Field Labels (`.form-field-label`)**: `text-xs font-bold text-muted uppercase tracking-wider ml-1`.
-- **Voice Profile Selector (`VoiceSelectorComponent`)**: Accessible `@angular/aria` combobox (`.form-field-select .voice-trigger`), popup listbox (`.voice-popup-container`: `bg-slate-900 border border-surface-border`), microphone/caret/check icons (`text-primary-accent`), and 6 Voice Profiles (`Zephyr`, `Puck`, `Charon`, `Kore`, `Fenrir`, `Aoede`) rendered in `text-secondary`.
+- **Obscure Fact Text (`.obscure-fact-text mb-4 text-lg`)**: `text-primary-accent italic`.
+- **Customizer Container (`surface-card p-6 mb-6`)**: Uses global `surface-card` utility with `p-6 mb-6`.
+- **Form Inputs (`form-input`)**: Scene (textarea), Emotion (input), and Pace (input) styled with global `@utility form-input` (`border border-surface-border text-primary rounded-lg focus:outline-none focus:border-primary-hover transition-all p-4 placeholder:text-muted w-full bg-app-bg`).
+- **Field Labels (`.form-field-label`)**: `text-xs font-bold text-muted ml-1`.
+- **Voice Profile Selector (`VoiceSelectorComponent`)**: Accessible `@angular/aria` combobox (`form-input voice-trigger justify-between` where `.voice-trigger` applies `cursor-pointer flex items-center select-none`), popup listbox (`.voice-popup-container border border-surface-border outline-none` where `.voice-popup-container` applies `w-full bg-app-bg rounded-xl mt-1 max-h-56 p-1.5 overflow-y-auto z-50`), option items styled via `[ngOption]` (`px-3 py-2 rounded-lg text-secondary cursor-pointer transition-colors text-sm select-none`), `[ngOption]:hover, [ngOption][data-active='true']` (`bg-surface-card text-primary-accent`), and `[ngOption][aria-selected='true']` (`bg-primary-indigo text-primary`), microphone/caret/check icons, and 6 Voice Profiles (`Zephyr`, `Puck`, `Charon`, `Kore`, `Fenrir`, `Aoede`).
 
 ### 7. Speech Generation Controls (`SpeechStudioComponent`)
 
 - **Trigger Buttons Container**: `flex justify-evenly gap-4`.
-- **Audio Buttons (`.btn-audio`)**: `mt-6 flex items-center justify-center px-4 py-2 btn-primary shadow-md`.
+- **Audio Buttons (`mt-6 btn-primary shadow-md`)**: Uses global `btn-primary` with `mt-6 shadow-md`.
 - **Button Labels & Icons (Strict Code Contract)**:
   - 1. `"Play Speech (Sync)"`
   - 2. `"Play Speech (Stream)"`
   - 3. `"Web Audio API"`
-  - **STRICT**: Buttons contain ONLY button text and an animated SVG loading spinner (`animate-spin h-5 w-5`) when `isLoading` is true. Strictly NO play icons (▶), NO speaker icons (🔊), NO waveform icons.
-- **Audio Output Figure (`.playback-figure`)**:
+  - **STRICT**: Buttons contain ONLY button text and an animated SVG loading spinner (`<app-spinner-icon class="w-5 h-5" />`) when `isLoading` is true. Strictly NO play icons (▶), NO speaker icons (🔊), NO waveform icons.
+- **Audio Output Figure (`.playback-figure border bg-app-bg`)**:
   - Rendered conditionally when `audioUrl` is present:
-  - Container: `mt-6 p-4 bg-slate-900/40 border border-surface-border rounded-xl flex flex-col gap-2`.
-  - Caption (`.playback-caption`): `"Listen to the Gemini-TTS:"` (`text-sm font-medium text-muted`).
+  - Container: `mt-6 p-4 rounded-xl border-surface-border flex flex-col gap-2` (with `border bg-app-bg` in HTML).
+  - Caption: `"Listen to the Gemini-TTS:"` (`text-sm font-medium text-muted`).
   - Audio Element: Standard native `<audio controls>` player (`w-full outline-none`).
 
 ### 8. Alternative Text Card (`AltTextPanelComponent`)
 
-- **Section Wrapper (`.section-wrapper`)**: `w-full mt-6`.
+- **Section Wrapper**: `w-full mt-6`.
 - **Heading (`.section-title`)**: `"Generated Alternative Text"` (`text-lg font-semibold text-primary mb-3`).
-- **Card (`.surface-card`)**: Rounded container (`bg-surface-card p-4 rounded-lg border border-surface-border`).
-- **Content (`.display-text`)**: Quoted generated alt-text string in `text-secondary italic` (`"..."`).
+- **Card (`.surface-card`)**: Rounded container (`bg-surface-card p-4 rounded-xl border border-surface-border`).
+- **Content**: Quoted generated alt-text string in `text-secondary italic` (`"..."`).
 - **STRICT Constraint**: Strictly NO model badges (e.g. "Gemini 1.5 Pro"), NO label badges, and NO pill indicators.
 
 ### 9. Recommendations Accordion (`RecommendationsComponent`)
 
 - **Heading (`.section-title`)**: Strictly `"Recommendations"` (`text-lg font-semibold text-primary mb-3`).
 - **Accordion List (`ngAccordionGroup`)**: Multi-expandable group (`flex flex-col gap-3`, `[multiExpandable]="true"`).
-- **Item Card (`.recommendation-card`)**: `bg-indigo-900/10 border border-indigo-500/20 text-sm font-medium p-4 rounded-lg text-secondary w-full transition-all duration-300 hover:border-indigo-500/40`.
-- **Item Trigger (`.recommendation-trigger`)**:
-  - Contains ID and title: `<span class="recommendation-id font-bold">{{ item.id }}: </span> <span class="recommendation-text">{{ item.text }}</span>` (`text-primary-accent` and `text-primary`).
-  - Right-aligned rotating SVG chevron icon (`.expand-icon`: `w-5 h-5 text-primary-accent transition-transform duration-200 flex-shrink-0`, `.expand-icon__expanded`: `rotate-180 text-indigo-300`).
+- **Item Card (`surface-card recommendation-card font-medium`)**: Combines `surface-card` with `.recommendation-card` (`bg-app-bg text-sm text-secondary w-full transition-all hover:border-primary-indigo`).
+- **Item Trigger (`.recommendation-trigger focus-visible:outline-2 focus-visible:outline-primary-accent`)**:
+  - Styling: `flex items-center justify-between cursor-pointer rounded w-full py-1`.
+  - Contains ID and title: `<span class="text-primary-accent font-bold">{{ item.id }}: </span> <span class="text-primary">{{ item.text }}</span>`.
+  - Right-aligned rotating SVG chevron icon (`<app-expand-more-icon class="transition-transform" [class]="triggerRef.expanded() ? 'rotate-180 text-primary' : 'text-primary-accent'" />`).
   - **STRICT**: Strictly NO status badges, NO confidence pills (e.g. "HIGH CONFIDENCE", "SYNTH READY", "Optimal").
 - **Expanded Panel (`ngAccordionPanel`)**:
-  - Detailed explanation formatted as `<span class="recommendation-reason-label">Reason:</span> <span class="recommendation-reason-text">{{ item.reason }}</span>` (`text-primary-accent/80` and `text-muted text-xs italic`).
+  - Detailed explanation formatted as `<span class="block mt-2 text-primary-accent/80">REASON:</span> <span class="text-muted block italic mt-0.5">{{ item.reason }}</span>`.
 
 ### 10. Search Grounding / Citations (`GroundingComponent`)
 
-- **Container (`.section-wrapper`)**: Full-width section (`w-full mt-6`).
+- **Container**: Full-width section (`w-full mt-6`).
 - **Inline Citations Block** (when `citations` present):
   - **Heading (`.section-title`)**: `"Inline Citations"` (`text-lg font-semibold text-primary mb-3`).
-  - **Numbered List (`.ordered-list`)**: `<ol class="ordered-list">` (`list-decimal mb-3`) with numbered list items (`<li class="ml-4 list-item">` in `text-secondary`).
-  - **Link Anchor (`.link-anchor`)**: `<a class="text-primary-accent hover:text-indigo-300 underline" target="_blank" rel="noopener noreferrer">{{ citation.title }}</a>`.
+  - **Numbered List (`.ordered-list`)**: `<ol class="ordered-list">` (`list-decimal mb-3`) with numbered list items (`<li class="ml-4 list-item">`).
+  - **Link Anchor (`.link-anchor`)**: `<a class="link-anchor" target="_blank" rel="noopener noreferrer">{{ citation.title }}</a>` (`text-primary-accent hover:text-primary underline`).
 - **Search Queries Block** (when `searchQueries` present):
   - **Heading (`.section-title`)**: `"Search Queries"` (`text-lg font-semibold text-primary mb-3`).
-  - **Numbered List (`.ordered-list`)**: `<ol class="ordered-list">` with `<li class="ml-4 list-item"><span class="italic">{{ query }}</span></li>`.
+  - **Numbered List (`.ordered-list`)**: `<ol class="ordered-list">` with `<li class="ml-4 text-secondary"><span class="italic">{{ query }}</span></li>`.
 - **Google Search Suggestions Block** (when `safeRenderedContent` present):
   - **Heading (`.section-title`)**: `"Google Search Suggestions"` (`text-lg font-semibold text-primary mb-3`).
   - Rendered search suggestion HTML container (`.grounding-suggestions`).
@@ -320,59 +321,58 @@ The **Firebase AI Logic Multimodal Speech Generator** is a focused AI studio web
 
 ### 11. Usage & Image Optimization Metrics (`AppUsageMetricsComponent` & `ThoughtSummaryComponent`)
 
-- **Telemetry Container (`.metrics-container`)**:
-  - Full-width wrapper with responsive layout (`flex flex-col md:flex-row gap-4 mt-6`).
-- **Telemetry Card Surface (`.metrics-card`)**:
-  - Surface card (`bg-slate-700/50 p-4 rounded-lg border border-slate-600 flex-1`).
+- **Telemetry Container (`.metrics-container gap-4 mt-6`)**:
+  - Full-width wrapper with responsive layout (`flex flex-col md:flex-row`).
+- **Telemetry Card Surface (`.metrics-card bg-surface-card border-surface-hover`)**:
+  - Surface card (`p-4 rounded-lg flex-1` with `bg-surface-card border-surface-hover`).
 - **Text Generation Token Usage Card**:
   - **Heading (`.section-title`)**: `"Text Generation Token Usage"` (`text-lg font-semibold text-primary mb-3`).
-  - **Container (`.usage-grid`)**: Responsive statistics row (`flex flex-wrap justify-around gap-2`).
-  - **Items (`.usage-item`)**: 4 statistics formatted as `text-secondary italic font-mono text-sm tracking-wide`:
+  - **Container (`.usage-grid font-mono justify-around gap-2`)**: Responsive statistics row (`flex flex-wrap`).
+  - **Items**: 4 statistics formatted as `text-secondary italic text-sm`:
     - `Input: 412`
     - `Output: 168`
     - `Thought: 84`
     - `Total: 664`
 - **Image Optimization Efficiency Card** (when `optimizationMetrics` present):
   - **Heading (`.section-title`)**: `"Image Optimization Efficiency"` (`text-lg font-semibold text-primary mb-3`).
-  - **Container (`.usage-grid`)**: Responsive statistics row (`flex flex-wrap justify-around gap-2`).
-  - **Items (`.usage-item`)**: Statistics formatted as `text-secondary italic font-mono text-sm tracking-wide`:
+  - **Container (`.usage-grid font-mono justify-around gap-2`)**: Responsive statistics row (`flex flex-wrap`).
+  - **Items**: Statistics formatted as `text-secondary italic text-sm`:
     - `Original Size: 4.8 MB`
     - `Optimized Size: 56 KB`
     - `Payload Saved: 98.8%`
     - `Tokens Saved: ~5,934`
 - **Thought Summary (`ThoughtSummaryComponent`)**:
   - **Heading (`.section-title`)**: `"Thought Summary"` (`text-lg font-semibold text-primary mb-3`).
-  - **Content Container (`.thought-content` / `.surface-card overflow-y-auto h-64`)**: Scrollable surface card (`bg-surface-card p-4 rounded-lg border border-surface-border overflow-y-auto h-64`).
-  - **Content Text (`.thought-text`)**: Markdown HTML rendered in `text-secondary italic`.
+  - **Content Container (`.surface-card overflow-y-auto h-64`)**: Scrollable surface card (`bg-surface-card p-4 rounded-xl border border-surface-border overflow-y-auto h-64`).
+  - **Content Text**: Markdown HTML rendered in `text-secondary italic`.
 - **STRICT Constraint**: Zero artificial neon badges, circular progress meters, or status chips. Clean key-value telemetry adhering strictly to the Obsidian & Indigo theme tokens.
 
 ---
 
 ### 12. Home Screen (`HomeComponent`)
 
-- **Outer Wrapper (`.home-container`)**: Centered layout inside standard `.app-main` (`w-full flex-1 flex flex-col items-center justify-center py-8 sm:py-16`).
-- **Hero Card (`.home-card.surface-card`)**:
-  - **Desktop Viewport (1280px+)**: Floating surface card (`bg-surface-card border border-surface-border rounded-2xl max-w-2xl w-full p-6 sm:p-12 text-center flex flex-col items-center gap-6 shadow-2xl backdrop-blur-sm`).
-  - **Mobile Viewport (<768px)**: Full-width responsive card (`p-6 w-full flex flex-col items-center gap-6`).
-- **Category Pill (`.home-badge`)**: `"Firebase AI Logic & Vertex AI"` (`text-xs uppercase font-bold tracking-widest text-primary-accent bg-indigo-950/60 border border-indigo-800/60 px-3 py-1 rounded-full`).
-- **Headline (`.home-title`)**: `"Multimodal Vision & Real-Time Speech Studio"` (`text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-primary`).
-- **Description (`.home-description`)**: `"Analyze images with Gemini multimodal intelligence, discover grounded obscure facts, and generate real-time streaming audio with customizable voice personas."` (`text-sm sm:text-base text-muted max-w-lg leading-relaxed`).
-- **Primary Dynamic Hero CTA Button (`.btn-primary.btn-launch`)**:
+- **Outer Wrapper (`section.py-8.sm:py-16`)**: Centered layout inside `<main class="flex-1 content-center">`.
+- **Hero Card (`.home-card.surface-card.text-center`)**:
+  - **Styling**: `surface-card` combined with `.home-card` (`max-w-2xl mx-auto sm:p-10 flex flex-col items-center gap-6`) and `text-center`.
+- **Category Pill (`.home-badge border-2 font-bold`)**: `"FIREBASE AI LOGIC & AGENT PLATFORM"` (`text-xs text-primary-accent px-3 py-1 rounded-full bg-app-bg border-primary-indigo` with `border-2 font-bold` in HTML).
+- **Headline (`h2`)**: `"Multimodal Vision & Real-Time Speech Studio"` (`text-2xl sm:text-3xl lg:text-4xl font-bold`).
+- **Description (`p`)**: `"Analyze images with Gemini multimodal intelligence, discover grounded obscure facts, and generate real-time streaming audio with customizable voice personas."` (`text-muted max-w-lg`).
+- **Primary Dynamic Hero CTA Button (`.btn-primary px-8`)**:
   - **Authenticated State**:
     - Semantic link to Studio dashboard (`[routerLink]="dashboard"`).
-    - Content: `"Launch Studio"` label accompanied by standalone `<app-arrow-right-icon>` (`ArrowRightIconComponent`, `aria-hidden="true"`) with micro-interaction hover translation (`group-hover:translate-x-1`).
-    - Styling: `class="btn-primary btn-launch group"` (`@apply px-8 py-3.5 text-base shadow-lg shadow-indigo-500/20 flex items-center justify-center;`).
+    - Content: `"Launch Studio"` label accompanied by standalone `<app-arrow-right-icon class="transition-transform group-hover:translate-x-1" />`.
+    - Styling: `class="btn-primary px-8 group"`.
   - **Unauthenticated State**:
     - Primary action button triggering the Sign-In Modal dialog.
     - Content: `"Sign In"` label with interactive hover and focus states (strictly NO right arrow icon).
-    - Styling: `class="btn-primary btn-launch"` (`@apply px-8 py-3.5 text-base shadow-lg shadow-indigo-500/20 flex items-center justify-center;`).
-- **Architecture & Capabilities Metadata Grid (`.home-features-grid`)**:
-  - Container: `w-full grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-6 border-t border-surface-border/60 mt-2`.
-  - Feature Cards (`.feature-item`): `bg-slate-900/60 border border-slate-800 rounded-xl p-3 sm:p-4 flex flex-col items-center gap-1 text-center` with `.feature-label` (`text-xs font-medium text-muted uppercase tracking-wider`) and `.feature-value` (`text-sm font-semibold text-secondary`).
+    - Styling: `class="btn-primary px-8"`.
+- **Architecture & Capabilities Metadata Grid (`.home-features-grid border-t border-surface-border`)**:
+  - Container: `w-full grid sm:grid-cols-3 gap-4 pt-6 mt-2` (with `border-t border-surface-border` in HTML).
+  - Feature Cards (`surface-card bg-app-bg p-3`): Uses `surface-card` overridden with `bg-app-bg p-3`, containing `<p class="text-xs text-muted font-medium">{{ feature.label }}</p>` and `<p class="text-sm font-semibold text-secondary">{{ feature.value }}</p>`.
   - Clean key-value list with **zero status pills or badge chips**:
-    - **Model Pipeline**: `Gemini 3.8 Flash`
-    - **Audio Synthesis**: `Gemini-TTS Streaming`
-    - **Grounding**: `Google Search Tool`
+    - **MODEL PIPELINE**: `Gemini 3.8 Flash`
+    - **AUDIO SYNTHESIS**: `Gemini-TTS Streaming`
+    - **GROUNDING**: `Google Search Tool`
 - **Strict Constraints**:
   - Strictly NO right arrow icon or secondary icons on the unauthenticated `"Sign In"` CTA button (the arrow icon is strictly reserved for the authenticated `"Launch Studio"` button).
   - Strictly NO status pills, badges, or chip tags on list items (`Multimodal`, `Real-Time`, `Verified` tags are forbidden).
@@ -385,27 +385,27 @@ The **Firebase AI Logic Multimodal Speech Generator** is a focused AI studio web
 ### 13. Sign-In Modal Dialog (`SignInModalComponent`)
 
 - **Overlay & Backdrop**:
-  - Centered modal container over a semi-transparent blurred backdrop (`backdrop-blur-sm bg-black/40`).
-- **Modal Card Surface (`.modal-card`)**:
-  - Geometry: `rounded-2xl bg-surface-card border border-surface-border p-6 sm:p-8 max-w-md w-full shadow-2xl backdrop-blur-md flex flex-col gap-5`.
-- **Header (`.modal-header`)**:
-  - Layout: `flex items-center justify-between pb-2 border-b border-surface-border/60`.
-  - Title (`#sign-in-dialog-title.modal-title`): `"Sign In"` (`text-xl sm:text-2xl font-bold text-primary`).
-  - Close Button (`.modal-close-btn`): Top-right button (`p-1.5 rounded-lg text-muted hover:text-primary hover:bg-surface-hover/60 focus:outline-none focus:ring-2 focus:ring-primary-hover transition-all flex items-center justify-center`) with `aria-label="Close dialog"`.
+  - Centered modal container over a semi-transparent surface backdrop (`backdropClass: ['bg-surface-card']`).
+- **Modal Card Surface (`surface-card w-md max-w-full`)**:
+  - Geometry: Uses global `surface-card` (`bg-surface-card p-4 rounded-xl border border-surface-border`) with `w-md max-w-full`.
+- **Header (`.modal-header border-b-2 border-surface-border`)**:
+  - Layout: `flex items-center justify-between pb-3 mb-4` (with `border-b-2 border-surface-border` in HTML).
+  - Title (`#sign-in-dialog-title`): `"Sign In"` (`text-xl font-bold text-primary`).
+  - Close Button (`.modal-close-btn focus-visible:outline-2 focus-visible:outline-primary-hover`): Top-right button (`text-muted hover:text-primary hover:bg-surface-hover p-1.5 rounded-lg transition-all flex items-center justify-center`) housing `<app-close-icon />` with `aria-label="Close dialog"`.
 - **Form Fields & Validation**:
   - **Email Field**:
-    - Label (`.form-label`): `"Email Address"` (`text-xs uppercase font-semibold tracking-wider text-muted mb-1.5 block`).
-    - Input (`.form-input`): `<input type="email" autocomplete="username">` (`w-full bg-app-bg border border-surface-border text-primary rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-primary-hover transition-all`).
-    - Validation Hint (`.error-hint`): Rendered below touched invalid field in `text-xs mt-1 block text-error-text`.
+    - Label (`.form-field-label`): `"EMAIL ADDRESS"` (`text-xs font-bold text-muted ml-1`).
+    - Input (`form-input mt-1.5`): `<input type="email" autocomplete="username">`.
+    - Validation Hint: Rendered below touched invalid field in `text-error-text mt-1 block`.
   - **Password Field**:
-    - Label (`.form-label`): `"Password"` (`text-xs uppercase font-semibold tracking-wider text-muted mb-1.5 block`).
-    - Input (`.form-input`): `<input type="password" autocomplete="current-password">` (`w-full bg-app-bg border border-surface-border text-primary rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-primary-hover transition-all`).
-    - Validation Hint (`.error-hint`): Rendered below touched invalid field in `text-xs mt-1 block text-error-text`.
-  - **Error Alert Banner (`.error-block`)**:
-    - Rendered conditionally on failed sign-in attempts: `@apply mt-2 mb-2 text-sm` inheriting global `.error-block` (`bg-error-bg border border-error-border text-error-text px-4 py-3 rounded-lg relative`).
-- **Submit Action (`.btn-submit`)**:
-  - Submit Button (`.btn-submit`): Primary button **"Sign In"** (`@apply btn-primary w-full py-3 mt-2 flex items-center justify-center gap-2`).
-  - Loading State: Animated SVG spinner (`svgClass="animate-spin h-5 w-5"`) rendered when `signInForm().submitting()` is `true`, disabling further submissions.
+    - Label (`.form-field-label`): `"PASSWORD"` (`text-xs font-bold text-muted ml-1`).
+    - Input (`form-input mt-1.5`): `<input type="password" autocomplete="current-password">`.
+    - Validation Hint: Rendered below touched invalid field in `text-error-text mt-1 block`.
+  - **Error Alert Banner (`error-block my-2 text-sm`)**:
+    - Rendered conditionally on failed sign-in attempts inheriting global `.error-block` (`bg-error-bg border border-error-border text-error-text px-4 py-3 rounded-lg relative`).
+- **Submit Action (`mt-2 btn-primary w-full`)**:
+  - Submit Button: Primary button **"Sign In"** (or **"Signing in..."**).
+  - Loading State: Animated SVG spinner (`<app-spinner-icon class="w-5 h-5" />`) rendered when `signInForm().submitting()` is `true`, disabling further submissions.
 - **Accessibility & Focus Contract**:
   - ARIA: `role="dialog"`, `aria-modal="true"`, `aria-labelledby="sign-in-dialog-title"`.
   - Traps keyboard focus within the dialog while open.

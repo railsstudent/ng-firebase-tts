@@ -35,10 +35,10 @@ We establish the following architectural strategies for authentication, session 
   - **Key Found (Active Tab Refresh)**: `AuthenticationService` lazily imports `firebase/auth` in the background to restore the user session and synchronize `isAuthenticated = signal(true)`.
 - **On-Demand Sign-In**: When an unauthenticated user opens the sign-in modal and submits credentials, `AuthenticationService.signIn(...)` dynamically imports `firebase/auth`, applies `browserSessionPersistence`, and authenticates against Firebase.
 
-### 3. Accessible Dialog via `@angular/cdk/dialog` with `@defer (on interaction)`
+### 3. Accessible Dialog via `@angular/cdk/dialog` with On-Demand Dynamic `import()`
 
-- The sign-in dialog is implemented using `@angular/cdk/dialog` to ensure out-of-the-box compliance with WAI-ARIA modal dialog specifications (`role="dialog"`, `aria-modal="true"`, `aria-labelledby`, focus trapping, backdrop styling, and native Escape key dismissal).
-- The dialog component and CDK dependencies are wrapped inside Angular's **`@defer (on interaction)`** template block, ensuring they are only downloaded when the user interacts with the "Sign In" button.
+- The sign-in dialog is implemented using `@angular/cdk/dialog` (`backdropClass: ['bg-surface-card']`) to ensure out-of-the-box compliance with WAI-ARIA modal dialog specifications (`role="dialog"`, `aria-modal="true"`, `aria-labelledby`, focus trapping, backdrop styling, and native Escape key dismissal).
+- Both `SignInModalComponent` and `@angular/cdk/dialog` are loaded on demand in parallel via `await Promise.all([import('@/shared/ui/sign-in-modal/sign-in-modal.component'), import('@angular/cdk/dialog')])` when the user clicks the "Sign In" button.
 
 ### 4. Modern Signal Forms (`@angular/forms/signals`)
 

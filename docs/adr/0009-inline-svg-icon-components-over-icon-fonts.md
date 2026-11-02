@@ -18,12 +18,12 @@ This architecture had several drawbacks:
 
 We replace all icon web fonts with **standalone Angular SVG components** located in `src/app/shared/ui/icons/`:
 
-1. **Self-Contained Components with Shared Base Stylesheet**:
-   - Each icon is encapsulated in its own `.component.ts` file in `src/app/shared/ui/icons/` referencing the centralized `styleUrl: './icon.css'`.
-   - The shared stylesheet standardizes host layout, dimensions, and baseline behavior using Tailwind CSS v4 `@apply app-icon` on `:host`. Individual companion `.component.css` files are retained only when an icon requires unique transitions or animation states (e.g. `arrow-drop-down-icon`).
-   - The component template renders an inline `<svg class="w-full h-full" fill="currentColor" aria-hidden="true">` that inherits layout, size, and color dynamically from `:host`.
-2. **Contextual State Styling via Element Selectors**:
-   - Consuming components (like `VoiceSelectorComponent`) apply contextual interaction states (such as caret rotation on expand or checkmark visibility on selection) by targeting element selectors directly (e.g. `.voice-trigger[aria-expanded='true'] app-arrow-drop-down-icon`).
+1. **Self-Contained Components with Global `.app-icon` Host Styling**:
+   - Each icon is encapsulated in its own `.component.ts` file in `src/app/shared/ui/icons/` and binds `host: { class: 'app-icon ...' }` directly in its `@Component` metadata.
+   - Global rules in `src/styles.css` (`.app-icon` and `.app-icon > svg { @apply size-full; }`) standardize host layout, dimensions, and child `<svg>` sizing without needing companion `.css` files for individual icons.
+   - The component template renders an inline `<svg fill="currentColor" aria-hidden="true">` (or `stroke="currentColor"`) that inherits layout, size, and color dynamically from `:host`.
+2. **Contextual State Styling via Template Signal Bindings**:
+   - Consuming components (such as `VoiceSelectorComponent` and `RecommendationsComponent`) apply contextual interaction states (such as caret rotation on expand or checkmark visibility on selection) via direct template bindings on the icon element (e.g. `<app-arrow-drop-down-icon [class]="popupExpanded() ? 'rotate-180 text-primary-accent' : ''" />` and `<app-check-icon [class.invisible]="!opt.selected()" />`).
 3. **Complete Removal of Web Font Assets**:
    - Uninstalled `@fontsource/material-symbols-outlined`.
    - Removed font preload tags from `src/index.html`.
@@ -41,4 +41,4 @@ We replace all icon web fonts with **standalone Angular SVG components** located
 
 ### Negative / Trade-offs
 
-- **Component Creation Overhead**: Adding a new icon requires creating a new component and companion CSS file in `src/app/shared/ui/icons/` rather than typing a font ligature string. (Easily justified given the small number of UI icons in the application).
+- **Component Creation Overhead**: Adding a new icon requires creating a standalone `.component.ts` file in `src/app/shared/ui/icons/` rather than typing a font ligature string. (Easily justified given the small number of UI icons in the application).
