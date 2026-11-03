@@ -50,8 +50,7 @@ export class SignInModalComponent {
   async signIn(field: FieldTree<AuthCredentials, string | number>): Promise<SignInSubmissionError | undefined> {
     try {
       this.errorMessage.set(undefined);
-      const formValues = field().value();
-      await this.#authService.signIn(formValues);
+      await this.#authService.signIn(field().value());
       if (this.#authService.isAuthenticated()) {
         this.#dialogRef?.close();
         await this.#router.navigate([APP_LINKS.DASHBOARD]);
