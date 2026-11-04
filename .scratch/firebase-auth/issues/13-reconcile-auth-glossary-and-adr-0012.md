@@ -4,9 +4,9 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Remove parenthetical implementation identifiers (`AuthenticationService`, `isAuthenticated`, `browserSessionPersistence`) from the **Authentication & Session Management** section of `GLOSSARY.md`.
-- [ ] Update `docs/adr/0012-firebase-auth-session-and-lazy-dialog-strategy.md` to reference `AuthService` and `canActivateDashboard`, and document retryable single-flight `ensureAuth()` initialization with partial listener cleanup and idempotent emulator setup.
-- [ ] Update `.scratch/firebase-auth/issues/03-create-auth-service-and-session-listener.md` and `.scratch/firebase-auth/issues/04-create-auth-guard.md` specifications to reflect `src/app/core/auth/` paths, `!auth.emulatorConfig` emulator guarding, `try / catch` listener cleanup around `auth.authStateReady()`, `.catch()` reset on `#authReady`, and `canActivateDashboard` error handling.
-- [ ] `npm run cspell` (via `npm run lint`) passes with zero spelling or lint errors.
+- [x] Remove parenthetical implementation identifiers (`AuthenticationService`, `isAuthenticated`, `browserSessionPersistence`) from the **Authentication & Session Management** section of `GLOSSARY.md`.
+- [x] Update `docs/adr/0012-firebase-auth-session-and-lazy-dialog-strategy.md` to reference `AuthService` and `canActivateDashboard`, and document retryable single-flight `ensureAuth()` initialization with partial listener cleanup and idempotent emulator setup.
+- [x] Update `.scratch/firebase-auth/issues/03-create-auth-service-and-session-listener.md` and `.scratch/firebase-auth/issues/04-create-auth-guard.md` specifications to reflect `src/app/core/auth/` paths, `!auth.emulatorConfig` emulator guarding, `try / catch` listener cleanup around `auth.authStateReady()`, `.catch()` reset on `#authReady`, and `canActivateDashboard` error handling.
+- [x] `npm run cspell` (via `npm run lint`) passes with zero spelling or lint errors.

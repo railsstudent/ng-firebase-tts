@@ -10,19 +10,19 @@ Create a functional Angular route guard (`canActivateDashboard: CanActivateFn`) 
 
 ## Target Files
 
-- `src/app/core/guards/auth.guard.ts` (New)
-- `src/app/core/guards/auth.guard.spec.ts` (New)
+- `src/app/core/auth/auth.guard.ts` (New)
+- `src/app/core/auth/auth.guard.spec.ts` (New)
 - `src/app/app.routes.ts`
 
 ## Specifications & Requirements
 
-1. **Guard Implementation (`src/app/core/guards/auth.guard.ts`)**:
+1. **Guard Implementation (`src/app/core/auth/auth.guard.ts`)**:
    - Async functional `CanActivateFn`.
    - Injects `AuthService` and `Router`.
-   - Calls `await authService.ensureAuth()` to ensure session persistence is restored from `sessionStorage` and initial session state has settled.
+   - Calls `await authService.ensureAuth().catch((error) => console.error('Failed to restore auth session:', error))` to ensure session persistence is restored from `sessionStorage` and initial session state has settled, while logging and suppressing initialization errors so unauthenticated or offline visitors redirect cleanly.
    - Checks `authService.isAuthenticated()`:
      - If `true`, returns `true`.
-     - If `false`, returns `router.createUrlTree(['/home'])` to redirect to the Home page.
+     - If `false`, returns `router.createUrlTree([APP_LINKS.HOME])` to redirect to the Home page.
 2. **Route Configuration (`src/app/app.routes.ts`)**:
    - Attach `canActivate: [canActivateDashboard]` to the `/dashboard` route.
 

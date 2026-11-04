@@ -131,17 +131,17 @@ _Avoid_: App cache, cache list, offline manifest, raw SW config
 ### Authentication & Session Management
 
 **Authentication Service**:
-The core singleton service (`AuthenticationService`) that manages user credentials, reactive authentication state (`isAuthenticated`), and lazy initialization of the Firebase Auth SDK.
+The core singleton service that coordinates user credentials, reactive authentication status, and on-demand initialization of the authentication provider.
 _Avoid_: Auth manager, login controller, session daemon
 
 **Sign-In Modal**:
-The accessible dialog overlay powered by `@angular/cdk/dialog` and Angular Signal Forms for authenticating users via Email and Password.
+The accessible dialog overlay for authenticating users with email and password credentials.
 _Avoid_: Login popup, credentials window, auth box
 
 **Sign-Out Action**:
 The accessible icon button in the application header that terminates the active user session and navigates to the Home Screen.
 _Avoid_: Logout link, exit button, kill session icon
 
-**User Session (`browserSessionPersistence`)**:
+**User Session**:
 The temporary authenticated state stored in browser session storage, bound to the lifetime of the active browser tab.
 _Avoid_: Token cache, permanent login, cookie session
