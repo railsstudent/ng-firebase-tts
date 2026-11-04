@@ -27,13 +27,15 @@ We establish the following architectural strategies for authentication, session 
 - **Tab Lifetime Guarantee**: Closing the browser tab or terminating the browser process automatically wipes the session tokens, terminating the user session and protecting privacy.
 - **Reload Resilience**: Reloading the active browser tab (F5) or navigating between routes within the tab retains the session without prompting the user to sign in again.
 
-### 2. Zero-Bundle Cold Startup Inspection & Lazy `firebase/auth` Loading
+### 2. Zero-Bundle Cold Startup & Retryable Single-Flight `firebase/auth` Initialization
 
-- `AuthenticationService` is implemented as a core singleton service that avoids importing `firebase/auth` on startup.
-- **Cold Inspection**: On application startup, `AuthenticationService` synchronously checks `window.sessionStorage` for the presence of Firebase Auth session keys (`firebase:authUser:*`).
-  - **No Key Found (Cold Visit / New Tab)**: `isAuthenticated()` initializes to `false`. Zero bytes of `firebase/auth` are loaded or executed.
-  - **Key Found (Active Tab Refresh)**: `AuthenticationService` lazily imports `firebase/auth` in the background to restore the user session and synchronize `isAuthenticated = signal(true)`.
-- **On-Demand Sign-In**: When an unauthenticated user opens the sign-in modal and submits credentials, `AuthenticationService.signIn(...)` dynamically imports `firebase/auth`, applies `browserSessionPersistence`, and authenticates against Firebase.
+- `AuthService` is implemented as a core singleton service that avoids importing `firebase/auth` at cold module evaluation time.
+- **Retryable Single-Flight Initialization (`ensureAuth`)**: `AuthService.ensureAuth()` lazily loads the Firebase app and `firebase/auth` via a shared in-flight initialization promise.
+  - If initialization rejects (e.g. a transient network or chunk loading failure), the cached initialization promise is cleared and the original error is propagated so concurrent callers share the single attempt and subsequent calls can retry initialization without a page reload.
+  - **Idempotent Emulator Setup**: On localhost, emulator connection is guarded by checking whether the `Auth` instance already has an active emulator configuration, making retries safe across partial setup failures.
+  - **Partial Listener Rollback**: If initial auth state readiness rejects after the state change listener is subscribed, the listener is immediately unsubscribed before propagating the error, and component/service teardown registration occurs only after readiness succeeds, preventing duplicate active listeners on retry.
+- **Background Session Restoration**: `HomeComponent` and `canActivateDashboard` trigger `ensureAuth()` in the background and catch transient failures to restore any active tab session while suppressing UI error displays for cold or offline visitors.
+- **On-Demand Sign-In**: When an unauthenticated user submits credentials in the Sign-In Modal, `AuthService.signIn(...)` awaits `ensureAuth()` and authenticates against Firebase. Ordinary credential errors occur after initialization resolves and keep the initialized state cached.
 
 ### 3. Accessible Dialog via `@angular/cdk/dialog` with On-Demand Dynamic `import()`
 
@@ -45,19 +47,21 @@ We establish the following architectural strategies for authentication, session 
 - The sign-in form is built exclusively with Angular Signal Forms (`@angular/forms/signals`).
 - Form inputs, validation state (required email, password length), submission status, and error states are modeled as reactive Signals, maintaining consistency with the codebase's zoneless reactivity guidelines.
 
-### 5. Protected Route Guard (`authGuard`)
+### 5. Protected Route Guard (`canActivateDashboard`)
 
-- Direct access to the `/dashboard` route is guarded by an Angular functional `canActivate` guard (`authGuard`).
-- If `AuthenticationService.isAuthenticated()` is `false`, navigation to `/dashboard` is canceled and redirected to `/home`.
+- Direct access to the `/dashboard` route is guarded by an Angular functional `canActivate` guard (`canActivateDashboard`).
+- The guard awaits `authService.ensureAuth().catch(...)` so initial session state settles (or fails gracefully on transient errors), and if `authService.isAuthenticated()` is `false`, navigation to `/dashboard` is canceled and redirected to `/home`.
 
 ### 6. Atomic Reactive State & Minimal Public API Surface
 
-- The authentication layer manages session state internally as a single atomic reactive Signal and exposes a derived, readonly `isAuthenticated: Signal<boolean>` to consuming components and route guards.
+- The authentication layer manages session state internally as a single atomic reactive Signal (`#user`) and exposes `readonly user: Signal<User | null>` and a derived `readonly isAuthenticated: Signal<boolean>` to consuming components and route guards.
 - The service defines a minimal, bounded public API contract:
+  - `readonly user: Signal<User | null>`
   - `readonly isAuthenticated: Signal<boolean>`
+  - `ensureAuth(): Promise<{ auth: Auth; sdk: typeof import('firebase/auth') }>`
   - `signIn(credentials: AuthCredentials): Promise<void>`
   - `signOut(): Promise<void>`
-- All third-party SDK lifecycles, token storage keys, and background initialization promises remain strictly encapsulated behind this public service boundary.
+- All third-party SDK lifecycles, emulator configurations, and single-flight initialization promises remain strictly encapsulated behind this public service boundary.
 
 ---
 

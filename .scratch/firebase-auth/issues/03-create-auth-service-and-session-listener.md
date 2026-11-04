@@ -6,29 +6,29 @@ Blocked by: 02-configure-firebase-auth-emulator
 
 ## Description
 
-Implement the core singleton `AuthenticationService` managing dynamic `firebase/auth` loading, local emulator connection in development, tab-scoped session persistence (`browserSessionPersistence`), and the reactive `isAuthenticated` Signal.
+Implement the core singleton `AuthService` managing dynamic `firebase/auth` loading, local emulator connection in development, tab-scoped session persistence (`browserSessionPersistence`), and the reactive `isAuthenticated` Signal.
 
 ## Target Files
 
-- `src/app/shared/interfaces/auth-credentials.interface.ts` (New)
-- `src/app/core/utils/host.util.ts` (New)
-- `src/app/core/utils/host.util.spec.ts` (New)
-- `src/app/core/services/config.service.ts` (Refactor: add `getApp()`, use `host.util`)
-- `src/app/core/services/config.service.spec.ts` (Update with `getApp()` test)
-- `src/app/core/services/auth.service.ts` (New)
-- `src/app/core/services/auth.service.spec.ts` (New)
+- `src/app/core/auth/auth-credentials.interface.ts` (New)
+- `src/app/core/firebase/host.util.ts` (New)
+- `src/app/core/firebase/host.util.spec.ts` (New)
+- `src/app/core/firebase/config.service.ts` (Refactor: add `getApp()`, use `host.util`)
+- `src/app/core/firebase/config.service.spec.ts` (Update with `getApp()` test)
+- `src/app/core/auth/auth.service.ts` (New)
+- `src/app/core/auth/auth.service.spec.ts` (New)
 
 ## Specifications & Requirements
 
 1. **Extract `isLocalhost` Utility & Update `ConfigService`**:
-   - File: `src/app/core/utils/host.util.ts` & `src/app/core/utils/host.util.spec.ts`
+   - File: `src/app/core/firebase/host.util.ts` & `src/app/core/firebase/host.util.spec.ts`
      - Extract `LOCAL_DOMAINS` and `isLocalhost(win?: Window | null): boolean` as a pure, SSR-safe utility function.
-   - File: `src/app/core/services/config.service.ts`:
-     - Refactor to use `isLocalhost(this.#window)` from `@/core/utils/host.util`.
+   - File: `src/app/core/firebase/config.service.ts`:
+     - Refactor to use `isLocalhost(this.#window)` from `./host.util`.
      - Expose `async getApp(): Promise<FirebaseApp>` with self-initializing idempotency (calls `this.initialize()` and awaits `this.#appReady` before returning `this.#app`) to prevent startup race conditions.
 
 2. **Define `AuthCredentials` Interface**:
-   - File: `src/app/shared/interfaces/auth-credentials.interface.ts`
+   - File: `src/app/core/auth/auth-credentials.interface.ts`
 
    ```typescript
    export interface AuthCredentials {
@@ -37,7 +37,7 @@ Implement the core singleton `AuthenticationService` managing dynamic `firebase/
    }
    ```
 
-3. **`AuthService` Implementation (`src/app/core/services/auth.service.ts`)**:
+3. **`AuthService` Implementation (`src/app/core/auth/auth.service.ts`)**:
    - **Service Decorator**: `@Service()` from `@angular/core`.
    - **Injections & Backing State** (using native `#` private fields):
      - `readonly #configService = inject(ConfigService);`
@@ -50,6 +50,7 @@ Implement the core singleton `AuthenticationService` managing dynamic `firebase/
    - **Public API Surface** (purely reactive signals & actions):
      - `readonly user = this.#user.asReadonly();`
      - `readonly isAuthenticated = computed(() => !!this.#user());`
+     - `async ensureAuth(): Promise<{ auth: Auth; sdk: typeof import('firebase/auth') }>`
      - `async signIn(credentials: AuthCredentials): Promise<void>`
      - `async signOut(): Promise<void>`
    - **Constructor**:
@@ -58,14 +59,14 @@ Implement the core singleton `AuthenticationService` managing dynamic `firebase/
      - `private async loadAuth(): Promise<void>`:
        - Awaits `Promise.all([this.#configService.getApp(), import('firebase/auth')])`.
        - Obtains `auth` via `authSdk.getAuth(app)`.
-       - On localhost (`isLocalhost(this.#window)`), connects to emulator: `authSdk.connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true })`.
+       - On localhost (`isLocalhost(this.#window) && !auth.emulatorConfig`), connects to emulator idempotently: `authSdk.connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true })`.
        - Sets tab-scoped persistence: `await authSdk.setPersistence(auth, authSdk.browserSessionPersistence)`.
        - Binds `const unsubscribe = authSdk.onAuthStateChanged(auth, user => this.#user.set(user))`.
-       - Registers cleanup: `this.#destroyRef$.onDestroy(unsubscribe)`.
-       - Awaits `await auth.authStateReady()` to settle initial session state.
+       - Awaits `await auth.authStateReady()` inside a `try / catch` block that calls `unsubscribe()` and re-throws on failure.
+       - Registers cleanup after `authStateReady()` succeeds: `this.#destroyRef$.onDestroy(unsubscribe)`.
        - Caches `#auth = auth` and `#authSdk = authSdk`.
      - `async ensureAuth(): Promise<{ auth: Auth; sdk: typeof import('firebase/auth') }>`:
-       - Idempotently caches `#authReady ??= this.loadAuth()`.
+       - Idempotently caches `this.#authReady = this.loadAuth().catch((error) => { this.#authReady = null; throw error; })` when `#authReady` is null so failed initialization resets and can be retried.
        - Awaits `#authReady`.
        - Validates and returns `{ auth: this.#auth, sdk: this.#authSdk }` without non-null assertions.
    - **Public Actions**:
@@ -78,7 +79,7 @@ Implement the core singleton `AuthenticationService` managing dynamic `firebase/
 
 ## Acceptance Criteria
 
-- [x] `isLocalhost` extracted to `@/core/utils/host.util` with unit tests covering IPv4, IPv6, localhost, production domains, and SSR null windows.
+- [x] `isLocalhost` extracted to `src/app/core/firebase/host.util.ts` with unit tests covering IPv4, IPv6, localhost, production domains, and SSR null windows.
 - [x] `ConfigService.getApp()` exposed with self-initializing promise resolution.
 - [x] `ConfigService` refactored to use `isLocalhost(this.#window)`.
 - [x] `AuthService` decorated with `@Service()` from `@angular/core`.

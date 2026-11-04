@@ -25,7 +25,7 @@
 In `loadAuth()` and `ensureAuth()`, apply three changes:
 
 1. **Idempotent Emulator Setup**: Guard `authSdk.connectAuthEmulator(...)` with `!auth.emulatorConfig` so retrying `loadAuth()` after a downstream failure does not re-configure the emulator on the same singleton `Auth` instance.
-2. **Partial Listener Cleanup**: Wrap `await auth.authStateReady()` in a `try / catch` block after registering `const unsubscribe = authSdk.onAuthStateChanged(...)`. If `auth.authStateReady()` rejects, invoke `unsubscribe()` and rethrow `error`. Register `this.#destroyRef$.onDestroy(unsubscribe)` only after `auth.authStateReady()` resolves.
+2. **Partial Listener Cleanup**: Wrap `await auth.authStateReady()` in a `try / catch` block after registering `const unsubscribe = authSdk.onAuthStateChanged(...)`. If `auth.authStateReady()` rejects, invoke `unsubscribe()` and re-throw `error`. Register `this.#destroyRef$.onDestroy(unsubscribe)` only after `auth.authStateReady()` resolves.
 3. **Single-Flight Reset on Initialization Failure**: Attach `.catch(...)` to `this.loadAuth()` when assigning `this.#authReady` in `ensureAuth()` so concurrent callers share the in-flight attempt, receive the original error, and reset `this.#authReady = null` only when `loadAuth()` rejects.
 
 Replace `loadAuth()` and `ensureAuth()` in `src/app/core/auth/auth.service.ts` (lines 23–58) with:
