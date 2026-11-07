@@ -17,12 +17,12 @@
     }
   ],
   "parameters": {
-    "geminiModelName": {
+    "useLimitedUseAppCheckTokens": {
       "defaultValue": {
-        "value": "gemini-3.8-flash"
+        "value": "true"
       },
-      "description": "Gemini Model Name",
-      "valueType": "STRING"
+      "description": "Whether or not to enable replay protection",
+      "valueType": "BOOLEAN"
     },
     "functionEmulatorHost": {
       "defaultValue": {
@@ -47,12 +47,7 @@
     },
     "geminiTTSModelName": {
       "defaultValue": {
-        "value": ""
-      },
-      "conditionalValues": {
-        "ng-firebase-tts": {
-          "value": "gemini-3.1-flash-tts-preview"
-        }
+        "value": "gemini-3.1-flash-tts-preview"
       },
       "description": "Gemini TTS Model Name",
       "valueType": "STRING"
@@ -71,25 +66,17 @@
       "description": "Location where the functions are deployed",
       "valueType": "STRING"
     },
-    "useLimitedUseAppCheckTokens": {
+    "geminiModelName": {
       "defaultValue": {
-        "value": "false"
+        "value": "gemini-3.8-flash"
       },
-      "conditionalValues": {
-        "allow-replay-protection": {
-          "value": "true"
-        },
-        "hybrid-chrome-built-in": {
-          "value": "true"
-        }
-      },
-      "description": "Whether or not to enable replay protection",
-      "valueType": "BOOLEAN"
+      "description": "Gemini Model Name",
+      "valueType": "STRING"
     }
   },
   "version": {
-    "versionNumber": "18",
-    "updateTime": "2026-09-06T01:22:49.555670Z",
+    "versionNumber": "25",
+    "updateTime": "2026-11-07T07:39:03.705424Z",
     "updateUser": {
       "email": "cleung334@gmail.com"
     },
