@@ -59,7 +59,7 @@ describe('TextToSpeechService', () => {
 
       expect(mockAiModelFactory.getTtsModel).toHaveBeenCalledTimes(1);
       expect(mockAiModel.generateContent).toHaveBeenCalledWith({
-        contents: [{ role: 'user', parts: [{ text: 'Hello Fact' }] }],
+        contents: [{ role: 'user', parts: [{ type: 'text', text: 'Hello Fact' }] }],
         generationConfig: {
           responseModalities: ['AUDIO'],
           speechConfig: {
@@ -104,7 +104,7 @@ describe('TextToSpeechService', () => {
 
       expect(mockAiModelFactory.getTtsModel).toHaveBeenCalledTimes(1);
       expect(mockAiModel.generateContentStream).toHaveBeenCalledWith({
-        contents: [{ role: 'user', parts: [{ text: 'Dynamic Stream' }] }],
+        contents: [{ role: 'user', parts: [{ text: 'Dynamic Stream', type: 'text' }] }],
         generationConfig: {
           responseModalities: ['AUDIO'],
           speechConfig: {

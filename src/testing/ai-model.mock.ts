@@ -37,7 +37,7 @@ interface MockTtsResponse {
   response: {
     candidates: {
       content: {
-        parts: { inlineData: { data: string; mimeType: string } }[];
+        parts: { type: 'inlineData'; inlineData: { data: string; mimeType: string } }[];
       };
     }[];
   };
@@ -47,7 +47,7 @@ interface MockTtsStream {
   stream: AsyncGenerator<{
     candidates: {
       content: {
-        parts: { inlineData: { data: string; mimeType: string } }[];
+        parts: { type: 'inlineData'; inlineData: { data: string; mimeType: string } }[];
       };
     }[];
   }>;
@@ -126,7 +126,7 @@ export function createMockTtsResponse(options?: MockTtsResponseOptions): MockTts
       candidates: [
         {
           content: {
-            parts: [{ inlineData: { data, mimeType } }],
+            parts: [{ type: 'inlineData', inlineData: { data, mimeType } }],
           },
         },
       ],
@@ -144,7 +144,7 @@ export function createMockTtsStream(chunks?: { data: string; mimeType: string }[
           candidates: [
             {
               content: {
-                parts: [{ inlineData: { data: chunk.data, mimeType: chunk.mimeType } }],
+                parts: [{ type: 'inlineData', inlineData: { data: chunk.data, mimeType: chunk.mimeType } }],
               },
             },
           ],

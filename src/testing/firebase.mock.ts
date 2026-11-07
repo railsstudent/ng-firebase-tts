@@ -157,7 +157,9 @@ function createVisionAiModel(): MockAiModelMock {
 }
 
 function createTtsAiModel(): MockAiModelMock {
-  const parts = [{ inlineData: { data: 'SGVsbG8=', mimeType: 'audio/l16; rate=24000; channels=1' } }];
+  const parts = [
+    { type: 'inlineData', inlineData: { data: 'SGVsbG8=', mimeType: 'audio/l16; rate=24000; channels=1' } },
+  ];
   return {
     generationConfig: { responseModalities: ['AUDIO'] },
     generateContent: vi.fn().mockImplementation(async () => ({
