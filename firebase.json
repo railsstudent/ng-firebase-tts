@@ -2,12 +2,12 @@
   "apphosting": [
     {
       "backendId": "ng-firebase-tts",
-      "rootDir": "..",
+      "rootDir": ".",
       "ignore": ["node_modules", ".git", "firebase-debug.log", "firebase-debug.*.log", "functions"]
     }
   ],
   "remoteconfig": {
-    "template": "remote-config-template.json"
+    "template": "firebase/remote-config-template.json"
   },
   "emulators": {
     "auth": {
@@ -15,7 +15,7 @@
     },
     "apphosting": {
       "port": 5005,
-      "rootDirectory": "..",
+      "rootDirectory": ".",
       "startCommand": "npm run start"
     },
     "ui": {

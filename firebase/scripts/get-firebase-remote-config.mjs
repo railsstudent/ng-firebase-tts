@@ -10,11 +10,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const firebaseDir = path.resolve(__dirname, '..');
+const projectRootDir = path.resolve(firebaseDir, '..');
 
 try {
   // Fetch remote config asynchronously
   const { stdout } = await execAsync('npx firebase remoteconfig:get --json --project default', {
-    cwd: firebaseDir,
+    cwd: projectRootDir,
   });
   const config = JSON.parse(stdout);
   const parameters = config?.result?.parameters;
@@ -30,7 +31,7 @@ try {
   }
 
   // Write to JSON file
-  const outputPath = path.join(firebaseDir, '..', 'public', 'remote-config-defaults.json');
+  const outputPath = path.join(projectRootDir, 'public', 'remote-config-defaults.json');
   fs.writeFileSync(outputPath, `${JSON.stringify(defaults, null, 2)}\n`, 'utf-8');
   console.log(`Successfully wrote ${outputPath}`);
 } catch (error) {

@@ -102,7 +102,7 @@ async function fetchSdkConfigViaCli(webAppName) {
   console.log(`🔍 Querying Firebase CLI for web app: "${webAppName}"...`);
 
   const { stdout: listStdout } = await execAsync('npx firebase apps:list WEB --json --project default', {
-    cwd: firebaseDir,
+    cwd: projectRootDir,
   });
 
   const listResponse = JSON.parse(listStdout);
@@ -120,7 +120,7 @@ async function fetchSdkConfigViaCli(webAppName) {
   console.log(`Found Web App "${webAppName}" with appId: ${appId}. Fetching SDK configuration...`);
 
   const { stdout: sdkStdout } = await execAsync(`npx firebase apps:sdkconfig WEB ${appId} --json --project default`, {
-    cwd: firebaseDir,
+    cwd: projectRootDir,
   });
 
   const sdkResponse = JSON.parse(sdkStdout);
@@ -290,17 +290,17 @@ try {
   const secretValue = JSON.stringify(bundle);
 
   console.log(`🔍 Checking current cloud value for secret "${secretName}"...`);
-  const activeValue = await getActiveSecretValue(secretName, firebaseDir);
+  const activeValue = await getActiveSecretValue(secretName, projectRootDir);
 
   if (isSecretUpToDate(activeValue, secretValue)) {
     console.log(`⚡ Secret "${secretName}" is already up to date. Skipping creation.`);
   } else {
     console.log(`🔒 Setting secret "${secretName}"...`);
-    await setSecretValue(secretName, secretValue, firebaseDir);
-    await pruneSecretVersions(secretName, projectId, firebaseDir);
+    await setSecretValue(secretName, secretValue, projectRootDir);
+    await pruneSecretVersions(secretName, projectId, projectRootDir);
   }
 
-  await grantSecretAccess([secretName], backendId, firebaseDir);
+  await grantSecretAccess([secretName], backendId, projectRootDir);
   console.log('🎉 App Hosting secret successfully synced and granted!');
 } catch (error) {
   console.error('❌ Secrets synchronization failed:', error.message);

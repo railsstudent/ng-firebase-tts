@@ -20,11 +20,8 @@ export class TextToSpeechService {
   readonly #aiModelFactory = inject(AiModelFactory);
 
   private extractValidChunkData(chunk: GenerateContentResponse): SpeechChunkData | null {
-    const inlineData = chunk.candidates?.[0]?.content?.parts?.[0]?.inlineData;
-    if (!inlineData?.data || !inlineData?.mimeType) {
-      return null;
-    }
-    return { data: inlineData.data, mimeType: inlineData.mimeType };
+    const part = chunk.candidates?.[0]?.content?.parts?.[0];
+    return part?.type !== 'inlineData' ? null : part?.inlineData;
   }
 
   private async createAIModelGenerationRequest(text: string, voiceName: string): Promise<AIModelGenerativeRequest> {
@@ -34,6 +31,7 @@ export class TextToSpeechService {
         role: 'user',
         parts: [
           {
+            type: 'text',
             text,
           },
         ],

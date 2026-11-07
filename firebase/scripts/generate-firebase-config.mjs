@@ -10,6 +10,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const firebaseDir = path.resolve(__dirname, '..');
+const projectRootDir = path.resolve(firebaseDir, '..');
 const envPath = path.resolve(firebaseDir, '.env');
 const outputPath = path.resolve(__dirname, '../../public/firebase.config.json');
 
@@ -21,7 +22,7 @@ async function fetchSdkConfigViaCli(webAppName) {
 
   // List web apps to locate matching appId
   const { stdout: listStdout } = await execAsync('npx firebase apps:list WEB --json --project default', {
-    cwd: firebaseDir,
+    cwd: projectRootDir,
   });
 
   const listResponse = JSON.parse(listStdout);
@@ -39,7 +40,7 @@ async function fetchSdkConfigViaCli(webAppName) {
   console.log(`Found Web App "${webAppName}" with appId: ${appId}. Fetching SDK configuration...`);
 
   const { stdout: sdkStdout } = await execAsync(`npx firebase apps:sdkconfig WEB ${appId} --json --project default`, {
-    cwd: firebaseDir,
+    cwd: projectRootDir,
   });
 
   const sdkResponse = JSON.parse(sdkStdout);

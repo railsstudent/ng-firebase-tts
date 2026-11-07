@@ -9,7 +9,7 @@ This file provides context, rules, and guidance for AI assistants working on thi
 - **`src/app/pwa/`**: PWA infrastructure & update checking. Use direct targeted imports without barrel files to preserve `@defer` splitting.
 - **`src/app/shared/`**: Reusable components, pipes, and domain models (`src/app/shared/interfaces/<domain>.interface.ts`).
 - **`src/testing/`**: Shared mock factories (`createMockConfigService`, `createMockAiModel`).
-- **`firebase/`**: Firebase CLI configs (`firebase.json`, Remote Config templates, prebuild scripts).
+- **`firebase/`**: Remote Config templates (`remote-config-template.json`), local `.env`, and prebuild/deployment scripts (`firebase/scripts/`).
 
 ## Context Pointers & Protocols
 

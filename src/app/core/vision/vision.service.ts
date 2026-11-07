@@ -1,7 +1,7 @@
 import { WINDOW } from '@/core/constants/navigator.const';
 import { AiModelFactory } from '@/core/firebase/ai-model-factory.service';
 import { inject, Service } from '@angular/core';
-import type { GroundingMetadata, UsageMetadata, WebGroundingChunk } from 'firebase/ai';
+import type { GroundingMetadata, InlineDataPart, UsageMetadata, WebGroundingChunk } from 'firebase/ai';
 import type {
   ImageAnalysis,
   ImageAnalysisResponse,
@@ -23,7 +23,8 @@ export class VisionService {
     }
 
     const { data, mimeType, optimizationMetrics } = await preprocessImageForVision(image, this.#window);
-    const imagePart = {
+    const imagePart: InlineDataPart = {
+      type: 'inlineData',
       inlineData: {
         data,
         mimeType,
