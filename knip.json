@@ -6,5 +6,5 @@
     "cycles": "error"
   },
   "ignoreBinaries": ["ng"],
-  "ignoreDependencies": []
+  "ignoreDependencies": ["@mediapipe/tasks-decision"]
 }

@@ -1,6 +1,6 @@
 runConfig:
   minInstances: 0
-  maxInstances: 2  # Prevents Google Cloud from scaling up infinitely during an attack
+  maxInstances: 2 # Prevents Google Cloud from scaling up infinitely during an attack
 
 env:
   - variable: APP_FIREBASE_CONFIG

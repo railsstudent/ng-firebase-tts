@@ -38,6 +38,7 @@ grantaccess
 headerless
 lifecycles
 llms
+mediapipe
 multimodal
 ngsw
 noopener
