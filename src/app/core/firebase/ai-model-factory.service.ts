@@ -19,37 +19,26 @@ export class AiModelFactory {
     return `${geminiModelName}_${thinkingLevel}_${instruction}_${schemaKey}_${toolsKey}`;
   }
 
-  private async getSafetySettings(): Promise<SafetySetting[]> {
-    const { HarmBlockThreshold, HarmCategory } = await import('firebase/ai');
-    return [
+  private async createModel(backend: AI, options?: AiModelOptions): Promise<GenerativeModel> {
+    const { getGenerativeModel, HarmBlockThreshold, HarmCategory } = await import('firebase/ai');
+    const safetySettings: SafetySetting[] = [
       { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
       { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
       { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
       { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
     ];
+
+    const modelParams = this.createModelParams(safetySettings, options);
+    return getGenerativeModel(backend, modelParams);
   }
 
-  private async createModel(backend: AI, options?: AiModelOptions): Promise<GenerativeModel> {
-    const { getGenerativeModel } = await import('firebase/ai');
-    const model = this.#configService.appConfig.geminiModelName;
-    const { thinkingLevel } = this.#configService.appConfig;
-
-    const generationConfig: GenerationConfig = {
-      thinkingConfig: {
-        thinkingLevel,
-        includeThoughts: true,
-      },
-    };
-
-    if (options?.schema) {
-      generationConfig.responseSchema = options.schema;
-      generationConfig.responseMimeType = 'application/json';
-    }
+  private createModelParams(safetySettings: SafetySetting[], options: AiModelOptions | undefined): ModelParams {
+    const generationConfig = this.createGenerationConfig(options);
 
     const modelParams: ModelParams = {
-      model,
+      model: this.#configService.appConfig.geminiModelName,
       generationConfig,
-      safetySettings: await this.getSafetySettings(),
+      safetySettings,
     };
 
     if (options?.tools?.length) {
@@ -59,8 +48,22 @@ export class AiModelFactory {
     if (options?.systemInstruction) {
       modelParams.systemInstruction = options.systemInstruction;
     }
+    return modelParams;
+  }
 
-    return getGenerativeModel(backend, modelParams);
+  private createGenerationConfig(options: AiModelOptions | undefined): GenerationConfig {
+    const generationConfig: GenerationConfig = {
+      thinkingConfig: {
+        thinkingLevel: this.#configService.appConfig.thinkingLevel,
+        includeThoughts: true,
+      },
+    };
+
+    if (options?.schema) {
+      generationConfig.responseSchema = options.schema;
+      generationConfig.responseMimeType = 'application/json';
+    }
+    return generationConfig;
   }
 
   async getModel(options?: AiModelOptions): Promise<GenerativeModel> {
