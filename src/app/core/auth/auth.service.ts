@@ -40,8 +40,6 @@ export class AuthService {
 
     this.#destroyRef$.onDestroy(unsubscribe);
 
-    await auth.authStateReady();
-
     this.#auth = auth;
     this.#authSdk = authSdk;
   }

@@ -3,7 +3,8 @@ import { WINDOW } from '@/core/constants/navigator.const';
 import { ConfigService } from '@/core/firebase/config.service';
 import { createMockConfigService } from '@/testing/config.mock';
 import { TestBed } from '@angular/core/testing';
-import type { Auth, User } from 'firebase/auth';
+import type { Mock, Procedure } from '@vitest/spy';
+import type { Auth, NextOrObserver, User } from 'firebase/auth';
 import {
   browserSessionPersistence,
   connectAuthEmulator,
@@ -52,6 +53,15 @@ describe('AuthService', () => {
     }
   }
 
+  function createStateChangedUnsubscribeCallback(
+    unsubscribeSpy: Mock<Procedure>,
+  ): (_auth: Auth, nextOrObserver: NextOrObserver<User>) => Mock<Procedure> {
+    return (_auth: Auth, nextOrObserver: NextOrObserver<User>) => {
+      authStateCallback = typeof nextOrObserver === 'function' ? nextOrObserver : nextOrObserver.next;
+      return unsubscribeSpy;
+    };
+  }
+
   function setupAuthEventLoop(): void {
     authStateCallback = null;
     mockAuthInstance = vi.mocked(getAuth)() as unknown as Auth;
@@ -59,10 +69,7 @@ describe('AuthService', () => {
     vi.mocked(mockAuthInstance.authStateReady).mockReset().mockResolvedValue(undefined);
     vi.mocked(getAuth).mockClear();
 
-    vi.mocked(onAuthStateChanged).mockImplementation((_auth, nextOrObserver) => {
-      authStateCallback = typeof nextOrObserver === 'function' ? nextOrObserver : nextOrObserver.next;
-      return mockUnsubscribe;
-    });
+    vi.mocked(onAuthStateChanged).mockImplementation(createStateChangedUnsubscribeCallback(mockUnsubscribe));
 
     vi.mocked(signInWithEmailAndPassword).mockImplementation(async () => {
       const user = { uid: 'test-uid-123', email: 'test@example.com' } as User;
@@ -245,14 +252,8 @@ describe('AuthService', () => {
     const retryAttemptUnsubscribe = vi.fn();
 
     vi.mocked(onAuthStateChanged)
-      .mockImplementationOnce((_auth, nextOrObserver) => {
-        authStateCallback = typeof nextOrObserver === 'function' ? nextOrObserver : nextOrObserver.next;
-        return failedAttemptUnsubscribe;
-      })
-      .mockImplementationOnce((_auth, nextOrObserver) => {
-        authStateCallback = typeof nextOrObserver === 'function' ? nextOrObserver : nextOrObserver.next;
-        return retryAttemptUnsubscribe;
-      });
+      .mockImplementationOnce(createStateChangedUnsubscribeCallback(failedAttemptUnsubscribe))
+      .mockImplementationOnce(createStateChangedUnsubscribeCallback(retryAttemptUnsubscribe));
 
     vi.mocked(mockAuthInstance.authStateReady).mockRejectedValueOnce(initError).mockResolvedValueOnce(undefined);
 

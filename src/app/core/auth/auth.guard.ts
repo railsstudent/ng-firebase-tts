@@ -8,7 +8,7 @@ export const canActivateDashboard: CanActivateFn = async () => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  authService.ensureAuth().catch((error) => {
+  await authService.ensureAuth().catch((error) => {
     console.error('Failed to restore auth session:', error);
   });
 
