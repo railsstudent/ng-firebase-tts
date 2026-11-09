@@ -106,6 +106,7 @@ export default defineConfig([
         },
       ],
       '@typescript-eslint/consistent-type-imports': ['error', { disallowTypeAnnotations: false }],
+      'no-continue': 'error',
       'require-await': 'off',
       '@typescript-eslint/require-await': ['error'],
     },
