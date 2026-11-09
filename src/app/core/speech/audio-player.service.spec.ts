@@ -29,7 +29,7 @@ interface MockAudioContext {
 
 async function* createMockStream(chunks: AudioStreamChunk[]): AsyncGenerator<AudioStreamChunk, void, unknown> {
   for (const chunk of chunks) {
-    yield chunk;
+    yield await Promise.resolve(chunk);
   }
 }
 
@@ -290,11 +290,11 @@ describe('AudioPlayerService', () => {
       const abortController = new AbortController();
 
       async function* createAbortableStream(): AsyncGenerator<AudioStreamChunk, void, unknown> {
-        yield {
+        yield await Promise.resolve({
           decodedData: new Uint8Array([1, 2]),
           sampleRate: 24000,
           mimeType: 'audio/l16',
-        };
+        });
         abortController.abort();
         yield {
           decodedData: new Uint8Array([3, 4]),

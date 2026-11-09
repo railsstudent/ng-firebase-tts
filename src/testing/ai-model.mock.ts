@@ -140,7 +140,7 @@ export function createMockTtsStream(chunks?: { data: string; mimeType: string }[
   return {
     stream: (async function* () {
       for (const chunk of defaultChunks) {
-        yield {
+        yield await Promise.resolve({
           candidates: [
             {
               content: {
@@ -148,7 +148,7 @@ export function createMockTtsStream(chunks?: { data: string; mimeType: string }[
               },
             },
           ],
-        };
+        });
       }
     })(),
   };

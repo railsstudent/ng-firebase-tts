@@ -71,7 +71,7 @@ describe('AuthService', () => {
 
     vi.mocked(onAuthStateChanged).mockImplementation(createStateChangedUnsubscribeCallback(mockUnsubscribe));
 
-    vi.mocked(signInWithEmailAndPassword).mockImplementation(async () => {
+    vi.mocked(signInWithEmailAndPassword).mockImplementation(() => {
       const user = { uid: 'test-uid-123', email: 'test@example.com' } as User;
       authStateCallback?.(user);
       return { user } as never;
@@ -79,7 +79,7 @@ describe('AuthService', () => {
 
     vi.mocked(signOut).mockImplementation(async () => {
       authStateCallback?.(null);
-      return undefined;
+      return Promise.resolve(undefined);
     });
   }
 

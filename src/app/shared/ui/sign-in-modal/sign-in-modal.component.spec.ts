@@ -28,7 +28,7 @@ describe('SignInModalComponent', () => {
     };
     mockAuthService = {
       isAuthenticated: isAuthenticatedSignal,
-      signIn: vi.fn().mockImplementation(async () => {
+      signIn: vi.fn().mockImplementation(() => {
         isAuthenticatedSignal.set(true);
         return true;
       }),
@@ -132,7 +132,7 @@ describe('SignInModalComponent', () => {
     });
 
     it('should display error block when signIn resolves but isAuthenticated remains false', async () => {
-      mockAuthService.signIn.mockImplementationOnce(async () => {
+      mockAuthService.signIn.mockImplementationOnce(() => {
         isAuthenticatedSignal.set(false);
         return false;
       });

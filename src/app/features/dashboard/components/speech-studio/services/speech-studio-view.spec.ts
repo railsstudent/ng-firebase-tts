@@ -6,7 +6,7 @@ import { SpeechStudioViewService } from './speech-studio-view';
 
 async function* createStreamGenerator(chunks: AudioStreamChunk[]): AsyncGenerator<AudioStreamChunk, void, unknown> {
   for (const chunk of chunks) {
-    yield chunk;
+    yield await Promise.resolve(chunk);
   }
 }
 
@@ -15,7 +15,7 @@ async function* createErrorStreamGenerator(
   errorToThrow: Error,
 ): AsyncGenerator<AudioStreamChunk, void, unknown> {
   for (const chunk of chunks) {
-    yield chunk;
+    yield await Promise.resolve(chunk);
   }
   throw errorToThrow;
 }

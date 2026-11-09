@@ -143,7 +143,7 @@ describe('audio.util', () => {
   describe('recordStreamChunks', () => {
     async function* createMockStream(chunks: AudioStreamChunk[]): AsyncGenerator<AudioStreamChunk, void, unknown> {
       for (const chunk of chunks) {
-        yield chunk;
+        yield await Promise.resolve(chunk);
       }
     }
 
@@ -184,11 +184,11 @@ describe('audio.util', () => {
 
     it('should push received chunks to buffer before propagating mid-stream error', async () => {
       async function* createErrorStream(): AsyncGenerator<AudioStreamChunk, void, unknown> {
-        yield {
+        yield await Promise.resolve({
           decodedData: new Uint8Array([10, 20]),
           sampleRate: 24000,
           mimeType: 'audio/l16',
-        };
+        });
         throw new Error('Network stream interrupted');
       }
 

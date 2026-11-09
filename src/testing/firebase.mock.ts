@@ -121,12 +121,12 @@ function createAuthMocks(): MockAuthMocks {
       return vi.fn();
     }),
     authStateReady: vi.fn().mockResolvedValue(undefined),
-    signInWithEmailAndPassword: vi.fn().mockImplementation(async () => {
+    signInWithEmailAndPassword: vi.fn().mockImplementation(() => {
       const user = { uid: 'test-uid-123', email: 'test@example.com' };
       defaultAuthStateCallback?.(user);
       return { user };
     }),
-    signOut: vi.fn().mockImplementation(async () => {
+    signOut: vi.fn().mockImplementation(() => {
       defaultAuthStateCallback?.(null);
     }),
   };
@@ -147,7 +147,7 @@ interface MockAiModelMock {
 function createVisionAiModel(): MockAiModelMock {
   return {
     generationConfig: {},
-    generateContent: vi.fn().mockImplementation(async () => ({
+    generateContent: vi.fn().mockImplementation(() => ({
       response: {
         text: () => '{"altText":"Test alt text","tags":["tag1"],"suggestions":[],"obscureFact":"Fact"}',
         thoughtSummary: () => 'Analysis thought summary',
@@ -166,14 +166,16 @@ function createTtsAiModel(): MockAiModelMock {
   ];
   return {
     generationConfig: { responseModalities: ['AUDIO'] },
-    generateContent: vi.fn().mockImplementation(async () => ({
+    generateContent: vi.fn().mockImplementation(() => ({
       response: { candidates: [{ content: { parts } }] },
     })),
-    generateContentStream: vi.fn().mockImplementation(async () => ({
-      stream: (async function* () {
-        yield { candidates: [{ content: { parts } }] };
-      })(),
-    })),
+    generateContentStream: vi.fn().mockImplementation(() =>
+      Promise.resolve({
+        stream: (async function* () {
+          yield await Promise.resolve({ candidates: [{ content: { parts } }] });
+        })(),
+      }),
+    ),
     startChat: vi.fn(),
   };
 }
