@@ -63,4 +63,18 @@ describe('canActivateDashboard', () => {
     expect(mockRouter.createUrlTree).toHaveBeenCalledWith([APP_LINKS.HOME]);
     expect(result).toBe(mockUrlTree);
   });
+
+  it('should catch ensureAuth errors, log to console.error, and redirect to home UrlTree', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const rejectionError = new Error('Auth initialization failed');
+    mockAuthService.ensureAuth.mockRejectedValueOnce(rejectionError);
+    isAuthenticatedSignal.set(false);
+
+    const result = await TestBed.runInInjectionContext(() => canActivateDashboard(mockRoute, mockState));
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to restore auth session:', rejectionError);
+    expect(mockRouter.createUrlTree).toHaveBeenCalledWith([APP_LINKS.HOME]);
+    expect(result).toBe(mockUrlTree);
+    consoleErrorSpy.mockRestore();
+  });
 });

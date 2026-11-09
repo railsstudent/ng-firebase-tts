@@ -83,6 +83,7 @@ interface MockAuthMocks {
     name: string;
     app: object;
     currentUser: null;
+    emulatorConfig: unknown;
     authStateReady: ReturnType<typeof vi.fn>;
   };
   mockFirebaseAuth: {
@@ -102,6 +103,7 @@ function createAuthMocks(): MockAuthMocks {
     name: '[DEFAULT]',
     app: {},
     currentUser: null,
+    emulatorConfig: null as unknown,
     authStateReady: vi.fn().mockResolvedValue(undefined),
   };
 
@@ -109,7 +111,9 @@ function createAuthMocks(): MockAuthMocks {
 
   const mockFirebaseAuth = {
     getAuth: vi.fn(() => mockAuthInstance),
-    connectAuthEmulator: vi.fn(),
+    connectAuthEmulator: vi.fn((_auth: unknown, url: string) => {
+      mockAuthInstance.emulatorConfig = { url };
+    }),
     browserSessionPersistence: 'SESSION',
     setPersistence: vi.fn().mockResolvedValue(undefined),
     onAuthStateChanged: vi.fn((_auth: unknown, callback: (user: unknown) => void) => {

@@ -67,3 +67,6 @@ This repository includes automation scripts to manage Firebase configurations an
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+
+> [!NOTE]
+> **API Pricing & Quota Limits**: The Firebase CLI commands invoked by `firebase/scripts/generate-firebase-config.mjs` (`firebase apps:list`, `firebase apps:sdkconfig`) and `firebase/scripts/get-firebase-remote-config.mjs` (`firebase remoteconfig:get`) are control-plane metadata calls and are **completely free of charge** (work on both the free Spark and Blaze plans). However, they are subject to standard Google Cloud per-minute API rate/quota limits (e.g., Firebase Management API and Firebase Remote Config REST API read quotas), so avoid invoking them inside tight polling loops.

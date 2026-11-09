@@ -24,12 +24,19 @@ export class AuthService {
     const [firebaseApp, authSdk] = await Promise.all([this.#configService.getApp(), import('firebase/auth')]);
 
     const auth = authSdk.getAuth(firebaseApp);
-    if (isLocalhost(this.#window)) {
+    if (isLocalhost(this.#window) && !auth.emulatorConfig) {
       authSdk.connectAuthEmulator(auth, AUTH_EMULATOR_URL, { disableWarnings: true });
     }
 
     await authSdk.setPersistence(auth, authSdk.browserSessionPersistence);
     const unsubscribe = authSdk.onAuthStateChanged(auth, (user) => this.#user.set(user));
+
+    try {
+      await auth.authStateReady();
+    } catch (error) {
+      unsubscribe();
+      throw error;
+    }
 
     this.#destroyRef$.onDestroy(unsubscribe);
 
@@ -41,7 +48,10 @@ export class AuthService {
 
   async ensureAuth(): Promise<{ auth: Auth; sdk: typeof import('firebase/auth') }> {
     if (!this.#authReady) {
-      this.#authReady = this.loadAuth();
+      this.#authReady = this.loadAuth().catch((error) => {
+        this.#authReady = null;
+        throw error;
+      });
     }
 
     await this.#authReady;

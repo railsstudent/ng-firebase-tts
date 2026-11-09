@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
 ---
 
@@ -253,10 +253,10 @@ npm run lint
 
 ## Acceptance Criteria
 
-- [ ] `ensureAuth()` resets `#authReady = null` inside `.catch(...)` attached to `this.loadAuth()` so concurrent callers share a single failed attempt and subsequent calls can retry initialization.
-- [ ] `loadAuth()` unsubscribes the `onAuthStateChanged` listener if `auth.authStateReady()` rejects and only registers `this.#destroyRef$.onDestroy(unsubscribe)` after `auth.authStateReady()` succeeds.
-- [ ] `loadAuth()` guards `connectAuthEmulator` with `!auth.emulatorConfig` so retries do not re-configure the emulator on an already-connected `Auth` singleton.
-- [ ] Ordinary `signInWithEmailAndPassword` rejections after `ensureAuth()` resolves do not reset `#authReady` or re-run `loadAuth()`.
-- [ ] `canActivateDashboard` catches `ensureAuth()` rejections and redirects cleanly to `APP_LINKS.HOME` without throwing an unhandled router error.
-- [ ] Unit tests in `src/app/core/auth/auth.service.spec.ts` and `src/app/core/auth/auth.guard.spec.ts` pass.
-- [ ] `npm run lint` passes with zero errors.
+- [x] `ensureAuth()` resets `#authReady = null` inside `.catch(...)` attached to `this.loadAuth()` so concurrent callers share a single failed attempt and subsequent calls can retry initialization.
+- [x] `loadAuth()` unsubscribes the `onAuthStateChanged` listener if `auth.authStateReady()` rejects and only registers `this.#destroyRef$.onDestroy(unsubscribe)` after `auth.authStateReady()` succeeds.
+- [x] `loadAuth()` guards `connectAuthEmulator` with `!auth.emulatorConfig` so retries do not re-configure the emulator on an already-connected `Auth` singleton.
+- [x] Ordinary `signInWithEmailAndPassword` rejections after `ensureAuth()` resolves do not reset `#authReady` or re-run `loadAuth()`.
+- [x] `canActivateDashboard` catches `ensureAuth()` rejections and redirects cleanly to `APP_LINKS.HOME` without throwing an unhandled router error.
+- [x] Unit tests in `src/app/core/auth/auth.service.spec.ts` and `src/app/core/auth/auth.guard.spec.ts` pass.
+- [x] `npm run lint` passes with zero errors.

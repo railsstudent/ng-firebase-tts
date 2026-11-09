@@ -55,6 +55,8 @@ describe('AuthService', () => {
   function setupAuthEventLoop(): void {
     authStateCallback = null;
     mockAuthInstance = vi.mocked(getAuth)() as unknown as Auth;
+    (mockAuthInstance as { emulatorConfig: unknown }).emulatorConfig = null;
+    vi.mocked(mockAuthInstance.authStateReady).mockReset().mockResolvedValue(undefined);
     vi.mocked(getAuth).mockClear();
 
     vi.mocked(onAuthStateChanged).mockImplementation((_auth, nextOrObserver) => {
@@ -234,5 +236,73 @@ describe('AuthService', () => {
 
     await service.signOut();
     expect(service.isAuthenticated()).toBe(false);
+  });
+
+  it('should share a failed initialization attempt across concurrent callers, clean up partial listener, and succeed on retry with one active listener', async () => {
+    const service = configureTestBed();
+    const initError = new Error('Network error during authStateReady');
+    const failedAttemptUnsubscribe = vi.fn();
+    const retryAttemptUnsubscribe = vi.fn();
+
+    vi.mocked(onAuthStateChanged)
+      .mockImplementationOnce((_auth, nextOrObserver) => {
+        authStateCallback = typeof nextOrObserver === 'function' ? nextOrObserver : nextOrObserver.next;
+        return failedAttemptUnsubscribe;
+      })
+      .mockImplementationOnce((_auth, nextOrObserver) => {
+        authStateCallback = typeof nextOrObserver === 'function' ? nextOrObserver : nextOrObserver.next;
+        return retryAttemptUnsubscribe;
+      });
+
+    vi.mocked(mockAuthInstance.authStateReady).mockRejectedValueOnce(initError).mockResolvedValueOnce(undefined);
+
+    const [firstResult, secondResult] = await Promise.allSettled([
+      service.signIn({ email: 'user@example.com', password: 'ValidPassword123' }),
+      service.signIn({ email: 'user@example.com', password: 'ValidPassword123' }),
+    ]);
+
+    expect(firstResult).toEqual({ status: 'rejected', reason: initError });
+    expect(secondResult).toEqual({ status: 'rejected', reason: initError });
+    expect(getAuth).toHaveBeenCalledTimes(1);
+    expect(connectAuthEmulator).toHaveBeenCalledTimes(1);
+    expect(onAuthStateChanged).toHaveBeenCalledTimes(1);
+    expect(failedAttemptUnsubscribe).toHaveBeenCalledTimes(1);
+    expect(signInWithEmailAndPassword).not.toHaveBeenCalled();
+
+    await service.signIn({ email: 'user@example.com', password: 'ValidPassword123' });
+
+    expect(getAuth).toHaveBeenCalledTimes(2);
+    expect(connectAuthEmulator).toHaveBeenCalledTimes(1);
+    expect(onAuthStateChanged).toHaveBeenCalledTimes(2);
+    expect(retryAttemptUnsubscribe).not.toHaveBeenCalled();
+    expect(service.isAuthenticated()).toBe(true);
+
+    TestBed.resetTestingModule();
+
+    expect(failedAttemptUnsubscribe).toHaveBeenCalledTimes(1);
+    expect(retryAttemptUnsubscribe).toHaveBeenCalledTimes(1);
+  });
+
+  it('should keep initialization cached when an ordinary signInWithEmailAndPassword error occurs', async () => {
+    const service = configureTestBed();
+    const credentialError = new Error('auth/invalid-credential');
+
+    vi.mocked(signInWithEmailAndPassword).mockRejectedValueOnce(credentialError);
+
+    await expect(service.signIn({ email: 'user@example.com', password: 'WrongPassword123' })).rejects.toThrow(
+      credentialError,
+    );
+
+    expect(getAuth).toHaveBeenCalledTimes(1);
+    expect(onAuthStateChanged).toHaveBeenCalledTimes(1);
+    expect(mockUnsubscribe).not.toHaveBeenCalled();
+    expect(service.isAuthenticated()).toBe(false);
+
+    await service.signIn({ email: 'user@example.com', password: 'ValidPassword123' });
+
+    expect(getAuth).toHaveBeenCalledTimes(1);
+    expect(onAuthStateChanged).toHaveBeenCalledTimes(1);
+    expect(signInWithEmailAndPassword).toHaveBeenCalledTimes(2);
+    expect(service.isAuthenticated()).toBe(true);
   });
 });
