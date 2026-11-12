@@ -1,6 +1,8 @@
 <div class="w-full mt-6">
   @let citations = metadata()?.citations;
   @let numCitations = citations?.length || 0;
+  @let mapsCitations = metadata()?.mapsCitations;
+  @let numMapCitations = mapsCitations?.length || 0;
   @if (numCitations > 0) {
     <h3 class="section-title">Inline Citations</h3>
     <ol class="ordered-list">
@@ -8,6 +10,22 @@
         <li class="ml-4 list-item">
           <a class="link-anchor" [href]="citation.uri" target="_blank" rel="noopener noreferrer">
             {{ citation.title }}
+          </a>
+        </li>
+      }
+    </ol>
+  }
+
+  @if (numMapCitations > 0) {
+    <h3 class="section-title">
+      Google Maps Sources
+      <span translate="no" class="gmp-attribution">Google Maps</span>
+    </h3>
+    <ol class="ordered-list">
+      @for (place of mapsCitations; track place.placeId || place.uri || place.title) {
+        <li class="ml-4 list-item">
+          <a class="link-anchor" [href]="place.uri" target="_blank" rel="noopener noreferrer">
+            {{ place.title }}
           </a>
         </li>
       }

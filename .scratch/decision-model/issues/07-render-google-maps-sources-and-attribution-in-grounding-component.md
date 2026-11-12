@@ -5,7 +5,7 @@ Update `GroundingComponent` (`grounding.component.html` and `grounding.component
 
 **Blocked by:** 02: Extend Vision Preprocessing with `imageBytes` and Update Vision Domain Interfaces
 
-**Status:** ready-for-agent
+**Status:** done
 
 ## Target Files
 
@@ -18,7 +18,7 @@ Update `GroundingComponent` (`grounding.component.html` and `grounding.component
 
 ### 1. Render Google Maps Sources Block (`grounding.component.html`)
 
-- [ ] Follow `DESIGN.md` **Section 10 (`GroundingComponent`)** in `src/app/features/dashboard/components/grounding/grounding.component.html` to render the **Google Maps Sources** block when `metadata()?.mapsCitations` has items:
+- [x] Follow `DESIGN.md` **Section 10 (`GroundingComponent`)** in `src/app/features/dashboard/components/grounding/grounding.component.html` to render the **Google Maps Sources** block when `metadata()?.mapsCitations` has items:
 
   ```html
   @let mapsCitations = metadata()?.mapsCitations; @let numMapsCitations = mapsCitations?.length || 0; @if
@@ -39,7 +39,7 @@ Update `GroundingComponent` (`grounding.component.html` and `grounding.component
 
 ### 2. Style `.gmp-attribution` in `grounding.component.css`
 
-- [ ] Add `.gmp-attribution` in `src/app/features/dashboard/components/grounding/grounding.component.css` adhering to `DESIGN.md` Section 10 and the Google Maps text attribution guidelines (weight 400 (`font-normal`), `12sp–16sp` (`text-sm`), `whitespace-nowrap`, accessible contrast):
+- [x] Add `.gmp-attribution` in `src/app/features/dashboard/components/grounding/grounding.component.css` adhering to `DESIGN.md` Section 10 and the Google Maps text attribution guidelines (weight 400 (`font-normal`), `12sp–16sp` (`text-sm`), `whitespace-nowrap`, accessible contrast):
 
   ```css
   .gmp-attribution {
@@ -49,7 +49,7 @@ Update `GroundingComponent` (`grounding.component.html` and `grounding.component
 
 ### 3. Add Unit Tests (`grounding.component.spec.ts`)
 
-- [ ] Update `src/app/features/dashboard/components/grounding/grounding.component.spec.ts` with Red -> Green test cases verifying `mapsCitations` and `.gmp-attribution`:
+- [x] Update `src/app/features/dashboard/components/grounding/grounding.component.spec.ts` with Red -> Green test cases verifying `mapsCitations` and `.gmp-attribution`:
 
   ```ts
   // TEST CASE 6: Render Google Maps Sources & Attribution
@@ -104,7 +104,7 @@ Update `GroundingComponent` (`grounding.component.html` and `grounding.component
 
 ### 4. Verification
 
-- [ ] Run targeted unit tests and full end-of-task checks:
+- [x] Run targeted unit tests and full end-of-task checks:
 
   ```bash
   npm run test:spec src/app/features/dashboard/components/grounding/grounding.component.spec.ts

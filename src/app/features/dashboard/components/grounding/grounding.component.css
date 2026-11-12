@@ -7,3 +7,7 @@
 .link-anchor {
   @apply text-primary-accent hover:text-primary underline;
 }
+
+.gmp-attribution {
+  @apply font-normal text-sm whitespace-nowrap text-muted ml-2;
+}

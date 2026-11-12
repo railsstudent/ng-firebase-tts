@@ -112,4 +112,53 @@ describe('GroundingComponent', () => {
       expect(link.nativeElement.classList.contains('mb-2')).toBe(true);
     }
   });
+
+  // TEST CASE 6: Render Google Maps Sources & Attribution
+  it('should render Google Maps Sources list and compliant Google Maps attribution when mapsCitations are present', () => {
+    fixture.componentRef.setInput('metadata', {
+      citations: [],
+      mapsCitations: [
+        {
+          title: 'Eiffel Tower',
+          uri: 'https://maps.google.com/?cid=123',
+          placeId: 'places/ChIJLU7jZClu5kcR4PcOOO6p3I0',
+        },
+      ],
+      renderedContent: '',
+      searchQueries: [],
+    });
+    fixture.detectChanges();
+
+    const sectionHeader = fixture.debugElement.query(By.css('.section-title'));
+    const attribution = fixture.debugElement.query(By.css('.gmp-attribution'));
+    const placeLink = fixture.debugElement.query(By.css('.ordered-list a.link-anchor'));
+
+    expect(sectionHeader).toBeTruthy();
+    expect(sectionHeader.nativeElement.textContent).toContain('Google Maps Sources');
+    expect(attribution).toBeTruthy();
+    expect(attribution.nativeElement.getAttribute('translate')).toBe('no');
+    expect(attribution.nativeElement.textContent.trim()).toBe('Google Maps');
+    expect(placeLink).toBeTruthy();
+    expect(placeLink.nativeElement.getAttribute('href')).toBe('https://maps.google.com/?cid=123');
+    expect(placeLink.nativeElement.getAttribute('target')).toBe('_blank');
+    expect(placeLink.nativeElement.getAttribute('rel')).toBe('noopener noreferrer');
+    expect(placeLink.nativeElement.textContent.trim()).toBe('Eiffel Tower');
+  });
+
+  // TEST CASE 7: Omit Google Maps Sources When Empty or Undefined
+  it('should omit Google Maps Sources heading and attribution when mapsCitations is empty or undefined', () => {
+    fixture.componentRef.setInput('metadata', {
+      citations: [{ title: 'Mars Surface', uri: 'https://nasa.gov/mars' }],
+      mapsCitations: [],
+      renderedContent: '',
+      searchQueries: [],
+    });
+    fixture.detectChanges();
+
+    const attribution = fixture.debugElement.query(By.css('.gmp-attribution'));
+    const headers = fixture.debugElement.queryAll(By.css('.section-title'));
+
+    expect(attribution).toBeNull();
+    expect(headers.some((h) => h.nativeElement.textContent.includes('Google Maps Sources'))).toBe(false);
+  });
 });
