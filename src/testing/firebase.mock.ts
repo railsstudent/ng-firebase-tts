@@ -48,6 +48,8 @@ function resolveRemoteConfigString(key: string): string {
       return 'gemini-1.5-flash-tts';
     case 'thinkingLevel':
       return 'LOW';
+    case 'decisionModelPath':
+      return 'https://example.com/models/embeddinggemma-2.litertlm';
     default:
       return '';
   }
@@ -68,7 +70,7 @@ function createRemoteConfigMocks(): MockRemoteConfigMocks {
     getValue: vi.fn((_rc: unknown, key: string) => ({
       asString: () => resolveRemoteConfigString(key),
       asBoolean: () => key === 'useLimitedUseAppCheckTokens',
-      asNumber: () => 0,
+      asNumber: () => (key === 'decisionConfidenceThreshold' ? 0.4 : 0),
     })),
   };
 

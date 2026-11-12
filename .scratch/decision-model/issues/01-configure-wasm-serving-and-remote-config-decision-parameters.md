@@ -5,7 +5,7 @@ Configure the Angular build pipeline and Service Worker **Asset Cache Manifest**
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
 ## Target Files
 
@@ -23,11 +23,11 @@ Configure the Angular build pipeline and Service Worker **Asset Cache Manifest**
 
 ### 1. Ensure `node_modules` Dependencies Are Installed
 
-- [ ] If `node_modules/@mediapipe/tasks-decision` is not yet unpacked on disk, run `npm install` (which populates `node_modules/@mediapipe/tasks-decision` from the existing `package.json` and `package-lock.json` entries).
+- [x] If `node_modules/@mediapipe/tasks-decision` is not yet unpacked on disk, run `npm install` (which populates `node_modules/@mediapipe/tasks-decision` from the existing `package.json` and `package-lock.json` entries).
 
 ### 2. Map `/wasm` Assets in `angular.json` and Lazy-Cache in `ngsw-config.json`
 
-- [ ] Update `projects.ng-firebase-tts.architect.build.options.assets` in `angular.json` to copy `node_modules/@mediapipe/tasks-decision/wasm` to `/wasm`:
+- [x] Update `projects.ng-firebase-tts.architect.build.options.assets` in `angular.json` to copy `node_modules/@mediapipe/tasks-decision/wasm` to `/wasm`:
 
   ```json
   "assets": [
@@ -48,7 +48,7 @@ Configure the Angular build pipeline and Service Worker **Asset Cache Manifest**
   ],
   ```
 
-- [ ] Update the `assets` (`"installMode": "lazy"`) group in `ngsw-config.json` to include `"/wasm/**"`:
+- [x] Update the `assets` (`"installMode": "lazy"`) group in `ngsw-config.json` to include `"/wasm/**"`:
 
   ```json
   {
@@ -72,7 +72,7 @@ Configure the Angular build pipeline and Service Worker **Asset Cache Manifest**
 
 ### 3. Add `decisionModelPath` and `decisionConfidenceThreshold` to Remote Config Files
 
-- [ ] Update `public/remote-config-defaults.json`:
+- [x] Update `public/remote-config-defaults.json`:
 
   ```json
   {
@@ -89,7 +89,7 @@ Configure the Angular build pipeline and Service Worker **Asset Cache Manifest**
   }
   ```
 
-- [ ] Add `decisionModelPath` and `decisionConfidenceThreshold` under `parameters` in `firebase/remote-config-template.json`:
+- [x] Add `decisionModelPath` and `decisionConfidenceThreshold` under `parameters` in `firebase/remote-config-template.json`:
 
   ```json
   "decisionModelPath": {
@@ -110,7 +110,7 @@ Configure the Angular build pipeline and Service Worker **Asset Cache Manifest**
 
 ### 4. Update `AppRemoteConfig` and `ConfigService`
 
-- [ ] Update `src/app/core/firebase/app-remote-config.interface.ts`:
+- [x] Update `src/app/core/firebase/app-remote-config.interface.ts`:
 
   ```ts
   import type { ThinkingLevel } from 'firebase/ai';
@@ -126,7 +126,7 @@ Configure the Angular build pipeline and Service Worker **Asset Cache Manifest**
   }
   ```
 
-- [ ] Update `#appConfig` initialization and `fetchRemoteConfig` in `src/app/core/firebase/config.service.ts`:
+- [x] Update `#appConfig` initialization and `fetchRemoteConfig` in `src/app/core/firebase/config.service.ts`:
 
   ```ts
   #appConfig: AppRemoteConfig = {
@@ -159,7 +159,7 @@ Configure the Angular build pipeline and Service Worker **Asset Cache Manifest**
 
 ### 5. Update Test Mocks and `config.service.spec.ts`
 
-- [ ] Update `createMockAppRemoteConfig` in `src/testing/config.mock.ts`:
+- [x] Update `createMockAppRemoteConfig` in `src/testing/config.mock.ts`:
 
   ```ts
   export function createMockAppRemoteConfig(overrides?: Partial<AppRemoteConfig>): AppRemoteConfig {
@@ -177,7 +177,7 @@ Configure the Angular build pipeline and Service Worker **Asset Cache Manifest**
   }
   ```
 
-- [ ] Update `resolveRemoteConfigString` and `createRemoteConfigMocks` in `src/testing/firebase.mock.ts`:
+- [x] Update `resolveRemoteConfigString` and `createRemoteConfigMocks` in `src/testing/firebase.mock.ts`:
 
   ```ts
   function resolveRemoteConfigString(key: string): string {
@@ -208,7 +208,7 @@ Configure the Angular build pipeline and Service Worker **Asset Cache Manifest**
   })),
   ```
 
-- [ ] Update assertions in `src/app/core/firebase/config.service.spec.ts` for bundled defaults and fetched Remote Config values to include `decisionModelPath` and `decisionConfidenceThreshold: 0.4` (Red -> Green TDD loop):
+- [x] Update assertions in `src/app/core/firebase/config.service.spec.ts` for bundled defaults and fetched Remote Config values to include `decisionModelPath` and `decisionConfidenceThreshold: 0.4` (Red -> Green TDD loop):
 
   ```ts
   // 1. Inside 'should initialize app, setup remote-config, and fetch in background when online':
@@ -265,7 +265,7 @@ Configure the Angular build pipeline and Service Worker **Asset Cache Manifest**
 
 ### 6. Verification
 
-- [ ] Run targeted unit tests and build verification:
+- [x] Run targeted unit tests and build verification:
 
   ```bash
   npm run test:spec src/app/core/firebase/config.service.spec.ts

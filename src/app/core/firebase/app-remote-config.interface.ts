@@ -6,4 +6,6 @@ export interface AppRemoteConfig {
   geminiTTSModelName: string;
   thinkingLevel: ThinkingLevel;
   useLimitedUseAppCheckTokens: boolean;
+  decisionModelPath: string;
+  decisionConfidenceThreshold: number;
 }

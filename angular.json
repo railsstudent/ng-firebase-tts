@@ -41,6 +41,11 @@
                 "glob": "**/*",
                 "input": "public/.well-known",
                 "output": "/.well-known"
+              },
+              {
+                "glob": "**/*",
+                "input": "node_modules/@mediapipe/tasks-decision/wasm",
+                "output": "/wasm"
               }
             ],
             "styles": ["src/styles.css"]

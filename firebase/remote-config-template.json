@@ -17,12 +17,19 @@
     }
   ],
   "parameters": {
-    "useLimitedUseAppCheckTokens": {
+    "decisionConfidenceThreshold": {
       "defaultValue": {
-        "value": "true"
+        "value": "0.4"
       },
-      "description": "Whether or not to enable replay protection",
-      "valueType": "BOOLEAN"
+      "description": "Minimum confidence score for decision model classification",
+      "valueType": "NUMBER"
+    },
+    "decisionModelPath": {
+      "defaultValue": {
+        "value": "https://huggingface.co/litert-community/embeddinggemma-2-text-vision-440m-litert-lm/resolve/main/embeddinggemma-2-text-vision-440m.litertlm"
+      },
+      "description": "MediaPipe LiteRT decision model asset path",
+      "valueType": "STRING"
     },
     "functionEmulatorHost": {
       "defaultValue": {
@@ -38,11 +45,18 @@
       "description": "Function emulator port number",
       "valueType": "NUMBER"
     },
-    "vertexAILocation": {
+    "functionRegion": {
       "defaultValue": {
-        "value": "global"
+        "value": "asia-east2"
       },
-      "description": "Location of Firebase AI Logic VertexAI Backend ",
+      "description": "Location where the functions are deployed",
+      "valueType": "STRING"
+    },
+    "geminiModelName": {
+      "defaultValue": {
+        "value": "gemini-3.8-flash"
+      },
+      "description": "Gemini Model Name",
       "valueType": "STRING"
     },
     "geminiTTSModelName": {
@@ -59,28 +73,28 @@
       "description": "Thinking level of the Gemini Model",
       "valueType": "STRING"
     },
-    "functionRegion": {
+    "useLimitedUseAppCheckTokens": {
       "defaultValue": {
-        "value": "asia-east2"
+        "value": "true"
       },
-      "description": "Location where the functions are deployed",
-      "valueType": "STRING"
+      "description": "Whether or not to enable replay protection",
+      "valueType": "BOOLEAN"
     },
-    "geminiModelName": {
+    "vertexAILocation": {
       "defaultValue": {
-        "value": "gemini-3.8-flash"
+        "value": "global"
       },
-      "description": "Gemini Model Name",
+      "description": "Location of Firebase AI Logic VertexAI Backend ",
       "valueType": "STRING"
     }
   },
   "version": {
-    "versionNumber": "25",
-    "updateTime": "2026-11-07T07:39:03.705424Z",
+    "versionNumber": "26",
+    "updateTime": "2026-11-12T11:55:17.321523Z",
     "updateUser": {
       "email": "cleung334@gmail.com"
     },
-    "updateOrigin": "CONSOLE",
-    "updateType": "INCREMENTAL_UPDATE"
+    "updateOrigin": "REST_API",
+    "updateType": "FORCED_UPDATE"
   }
 }

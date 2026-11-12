@@ -7,6 +7,17 @@ import { initializeAppCheck } from 'firebase/app-check';
 import { fetchAndActivate, getRemoteConfig } from 'firebase/remote-config';
 import { ConfigService } from './config.service';
 
+const DEFAULT_REMOTE_CONFIG = {
+  useLimitedUseAppCheckTokens: true,
+  vertexAILocation: 'global',
+  geminiModelName: 'gemini-3.8-flash',
+  geminiTTSModelName: 'gemini-3.1-flash-tts-preview',
+  thinkingLevel: 'LOW',
+  decisionModelPath:
+    'https://huggingface.co/litert-community/embeddinggemma-2-text-vision-440m-litert-lm/resolve/main/embeddinggemma-2-text-vision-440m.litertlm',
+  decisionConfidenceThreshold: 0.4,
+};
+
 describe('ConfigService', () => {
   let windowMock: { location: { hostname: string }; navigator: { onLine: boolean } } | null;
 
@@ -65,6 +76,8 @@ describe('ConfigService', () => {
         geminiModelName: 'gemini-1.5-flash',
         thinkingLevel: 'LOW',
         geminiTTSModelName: 'gemini-1.5-flash-tts',
+        decisionModelPath: 'https://example.com/models/embeddinggemma-2.litertlm',
+        decisionConfidenceThreshold: 0.4,
       });
     });
   });
@@ -93,13 +106,7 @@ describe('ConfigService', () => {
     expect(globalObj['FIREBASE_APPCHECK_DEBUG_TOKEN']).toBeUndefined();
 
     // When offline, it should use the default initialized value
-    expect(service.appConfig).toEqual({
-      useLimitedUseAppCheckTokens: true,
-      vertexAILocation: 'global',
-      geminiModelName: 'gemini-3.8-flash',
-      geminiTTSModelName: 'gemini-3.1-flash-tts-preview',
-      thinkingLevel: 'LOW',
-    });
+    expect(service.appConfig).toEqual(DEFAULT_REMOTE_CONFIG);
   });
 
   it('should skip App Check when online but recaptchaEnterpriseKey is missing from config', async () => {
@@ -150,13 +157,7 @@ describe('ConfigService', () => {
 
     // When fetch fails in the background, signal retains default values
     await vi.waitFor(() => {
-      expect(service.appConfig).toEqual({
-        useLimitedUseAppCheckTokens: true,
-        vertexAILocation: 'global',
-        geminiModelName: 'gemini-3.8-flash',
-        geminiTTSModelName: 'gemini-3.1-flash-tts-preview',
-        thinkingLevel: 'LOW',
-      });
+      expect(service.appConfig).toEqual(DEFAULT_REMOTE_CONFIG);
     });
   });
 
@@ -210,13 +211,7 @@ describe('ConfigService', () => {
 
   it('should expose bundled defaults in appConfig even before initialize() is executed', () => {
     const service = configureTestBed();
-    expect(service.appConfig).toEqual({
-      useLimitedUseAppCheckTokens: true,
-      vertexAILocation: 'global',
-      geminiModelName: 'gemini-3.8-flash',
-      geminiTTSModelName: 'gemini-3.1-flash-tts-preview',
-      thinkingLevel: 'LOW',
-    });
+    expect(service.appConfig).toEqual(DEFAULT_REMOTE_CONFIG);
   });
 
   it('should invalidate cached aiBackend when remote config activates new values', async () => {
