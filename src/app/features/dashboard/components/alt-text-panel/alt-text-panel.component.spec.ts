@@ -94,4 +94,49 @@ describe('AltTextPanel', () => {
     expect(altTextDisplay).toBeTruthy();
     expect(altTextDisplay.nativeElement.textContent).toContain('A high contrast graphic of Mars.');
   });
+
+  // TEST CASE 5: Image Subject Category Badge Rendering
+  it('should render .category-badge inside .alt-text-header when analysis.category is provided', () => {
+    fixture.componentRef.setInput('analysis', {
+      parsed: {
+        alternativeText: 'Eiffel Tower (48.8584° N, 2.2945° E) at dusk.',
+        recommendations: [],
+      },
+      metadata: {
+        citations: [],
+        searchQueries: [],
+      },
+      category: 'place',
+    });
+    fixture.componentRef.setInput('error', undefined);
+    fixture.componentRef.setInput('isLoading', false);
+    fixture.detectChanges();
+
+    const header = fixture.debugElement.query(By.css('.alt-text-header'));
+    const badge = fixture.debugElement.query(By.css('.category-badge'));
+
+    expect(header).toBeTruthy();
+    expect(badge).toBeTruthy();
+    expect(badge.nativeElement.textContent.trim()).toBe('place');
+  });
+
+  // TEST CASE 6: Omit Category Badge When Undefined
+  it('should not render .category-badge when analysis.category is undefined', () => {
+    fixture.componentRef.setInput('analysis', {
+      parsed: {
+        alternativeText: 'A high contrast graphic of Mars.',
+        recommendations: [],
+      },
+      metadata: {
+        citations: [],
+        searchQueries: [],
+      },
+    });
+    fixture.componentRef.setInput('error', undefined);
+    fixture.componentRef.setInput('isLoading', false);
+    fixture.detectChanges();
+
+    const badge = fixture.debugElement.query(By.css('.category-badge'));
+    expect(badge).toBeNull();
+  });
 });

@@ -22,3 +22,11 @@
 .results-wrapper {
   animation: fadeIn 0.3s ease-out forwards;
 }
+
+.alt-text-header {
+  @apply flex items-center justify-between gap-2 mb-3;
+}
+
+.category-badge {
+  @apply bg-app-bg text-primary-accent border border-primary-indigo text-xs font-semibold px-3 py-0.5 rounded-full;
+}

@@ -16,9 +16,15 @@
   @if (!isLoading() && imageAnalysis) {
     <div class="results-wrapper">
       @let altText = analysis()?.parsed?.alternativeText || 'Default alternative text';
+      @let category = analysis()?.category;
       @if (altText) {
         <div class="w-full mt-6">
-          <h3 class="section-title">Generated Alternative Text</h3>
+          <div class="alt-text-header">
+            <h3 class="section-title">Generated Alternative Text</h3>
+            @if (category) {
+              <span class="category-badge">{{ category }}</span>
+            }
+          </div>
           <div class="surface-card">
             <p class="text-secondary italic">"{{ altText }}"</p>
           </div>

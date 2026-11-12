@@ -5,7 +5,7 @@ Update `AltTextPanel` (`alt-text-panel.component.html` and `alt-text-panel.compo
 
 **Blocked by:** 02: Extend Vision Preprocessing with `imageBytes` and Update Vision Domain Interfaces
 
-**Status:** ready-for-agent
+**Status:** done
 
 ## Target Files
 
@@ -17,7 +17,7 @@ Update `AltTextPanel` (`alt-text-panel.component.html` and `alt-text-panel.compo
 
 ### 1. Update Template to Render `.alt-text-header` and `.category-badge` (`alt-text-panel.component.html`)
 
-- [ ] Follow `DESIGN.md` **Section 8 (`AltTextPanelComponent`)** in `src/app/features/dashboard/components/alt-text-panel/alt-text-panel.component.html`:
+- [x] Follow `DESIGN.md` **Section 8 (`AltTextPanelComponent`)** in `src/app/features/dashboard/components/alt-text-panel/alt-text-panel.component.html`:
 
   ```html
   @if (!isLoading() && imageAnalysis) {
@@ -44,7 +44,7 @@ Update `AltTextPanel` (`alt-text-panel.component.html` and `alt-text-panel.compo
 
 ### 2. Style `.alt-text-header` and `.category-badge` in `alt-text-panel.component.css`
 
-- [ ] Add `.alt-text-header` and `.category-badge` in `src/app/features/dashboard/components/alt-text-panel/alt-text-panel.component.css` per `DESIGN.md` Section 8:
+- [x] Add `.alt-text-header` and `.category-badge` in `src/app/features/dashboard/components/alt-text-panel/alt-text-panel.component.css` per `DESIGN.md` Section 8:
 
   ```css
   .alt-text-header {
@@ -58,7 +58,7 @@ Update `AltTextPanel` (`alt-text-panel.component.html` and `alt-text-panel.compo
 
 ### 3. Add Unit Tests (`alt-text-panel.component.spec.ts`)
 
-- [ ] Update `src/app/features/dashboard/components/alt-text-panel/alt-text-panel.component.spec.ts` with Red -> Green test cases verifying `.category-badge` rendering:
+- [x] Update `src/app/features/dashboard/components/alt-text-panel/alt-text-panel.component.spec.ts` with Red -> Green test cases verifying `.category-badge` rendering:
 
   ```ts
   // TEST CASE 5: Image Subject Category Badge Rendering
@@ -109,7 +109,7 @@ Update `AltTextPanel` (`alt-text-panel.component.html` and `alt-text-panel.compo
 
 ### 4. Verification
 
-- [ ] Run targeted unit tests:
+- [x] Run targeted unit tests:
 
   ```bash
   npm run test:spec src/app/features/dashboard/components/alt-text-panel/alt-text-panel.component.spec.ts

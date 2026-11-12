@@ -51,6 +51,7 @@ export class VisionService {
         tokenUsage,
         metadata: citations,
         optimizationMetrics,
+        category: 'place',
       };
     }
     throw Error('No text generated.');
