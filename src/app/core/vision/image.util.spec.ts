@@ -36,6 +36,8 @@ describe('image.util', () => {
 
       expect(result.data).toBeDefined();
       expect(result.mimeType).toBe('image/webp');
+      expect(result.imageBytes).toBeInstanceOf(Uint8Array);
+      expect(new TextDecoder().decode(result.imageBytes)).toBe('optimized-data');
       expect(result.optimizationMetrics).toBeDefined();
       expect(result.optimizationMetrics.originalDimensions).toEqual({ width: 1536, height: 1024 });
       expect(result.optimizationMetrics.optimizedDimensions.width).toBe(768);
@@ -83,6 +85,8 @@ describe('image.util', () => {
 
       expect(result.data).toBeDefined();
       expect(result.mimeType).toBe('image/png');
+      expect(result.imageBytes).toBeInstanceOf(Uint8Array);
+      expect(new TextDecoder().decode(result.imageBytes)).toBe('ssr-data');
       expect(result.optimizationMetrics.originalDimensions).toEqual({ width: 768, height: 768 });
     });
 

@@ -1,8 +1,10 @@
-import type { WebGroundingChunk } from 'firebase/ai';
+import type { GoogleMapsGroundingChunk, WebGroundingChunk } from 'firebase/ai';
+import type { ImageSubjectCategory } from './image-category.type';
 import type { ImageOptimizationMetrics } from './image-processing.interface';
 
 export interface VisionGroundingMetadata {
   citations: WebGroundingChunk[];
+  mapsCitations?: GoogleMapsGroundingChunk[];
   renderedContent: string;
   searchQueries: string[];
 }
@@ -33,4 +35,5 @@ export interface ImageAnalysisResponse {
   tokenUsage: TokenUsage;
   metadata: VisionGroundingMetadata;
   optimizationMetrics?: ImageOptimizationMetrics;
+  category?: ImageSubjectCategory;
 }

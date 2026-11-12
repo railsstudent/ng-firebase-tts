@@ -76,7 +76,11 @@ export async function preprocessImageForVision(file: File, win?: Window | null):
     win,
   });
 
-  const base64Data = await blobToBase64(optimizedBlob);
+  const [base64Data, optimizedArrayBuffer] = await Promise.all([
+    blobToBase64(optimizedBlob),
+    optimizedBlob.arrayBuffer(),
+  ]);
+  const imageBytes = new Uint8Array(optimizedArrayBuffer);
   const optimizationMetrics: ImageOptimizationMetrics = calculateOptimizationMetrics({
     originalSizeBytes: file.size,
     optimizedSizeBytes: optimizedBlob.size,
@@ -87,6 +91,7 @@ export async function preprocessImageForVision(file: File, win?: Window | null):
   return {
     data: base64Data,
     mimeType,
+    imageBytes,
     optimizationMetrics,
   };
 }

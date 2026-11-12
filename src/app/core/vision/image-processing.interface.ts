@@ -20,6 +20,7 @@ export interface ImageOptimizationMetrics extends OptimizationMetricsParams {
 export interface ImageProcessingResult {
   data: string;
   mimeType: string;
+  imageBytes: Uint8Array;
   optimizationMetrics: ImageOptimizationMetrics;
 }
 

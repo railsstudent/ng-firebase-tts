@@ -5,7 +5,7 @@ Extend **Vision Payload Preprocessing** (`preprocessImageForVision` and `ImagePr
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
 ## Target Files
 
@@ -18,20 +18,20 @@ Extend **Vision Payload Preprocessing** (`preprocessImageForVision` and `ImagePr
 
 ### 1. Add `imageBytes: Uint8Array` to `ImageProcessingResult` (`src/app/core/vision/image-processing.interface.ts`)
 
-- [ ] Update `ImageProcessingResult` in `src/app/core/vision/image-processing.interface.ts`:
+- [x] Update `ImageProcessingResult` in `src/app/core/vision/image-processing.interface.ts`:
 
   ```ts
   export interface ImageProcessingResult {
-    readonly data: string;
-    readonly mimeType: string;
-    readonly imageBytes: Uint8Array;
-    readonly optimizationMetrics: ImageOptimizationMetrics;
+    data: string;
+    mimeType: string;
+    imageBytes: Uint8Array;
+    optimizationMetrics: ImageOptimizationMetrics;
   }
   ```
 
 ### 2. Return `imageBytes` from `preprocessImageForVision()` (`src/app/core/vision/image.util.ts`)
 
-- [ ] Update `preprocessImageForVision()` in `src/app/core/vision/image.util.ts` to extract `imageBytes` from `optimizedBlob` alongside `base64Data`:
+- [x] Update `preprocessImageForVision()` in `src/app/core/vision/image.util.ts` to extract `imageBytes` from `optimizedBlob` alongside `base64Data`:
 
   ```ts
   export async function preprocessImageForVision(file: File, win?: Window | null): Promise<ImageProcessingResult> {
@@ -63,13 +63,16 @@ Extend **Vision Payload Preprocessing** (`preprocessImageForVision` and `ImagePr
 
 ### 3. Update Vision Domain Interfaces (`src/app/core/vision/image-analysis.interface.ts`)
 
-- [ ] Update `src/app/core/vision/image-analysis.interface.ts` to define `ImageSubjectCategory`, add `mapsCitations?: GoogleMapsGroundingChunk[]` to `VisionGroundingMetadata`, and add `category?: ImageSubjectCategory` to `ImageAnalysisResponse`:
+- [x] Update `src/app/core/vision/image-analysis.interface.ts` to define `ImageSubjectCategory`, add `mapsCitations?: GoogleMapsGroundingChunk[]` to `VisionGroundingMetadata`, and add `category?: ImageSubjectCategory` to `ImageAnalysisResponse`:
+
+  ```ts
+  export type ImageSubjectCategory = 'place' | 'people' | 'general';
+  ```
 
   ```ts
   import type { GoogleMapsGroundingChunk, WebGroundingChunk } from 'firebase/ai';
   import type { ImageOptimizationMetrics } from './image-processing.interface';
-
-  export type ImageSubjectCategory = 'place' | 'people' | 'general';
+  import type { ImageSubjectCategory } from './image-category.type';
 
   export interface VisionGroundingMetadata {
     citations: WebGroundingChunk[];
@@ -110,7 +113,7 @@ Extend **Vision Payload Preprocessing** (`preprocessImageForVision` and `ImagePr
 
 ### 4. Add Unit Tests for `imageBytes` (`src/app/core/vision/image.util.spec.ts`)
 
-- [ ] Update `src/app/core/vision/image.util.spec.ts` with Red -> Green test assertions verifying `result.imageBytes`:
+- [x] Update `src/app/core/vision/image.util.spec.ts` with Red -> Green test assertions verifying `result.imageBytes`:
 
   ```ts
   // 1. Inside 'should process image and return base64 and metrics with mock window OffscreenCanvas':
@@ -134,7 +137,7 @@ Extend **Vision Payload Preprocessing** (`preprocessImageForVision` and `ImagePr
 
 ### 5. Verification
 
-- [ ] Run targeted unit tests:
+- [x] Run targeted unit tests:
 
   ```bash
   npm run test:spec src/app/core/vision/image.util.spec.ts
