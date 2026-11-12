@@ -11,7 +11,7 @@ Attach `category` to `ImageAnalysisResponse` and update `VisionService.construct
 
 **Blocked by:** 03: Implement `ImageClassifierService` Using `@mediapipe/tasks-decision` and EmbeddingGemma 2, 04: Define System Instructions and Prompts for People (`people`) and Place (`place`) Models
 
-**Status:** ready-for-agent
+**Status:** done
 
 ## Target Files
 
@@ -23,7 +23,7 @@ Attach `category` to `ImageAnalysisResponse` and update `VisionService.construct
 
 ### 1. Route by `ImageSubjectCategory` and Extract `mapsCitations` in `VisionService` (`src/app/core/vision/vision.service.ts`)
 
-- [ ] Update `src/app/core/vision/vision.service.ts` to inject `ImageClassifierService`, route `'people'`, `'place'`, and `'general'` to their respective model options and prompts, attach `category` to `ImageAnalysisResponse`, and populate `mapsCitations` in `constructCitations()`:
+- [x] Update `src/app/core/vision/vision.service.ts` to inject `ImageClassifierService`, route `'people'`, `'place'`, and `'general'` to their respective model options and prompts, attach `category` to `ImageAnalysisResponse`, and populate `mapsCitations` in `constructCitations()`:
 
   ````ts
   import { WINDOW } from '@/core/constants/navigator.const';
@@ -179,7 +179,7 @@ Attach `category` to `ImageAnalysisResponse` and update `VisionService.construct
 
 ### 2. Update `vision.service.spec.ts` with Routing and Maps Grounding Test Cases
 
-- [ ] Update `src/app/core/vision/vision.service.spec.ts` to provide `ImageClassifierService` via `createMockImageClassifierService()` at the `TestBed` boundary and implement all routing and `mapsCitations` Red -> Green test cases:
+- [x] Update `src/app/core/vision/vision.service.spec.ts` to provide `ImageClassifierService` via `createMockImageClassifierService()` at the `TestBed` boundary and implement all routing and `mapsCitations` Red -> Green test cases:
 
   ```ts
   import { AiModelFactory } from '@/core/firebase/ai-model-factory.service';
@@ -363,7 +363,7 @@ Attach `category` to `ImageAnalysisResponse` and update `VisionService.construct
 
 ### 3. Verification
 
-- [ ] Run targeted unit tests:
+- [x] Run targeted unit tests:
 
   ```bash
   npm run test:spec src/app/core/vision/vision.service.spec.ts

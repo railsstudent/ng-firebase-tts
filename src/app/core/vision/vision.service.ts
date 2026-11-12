@@ -1,7 +1,14 @@
 import { WINDOW } from '@/core/constants/navigator.const';
 import { AiModelFactory } from '@/core/firebase/ai-model-factory.service';
+import type { AiModelOptions } from '@/core/firebase/ai-model-options.interface';
 import { inject, Service } from '@angular/core';
-import type { GroundingMetadata, InlineDataPart, UsageMetadata, WebGroundingChunk } from 'firebase/ai';
+import type {
+  GoogleMapsGroundingChunk,
+  GroundingMetadata,
+  InlineDataPart,
+  UsageMetadata,
+  WebGroundingChunk,
+} from 'firebase/ai';
 import type {
   ImageAnalysis,
   ImageAnalysisResponse,
@@ -9,20 +16,37 @@ import type {
   VisionGroundingMetadata,
 } from './image-analysis.interface';
 import { ImageAnalysisSchema } from './image-analysis.schema';
+import type { ImageSubjectCategory } from './image-category.type';
+import { ImageClassifierService } from './image-classifier.service';
 import { preprocessImageForVision } from './image.util';
-import { altTextPrompt } from './vision.prompt';
+import {
+  altTextPrompt,
+  peopleAltTextPrompt,
+  peopleSystemInstruction,
+  placeAltTextPrompt,
+  placeSystemInstruction,
+} from './vision.prompt';
+
+interface CategoryModelConfig {
+  options: AiModelOptions;
+  prompt: string;
+}
 
 @Service()
 export class VisionService {
   readonly #window = inject(WINDOW);
   readonly #aiModelFactory = inject(AiModelFactory);
+  readonly #imageClassifierService = inject(ImageClassifierService);
 
   async analyzeImage(image: File): Promise<ImageAnalysisResponse> {
     if (!image) {
       throw Error('image is required to generate texts.');
     }
 
-    const { data, mimeType, optimizationMetrics } = await preprocessImageForVision(image, this.#window);
+    const { data, mimeType, optimizationMetrics, imageBytes } = await preprocessImageForVision(image, this.#window);
+    const category = await this.#imageClassifierService.classifyImage(imageBytes);
+    const { options, prompt } = this.getCategoryModelConfig(category);
+
     const imagePart: InlineDataPart = {
       type: 'inlineData',
       inlineData: {
@@ -31,11 +55,8 @@ export class VisionService {
       },
     };
 
-    const aiModel = await this.#aiModelFactory.getModel({
-      schema: ImageAnalysisSchema,
-      tools: [{ googleSearch: {} }],
-    });
-    const result = await aiModel.generateContent([altTextPrompt, imagePart]);
+    const aiModel = await this.#aiModelFactory.getModel(options);
+    const result = await aiModel.generateContent([prompt, imagePart]);
 
     if (result?.response) {
       const response = result.response;
@@ -51,16 +72,49 @@ export class VisionService {
         tokenUsage,
         metadata: citations,
         optimizationMetrics,
-        category: 'place',
+        category,
       };
     }
     throw Error('No text generated.');
+  }
+
+  private getCategoryModelConfig(category: ImageSubjectCategory): CategoryModelConfig {
+    const options: AiModelOptions = {
+      schema: ImageAnalysisSchema,
+      tools: [{ googleSearch: {} }],
+    };
+
+    switch (category) {
+      case 'people':
+        return {
+          options: {
+            ...options,
+            systemInstruction: peopleSystemInstruction,
+          },
+          prompt: peopleAltTextPrompt,
+        };
+      case 'place':
+        return {
+          options: {
+            systemInstruction: placeSystemInstruction,
+            schema: ImageAnalysisSchema,
+            tools: [{ googleMaps: {} }, { googleSearch: {} }],
+          },
+          prompt: placeAltTextPrompt,
+        };
+      default:
+        return {
+          options,
+          prompt: altTextPrompt,
+        };
+    }
   }
 
   private constructCitations(groundingMetadata?: GroundingMetadata): VisionGroundingMetadata {
     if (!groundingMetadata) {
       return {
         citations: [],
+        mapsCitations: [],
         renderedContent: '',
         searchQueries: [],
       };
@@ -73,12 +127,18 @@ export class VisionService {
         .map((idx) => chunks[idx]?.web)
         .filter((web): web is WebGroundingChunk => !!web),
     );
+    const mapsCitations = supports.flatMap((support) =>
+      (support.groundingChunkIndices || [])
+        .map((idx) => chunks[idx]?.maps)
+        .filter((maps): maps is GoogleMapsGroundingChunk => !!maps),
+    );
 
     const renderedContent = groundingMetadata.searchEntryPoint?.renderedContent || '';
     const searchQueries = (groundingMetadata.webSearchQueries || []).filter((query) => !!query);
 
     return {
       citations,
+      mapsCitations,
       renderedContent,
       searchQueries,
     };
