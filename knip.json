@@ -6,5 +6,6 @@
     "cycles": "error"
   },
   "ignoreBinaries": ["ng"],
-  "ignoreDependencies": ["@mediapipe/tasks-decision"]
+  "ignoreDependencies": ["@mediapipe/tasks-decision"],
+  "ignoreFiles": ["src/app/core/vision/vision.prompt.ts"]
 }

@@ -7,6 +7,7 @@ Issues and specs for this repo live as markdown files in `.scratch/`.
 - One feature per directory: `.scratch/<feature-slug>/`
 - The spec is `.scratch/<feature-slug>/spec.md`
 - Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`, never a single combined tickets file
+- Write or edit `.scratch/<feature-slug>/issues/<NN>-<slug>.md` files **one file per tool call** (never batch multiple ticket writes or edits in a single turn)
 - Triage state is recorded as a `Status:` line near the top of each issue file (see `triage-labels.md` for the role strings)
 - Comments and conversation history append to the bottom of the file under a `## Comments` heading
 
@@ -29,24 +30,6 @@ Used by `/wayfinder`. The **map** is a file with one **child** file per ticket.
 - **Claim**: set `Status: claimed` and save before any work.
 - **Resolve**: append the answer under an `## Answer` heading, set `Status: resolved`, then append a context pointer (gist + link) to the map's Decisions-so-far in `map.md`.
 
-## Spec Authoring & Document Boundaries
+## Document Boundaries
 
-To keep codebase abstractions clean and prevent dead exports, follow strict separation between product requirements, architectural decisions, and implementation tickets:
-
-### 1. `spec.md` (Product Specification)
-
-- **Purpose**: Defines **what** the feature accomplishes and **why**.
-- **What Belongs**: Problem statement, user stories, domain data models/interfaces (`src/app/shared/interfaces/`), behavioral rules (e.g. mathematical formulas, dimension constraints, compression quality), and user-observable acceptance criteria.
-- **What is Forbidden**: Do NOT include code-level function signatures, parameter lists, private service methods, or internal helper function names (e.g., avoid listing `calculateImageTokens(...)`). Leave code decomposition to the implementation phase.
-
-### 2. `docs/adr/` (Architectural Decision Records)
-
-- **Purpose**: Captures architectural decisions, trade-offs, and technology choices (e.g., using browser Canvas APIs for client-side compression vs. server-side functions).
-
-### 3. Implementation Grilling & Tickets (`issues/NN-<slug>.md`)
-
-- **Workflow**: Use `spec.md` and the `ADR` as inputs to grill and plan the technical design.
-- **Purpose**: Deconstructs the feature into concrete engineering tasks:
-  - Defining the minimal public API surface (single public entry points for services and utilities).
-  - Designing internal, unexported module helpers and `private` service methods.
-  - Formulating the TDD test matrix that tests observable public behavior rather than internal helpers.
+When authoring or updating `.scratch/<feature-slug>/spec.md`, `docs/adr/`, or `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, follow [document-boundaries.md](document-boundaries.md).

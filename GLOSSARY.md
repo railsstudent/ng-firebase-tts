@@ -40,6 +40,14 @@ _Avoid_: Speech parameters, voice filters, audio metadata
 The multimodal Gemini task that inspects an uploaded image to produce structured alternative text, descriptive tags, improvement recommendations, and an obscure fact.
 _Avoid_: Photo scanning, OCR, vision tagging
 
+**On-Device Image Classification**:
+The local, zero-decoding pre-analysis step that evaluates an uploaded image in the browser to determine its primary subject category before invoking a generative vision model.
+_Avoid_: Cloud pre-check, image tagging, vision router
+
+**Image Subject Category**:
+The mutually exclusive subject classification (`place`, `people`, or `general`) assigned to an uploaded image that governs which domain prompt, system instruction, and grounding tools are used during Image Analysis.
+_Avoid_: Image type, photo class, model mode
+
 **Obscure Fact**:
 A surprising, non-obvious trivia item discovered by Gemini with Google Search grounding that interconnects the descriptive tags extracted from an image.
 _Avoid_: Trivia, image description, random fact
@@ -47,6 +55,10 @@ _Avoid_: Trivia, image description, random fact
 **Search Grounding / Citations**:
 Live Google Search web chunks and entry point metadata attached to the Gemini vision response to verify facts and attribute sources.
 _Avoid_: External links, search references, web scrapings
+
+**Place Grounding / Maps Citations**:
+Live Google Maps geospatial place sources attached to a place-specific Gemini vision response to verify landmarks, locations, and map attributions.
+_Avoid_: Map links, location pins, geocoding results
 
 **Recommendation**:
 An actionable, numbered suggestion provided by Gemini to make an analyzed image more engaging or visually interesting.

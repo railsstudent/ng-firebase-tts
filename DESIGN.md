@@ -286,10 +286,12 @@ The **Firebase AI Logic Multimodal Speech Generator** is a focused AI studio web
 ### 8. Alternative Text Card (`AltTextPanelComponent`)
 
 - **Section Wrapper**: `w-full mt-6`.
-- **Heading (`.section-title`)**: `"Generated Alternative Text"` (`text-lg font-semibold text-primary mb-3`).
+- **Header Row (`.alt-text-header`)**: Flex row (`flex items-center justify-between gap-2 mb-3`) placed directly above the `.surface-card` quote box:
+  - **Heading (`.section-title mb-0`)**: `"Generated Alternative Text"` (`text-lg font-semibold text-primary mb-0`).
+  - **Image Subject Category Badge (`.category-badge`)**: Rendered conditionally when `analysis()?.category` is present (`place`, `people`, or `general`), styled in `alt-text-panel.component.css` with `@apply bg-app-bg text-primary-accent border border-primary-indigo text-xs font-semibold px-3 py-0.5 rounded-full`.
 - **Card (`.surface-card`)**: Rounded container (`bg-surface-card p-4 rounded-xl border border-surface-border`).
 - **Content**: Quoted generated alt-text string in `text-secondary italic` (`"..."`).
-- **STRICT Constraint**: Strictly NO model badges (e.g. "Gemini 1.5 Pro"), NO label badges, and NO pill indicators.
+- **STRICT Constraint**: Strictly NO raw LLM model version badges (e.g. "Gemini 1.5 Pro"); only the single `.category-badge` pill indicating the classified **Image Subject Category** (`place`, `people`, `general`) is permitted in the header row.
 
 ### 9. Recommendations Accordion (`RecommendationsComponent`)
 
@@ -304,20 +306,25 @@ The **Firebase AI Logic Multimodal Speech Generator** is a focused AI studio web
 - **Expanded Panel (`ngAccordionPanel`)**:
   - Detailed explanation formatted as `<span class="block mt-2 text-primary-accent/80">REASON:</span> <span class="text-muted block italic mt-0.5">{{ item.reason }}</span>`.
 
-### 10. Search Grounding / Citations (`GroundingComponent`)
+### 10. Search & Place Grounding / Citations (`GroundingComponent`)
 
 - **Container**: Full-width section (`w-full mt-6`).
 - **Inline Citations Block** (when `citations` present):
   - **Heading (`.section-title`)**: `"Inline Citations"` (`text-lg font-semibold text-primary mb-3`).
   - **Numbered List (`.ordered-list`)**: `<ol class="ordered-list">` (`list-decimal mb-3`) with numbered list items (`<li class="ml-4 list-item">`).
   - **Link Anchor (`.link-anchor`)**: `<a class="link-anchor" target="_blank" rel="noopener noreferrer">{{ citation.title }}</a>` (`text-primary-accent hover:text-primary underline`).
+- **Google Maps Sources Block** (when `mapsCitations` present):
+  - **Heading (`.section-title`)**: `"Google Maps Sources"` (`text-lg font-semibold text-primary mb-3`).
+  - **Numbered List (`.ordered-list`)**: `<ol class="ordered-list">` (`list-decimal mb-3`) with numbered list items (`<li class="ml-4 list-item">`).
+  - **Place Link Anchor (`.link-anchor`)**: `<a class="link-anchor" [href]="place.uri" target="_blank" rel="noopener noreferrer">{{ place.title }}</a>`.
+  - **Google Maps Attribution (`span.gmp-attribution`)**: Rendered inline next to or immediately following the place sources with `translate="no"` (`<span translate="no" class="gmp-attribution">Google Maps</span>`), styled in `grounding.component.css` per Google Maps text attribution requirements (`font-normal text-sm whitespace-nowrap text-muted ml-2`).
 - **Search Queries Block** (when `searchQueries` present):
   - **Heading (`.section-title`)**: `"Search Queries"` (`text-lg font-semibold text-primary mb-3`).
   - **Numbered List (`.ordered-list`)**: `<ol class="ordered-list">` with `<li class="ml-4 text-secondary"><span class="italic">{{ query }}</span></li>`.
 - **Google Search Suggestions Block** (when `safeRenderedContent` present):
   - **Heading (`.section-title`)**: `"Google Search Suggestions"` (`text-lg font-semibold text-primary mb-3`).
   - Rendered search suggestion HTML container (`.grounding-suggestions`).
-- **STRICT Constraint**: Zero artificial dashboard metric badges (e.g. NO "3 verified links", NO "0.94 score", NO chip grids). Structured as clean ordered lists with title-case headings.
+- **STRICT Constraint**: Zero artificial dashboard metric badges (e.g. NO "3 verified links", NO "0.94 score", NO chip grids). Structured as clean ordered lists with title-case headings and compliant `Google Maps` text attribution.
 
 ### 11. Usage & Image Optimization Metrics (`AppUsageMetricsComponent` & `ThoughtSummaryComponent`)
 
