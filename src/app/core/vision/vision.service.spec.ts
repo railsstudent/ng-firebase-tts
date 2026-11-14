@@ -49,52 +49,6 @@ describe('VisionService', () => {
     await expect(service.analyzeImage(null as unknown as File)).rejects.toThrow('image is required to generate texts.');
   });
 
-  it('should successfully parse complete response including thoughts, structured JSON, citations, token usage, and optimization metrics', async () => {
-    const mockImageAnalysis = {
-      altText: 'A beautiful sunset over the mountains',
-      tags: ['sunset', 'mountains', 'scenery'],
-      suggestions: [{ title: 'Add foreground interest', reason: 'To make composition stronger' }],
-      obscureFact: 'Sunsets on Mars are actually blue because of fine dust particles.',
-    };
-
-    let generateContentCalled = false;
-    let generateContentArgs: unknown = null;
-
-    mockAiModel.generateContent.mockImplementation((args: unknown) => {
-      generateContentCalled = true;
-      generateContentArgs = args;
-      return Promise.resolve(createMockVisionResponse());
-    });
-
-    const fakeFile = new File(['hello-world'], 'test-image.png', { type: 'image/png' });
-    const result = await service.analyzeImage(fakeFile);
-
-    expect(mockAiModelFactory.getModel).toHaveBeenCalledWith({
-      schema: ImageAnalysisSchema,
-      tools: [{ googleSearch: {} }],
-    });
-
-    expect(generateContentCalled).toBe(true);
-    expect(generateContentArgs).toBeDefined();
-    expect(result.parsed).toEqual(mockImageAnalysis);
-    expect(result.thought).toBe('Analyzing the uploaded landscape photo step-by-step.');
-    expect(result.tokenUsage).toEqual({
-      input: 150,
-      output: 200,
-      thought: 50,
-      total: 400,
-    });
-    expect(result.metadata.citations).toEqual([
-      {
-        uri: 'https://nasa.gov/mars-blue-sunset',
-        title: 'Why Sunsets on Mars are Blue',
-      },
-    ]);
-    expect(result.metadata.searchQueries).toEqual(['blue sunset mars reason']);
-    expect(result.metadata.renderedContent).toBe('Google Search for blue sunset Mars');
-    expect(result.optimizationMetrics).toBeDefined();
-  });
-
   it('should route "general" classification to general model options, altTextPrompt, and return category: "general"', async () => {
     const mockImageAnalysis = {
       altText: 'A beautiful sunset over the mountains',

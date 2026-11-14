@@ -1,4 +1,5 @@
 import type { GoogleMapsGroundingChunk, WebGroundingChunk } from 'firebase/ai';
+import type { AiModelOptions } from '@/core/firebase/ai-model-options.interface';
 import type { ImageSubjectCategory } from './image-category.type';
 import type { ImageOptimizationMetrics } from './image-processing.interface';
 
@@ -36,4 +37,9 @@ export interface ImageAnalysisResponse {
   metadata: VisionGroundingMetadata;
   optimizationMetrics?: ImageOptimizationMetrics;
   category?: ImageSubjectCategory;
+}
+
+export interface CategoryModelConfig {
+  options: AiModelOptions;
+  prompt: string;
 }

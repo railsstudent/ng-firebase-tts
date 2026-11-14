@@ -10,6 +10,7 @@ import type {
   WebGroundingChunk,
 } from 'firebase/ai';
 import type {
+  CategoryModelConfig,
   ImageAnalysis,
   ImageAnalysisResponse,
   TokenUsage,
@@ -26,11 +27,6 @@ import {
   placeAltTextPrompt,
   placeSystemInstruction,
 } from './vision.prompt';
-
-interface CategoryModelConfig {
-  options: AiModelOptions;
-  prompt: string;
-}
 
 @Service()
 export class VisionService {
