@@ -82,15 +82,34 @@ describe('ImageClassifierService', () => {
       maxNumTokens: 512,
     });
     expect(mockPrewarm).toHaveBeenCalledTimes(1);
+    expect(mockPrewarm).toHaveBeenCalledWith({
+      context: 'Analyze the uploaded image for accessibility alt-text routing.',
+      expectedInputs: [{ type: 'image' }],
+      questions: [
+        {
+          id: 'category',
+          type: 'choice',
+          prompt: 'Classify the primary subject category of this image.',
+          options: [
+            expect.objectContaining({ label: 'place', description: expect.any(String) }),
+            expect.objectContaining({ label: 'people', description: expect.any(String) }),
+            expect.objectContaining({ label: 'general', description: expect.any(String) }),
+          ],
+          normalizePrior: true,
+        },
+      ],
+    });
     expect(mockEvaluateChoice).toHaveBeenCalledTimes(2);
     expect(mockEvaluateChoice).toHaveBeenCalledWith(
       { imageBytes: sampleBytes },
       expect.objectContaining({
-        criteria: expect.objectContaining({
-          place: expect.any(String),
-          people: expect.any(String),
-          general: expect.any(String),
-        }),
+        context: 'Analyze the uploaded image for accessibility alt-text routing.',
+        instructions: 'Classify the primary subject category of this image.',
+        options: [
+          expect.objectContaining({ label: 'place', description: expect.any(String) }),
+          expect.objectContaining({ label: 'people', description: expect.any(String) }),
+          expect.objectContaining({ label: 'general', description: expect.any(String) }),
+        ],
         normalizePrior: true,
       }),
     );

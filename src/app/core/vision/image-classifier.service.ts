@@ -8,14 +8,25 @@ const WASM_PATH = '/wasm';
 const MAX_NUM_TOKENS = 512;
 
 const IMAGE_CATEGORY_QUESTION: ChoiceQuestion = {
-  criteria: {
-    place:
-      'A recognizable landmark, monument, building, streetscape, or geographic location, even if people or faces appear in the foreground.',
-    people:
-      'A portrait, close-up face, solo person, or group of people where human subjects are the primary focus without a recognizable landmark.',
-    general:
-      'Objects, animals, food, documents, nature close-ups, abstract scenes, or any image that is neither a recognizable place nor focused on people.',
-  },
+  context: 'Analyze the uploaded image for accessibility alt-text routing.',
+  instructions: 'Classify the primary subject category of this image.',
+  options: [
+    {
+      label: 'place',
+      description:
+        'A recognizable landmark, monument, building, streetscape, or geographic location, even if people or faces appear in the foreground.',
+    },
+    {
+      label: 'people',
+      description:
+        'A portrait, close-up face, solo person, or group of people where human subjects are the primary focus without a recognizable landmark.',
+    },
+    {
+      label: 'general',
+      description:
+        'Objects, animals, food, documents, nature close-ups, abstract scenes, or any image that is neither a recognizable place nor focused on people.',
+    },
+  ],
   normalizePrior: true,
 };
 
@@ -45,26 +56,26 @@ export class ImageClassifierService {
       }
 
       return 'general';
-    } catch (error: unknown) {
+    } catch (error) {
       console.warn('[ImageClassifierService] On-device classification failed, falling back to general:', error);
       return 'general';
     }
   }
 
-  private resolveDelegate(modelAssetPath: string): 'GPU' | 'CPU' | null {
+  private resolveDelegate(modelAssetPath: string): 'GPU' | 'CPU' | undefined {
     const hasWebGpu = Boolean(this.#window?.navigator && 'gpu' in this.#window.navigator);
     if (hasWebGpu) {
       return 'GPU';
     }
     if (modelAssetPath.endsWith('.litertlm')) {
-      return null;
+      return undefined;
     }
     return 'CPU';
   }
 
   private getDecisionMaker(modelAssetPath: string, delegate: 'GPU' | 'CPU'): Promise<DecisionMaker> {
     if (!this.#decisionMakerPromise) {
-      this.#decisionMakerPromise = this.initializeDecisionMaker(modelAssetPath, delegate).catch((error: unknown) => {
+      this.#decisionMakerPromise = this.initializeDecisionMaker(modelAssetPath, delegate).catch((error) => {
         this.#decisionMakerPromise = null;
         throw error;
       });
@@ -84,16 +95,15 @@ export class ImageClassifierService {
     });
 
     await decisionMaker.prewarm({
+      context: IMAGE_CATEGORY_QUESTION.context,
+      expectedInputs: [{ type: 'image' }],
       questions: [
         {
           id: 'category',
           type: 'choice',
-          prompt: 'Classify the primary subject category of this image.',
-          options: Object.entries(IMAGE_CATEGORY_QUESTION.criteria ?? {}).map(([label, description]) => ({
-            label,
-            description,
-          })),
-          normalizePrior: true,
+          prompt: IMAGE_CATEGORY_QUESTION.instructions ?? '',
+          options: IMAGE_CATEGORY_QUESTION.options ?? [],
+          normalizePrior: IMAGE_CATEGORY_QUESTION.normalizePrior ?? true,
         },
       ],
     });
