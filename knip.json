@@ -5,6 +5,5 @@
   "rules": {
     "cycles": "error"
   },
-  "ignoreBinaries": ["ng"],
-  "ignoreDependencies": ["@mediapipe/tasks-decision"]
+  "ignoreBinaries": ["ng"]
 }

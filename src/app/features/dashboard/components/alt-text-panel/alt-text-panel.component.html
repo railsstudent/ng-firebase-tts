@@ -19,10 +19,10 @@
       @let category = imageAnalysis.category;
       @if (altText) {
         <div class="w-full mt-6">
-          <div class="alt-text-header">
+          <div class="gap-2 mb-3 alt-text-header">
             <h3 class="section-title mb-0">Generated Alternative Text</h3>
             @if (category) {
-              <span class="category-badge">{{ category }}</span>
+              <span class="border font-semibold category-badge">{{ category }}</span>
             }
           </div>
           <div class="surface-card">

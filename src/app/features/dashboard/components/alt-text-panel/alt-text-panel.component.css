@@ -24,9 +24,9 @@
 }
 
 .alt-text-header {
-  @apply flex items-center justify-between gap-2 mb-3;
+  @apply flex items-center justify-between;
 }
 
 .category-badge {
-  @apply bg-app-bg text-primary-accent border border-primary-indigo text-xs font-semibold px-3 py-0.5 rounded-full;
+  @apply bg-app-bg text-primary-accent border-primary-indigo text-xs px-3 py-0.5 rounded-full;
 }

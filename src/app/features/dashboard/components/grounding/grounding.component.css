@@ -9,5 +9,5 @@
 }
 
 .gmp-attribution {
-  @apply font-normal text-sm whitespace-nowrap text-muted ml-2;
+  @apply whitespace-nowrap text-muted ml-2;
 }
