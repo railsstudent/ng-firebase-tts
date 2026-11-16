@@ -5,10 +5,11 @@ Implement `ImageClassifierService` in `src/app/core/vision/image-classifier.serv
 
 **Blocked by:** 01: Configure Local `/wasm` Asset Serving and Remote Config Decision Parameters (`ConfigService`), 02: Extend Vision Preprocessing with `imageBytes` and Update Vision Domain Interfaces
 
-**Status:** ready-for-agent
+**Status:** done
 
 ## Target Files
 
+- `src/app/core/vision/image-classifier.const.ts` (New)
 - `src/app/core/vision/image-classifier.service.ts` (New)
 - `src/app/core/vision/image-classifier.service.spec.ts` (New)
 - `src/testing/image-classifier.mock.ts` (New)
@@ -16,31 +17,49 @@ Implement `ImageClassifierService` in `src/app/core/vision/image-classifier.serv
 
 ## Acceptance Criteria & Implementation Checklist
 
-### 1. Implement `ImageClassifierService` (`src/app/core/vision/image-classifier.service.ts`)
+### 1. Implement `ImageClassifierService` (`src/app/core/vision/image-classifier.const.ts` & `src/app/core/vision/image-classifier.service.ts`)
 
-- [ ] Create `src/app/core/vision/image-classifier.service.ts` adhering to repository ESLint rules (native `#` for private state/deps, `private` keyword for methods, max 40 lines per function, zero `!` assertions, zero `../` imports). Do **not** export `ImageClassifierService` from `src/app/core/vision/index.ts` so it stays isolated behind the lazy `VisionService` boundary:
+- [x] Create `src/app/core/vision/image-classifier.const.ts` to externalize `WASM_PATH`, `MAX_NUM_TOKENS`, and `IMAGE_CATEGORY_QUESTION` (`context`, `instructions`, `options`, `normalizePrior: true`). Do **not** export `image-classifier.const.ts` from `src/app/core/vision/index.ts`:
+
+  ```ts
+  import type { ChoiceQuestion } from '@mediapipe/tasks-decision';
+
+  export const WASM_PATH = '/wasm';
+  export const MAX_NUM_TOKENS = 512;
+
+  export const IMAGE_CATEGORY_QUESTION: ChoiceQuestion = {
+    context: 'Analyze the uploaded image for accessibility alt-text routing.',
+    instructions: 'Classify the primary subject category of this image.',
+    options: [
+      {
+        label: 'place',
+        description:
+          'A recognizable landmark, monument, building, streetscape, or geographic location, even if people or faces appear in the foreground.',
+      },
+      {
+        label: 'people',
+        description:
+          'A portrait, close-up face, solo person, or group of people where human subjects are the primary focus without a recognizable landmark.',
+      },
+      {
+        label: 'general',
+        description:
+          'Objects, animals, food, documents, nature close-ups, abstract scenes, or any image that is neither a recognizable place nor focused on people.',
+      },
+    ],
+    normalizePrior: true,
+  };
+  ```
+
+- [x] Create `src/app/core/vision/image-classifier.service.ts` adhering to repository ESLint rules (native `#` for private state/deps, `private` keyword for methods, max 40 lines per function, zero `!` assertions, zero `../` imports). Do **not** export `ImageClassifierService` from `src/app/core/vision/index.ts` so it stays isolated behind the lazy `VisionService` boundary:
 
   ```ts
   import { WINDOW } from '@/core/constants/navigator.const';
   import { ConfigService } from '@/core/firebase';
   import { inject, Service } from '@angular/core';
-  import type { ChoiceQuestion, DecisionMaker } from '@mediapipe/tasks-decision';
-  import type { ImageSubjectCategory } from './image-analysis.interface';
-
-  const WASM_PATH = '/wasm';
-  const MAX_NUM_TOKENS = 512;
-
-  export const IMAGE_CATEGORY_QUESTION: ChoiceQuestion = {
-    criteria: {
-      place:
-        'A recognizable landmark, monument, building, streetscape, or geographic location, even if people or faces appear in the foreground.',
-      people:
-        'A portrait, close-up face, solo person, or group of people where human subjects are the primary focus without a recognizable landmark.',
-      general:
-        'Objects, animals, food, documents, nature close-ups, abstract scenes, or any image that is neither a recognizable place nor focused on people.',
-    },
-    normalizePrior: true,
-  };
+  import type { DecisionMaker } from '@mediapipe/tasks-decision';
+  import type { ImageSubjectCategory } from './image-category.type';
+  import { IMAGE_CATEGORY_QUESTION, MAX_NUM_TOKENS, WASM_PATH } from './image-classifier.const';
 
   @Service()
   export class ImageClassifierService {
@@ -68,26 +87,26 @@ Implement `ImageClassifierService` in `src/app/core/vision/image-classifier.serv
         }
 
         return 'general';
-      } catch (error: unknown) {
+      } catch (error) {
         console.warn('[ImageClassifierService] On-device classification failed, falling back to general:', error);
         return 'general';
       }
     }
 
-    private resolveDelegate(modelAssetPath: string): 'GPU' | 'CPU' | null {
+    private resolveDelegate(modelAssetPath: string): 'GPU' | 'CPU' | undefined {
       const hasWebGpu = Boolean(this.#window?.navigator && 'gpu' in this.#window.navigator);
       if (hasWebGpu) {
         return 'GPU';
       }
       if (modelAssetPath.endsWith('.litertlm')) {
-        return null;
+        return undefined;
       }
       return 'CPU';
     }
 
     private getDecisionMaker(modelAssetPath: string, delegate: 'GPU' | 'CPU'): Promise<DecisionMaker> {
       if (!this.#decisionMakerPromise) {
-        this.#decisionMakerPromise = this.initializeDecisionMaker(modelAssetPath, delegate).catch((error: unknown) => {
+        this.#decisionMakerPromise = this.initializeDecisionMaker(modelAssetPath, delegate).catch((error) => {
           this.#decisionMakerPromise = null;
           throw error;
         });
@@ -107,16 +126,15 @@ Implement `ImageClassifierService` in `src/app/core/vision/image-classifier.serv
       });
 
       await decisionMaker.prewarm({
+        context: IMAGE_CATEGORY_QUESTION.context,
+        expectedInputs: [{ type: 'image' }],
         questions: [
           {
             id: 'category',
             type: 'choice',
-            prompt: 'Classify the primary subject category of this image.',
-            options: Object.entries(IMAGE_CATEGORY_QUESTION.criteria ?? {}).map(([label, description]) => ({
-              label,
-              description,
-            })),
-            normalizePrior: true,
+            prompt: IMAGE_CATEGORY_QUESTION.instructions ?? '',
+            options: IMAGE_CATEGORY_QUESTION.options ?? [],
+            normalizePrior: IMAGE_CATEGORY_QUESTION.normalizePrior ?? true,
           },
         ],
       });
@@ -126,11 +144,11 @@ Implement `ImageClassifierService` in `src/app/core/vision/image-classifier.serv
   }
   ```
 
-- [ ] Remove `"@mediapipe/tasks-decision"` from `ignoreDependencies` in `knip.json` once `ImageClassifierService` imports `@mediapipe/tasks-decision`.
+- [x] Remove `"@mediapipe/tasks-decision"` from `ignoreDependencies` in `knip.json` once `ImageClassifierService` imports `@mediapipe/tasks-decision`.
 
 ### 2. Create Shared Test Mock Factory (`src/testing/image-classifier.mock.ts`)
 
-- [ ] Create `src/testing/image-classifier.mock.ts` for downstream `VisionService` unit tests:
+- [x] Create `src/testing/image-classifier.mock.ts` for downstream `VisionService` unit tests:
 
   ```ts
   import type { ImageSubjectCategory } from '@/core/vision';
@@ -152,14 +170,14 @@ Implement `ImageClassifierService` in `src/app/core/vision/image-classifier.serv
 
 ### 3. Add Unit Tests (`src/app/core/vision/image-classifier.service.spec.ts`)
 
-- [ ] Create `src/app/core/vision/image-classifier.service.spec.ts` implementing all behavioral cases (including `.litertlm` WebGPU fast-fail, `.task` CPU fallback, `console.warn`, initialization retry, and per-call inference error isolation) for the Red -> Green TDD loop:
+- [x] Create `src/app/core/vision/image-classifier.service.spec.ts` implementing all behavioral cases (including `.litertlm` WebGPU fast-fail, `.task` CPU fallback, `console.warn`, initialization retry, and per-call inference error isolation) for the Red -> Green TDD loop:
 
   ```ts
   import { WINDOW } from '@/core/constants/navigator.const';
   import { ConfigService } from '@/core/firebase';
   import { createMockAppRemoteConfig, createMockConfigService } from '@/testing/config.mock';
   import { TestBed } from '@angular/core/testing';
-  import { IMAGE_CATEGORY_QUESTION, ImageClassifierService } from './image-classifier.service';
+  import { ImageClassifierService } from './image-classifier.service';
 
   const { mockForDecisionTasks, mockCreateFromOptions, mockPrewarm, mockEvaluateChoice } = vi.hoisted(() => ({
     mockForDecisionTasks: vi.fn(),
@@ -239,8 +257,37 @@ Implement `ImageClassifierService` in `src/app/core/vision/image-classifier.serv
         maxNumTokens: 512,
       });
       expect(mockPrewarm).toHaveBeenCalledTimes(1);
+      expect(mockPrewarm).toHaveBeenCalledWith({
+        context: 'Analyze the uploaded image for accessibility alt-text routing.',
+        expectedInputs: [{ type: 'image' }],
+        questions: [
+          {
+            id: 'category',
+            type: 'choice',
+            prompt: 'Classify the primary subject category of this image.',
+            options: [
+              expect.objectContaining({ label: 'place', description: expect.any(String) }),
+              expect.objectContaining({ label: 'people', description: expect.any(String) }),
+              expect.objectContaining({ label: 'general', description: expect.any(String) }),
+            ],
+            normalizePrior: true,
+          },
+        ],
+      });
       expect(mockEvaluateChoice).toHaveBeenCalledTimes(2);
-      expect(mockEvaluateChoice).toHaveBeenCalledWith({ imageBytes: sampleBytes }, IMAGE_CATEGORY_QUESTION);
+      expect(mockEvaluateChoice).toHaveBeenCalledWith(
+        { imageBytes: sampleBytes },
+        expect.objectContaining({
+          context: 'Analyze the uploaded image for accessibility alt-text routing.',
+          instructions: 'Classify the primary subject category of this image.',
+          options: [
+            expect.objectContaining({ label: 'place', description: expect.any(String) }),
+            expect.objectContaining({ label: 'people', description: expect.any(String) }),
+            expect.objectContaining({ label: 'general', description: expect.any(String) }),
+          ],
+          normalizePrior: true,
+        }),
+      );
     });
 
     it('should fast-fail to "general" without loading WASM or downloading model when WebGPU is unavailable for a .litertlm model', async () => {
@@ -362,7 +409,7 @@ Implement `ImageClassifierService` in `src/app/core/vision/image-classifier.serv
 
 ### 4. Verification
 
-- [ ] Run targeted unit tests:
+- [x] Run targeted unit tests:
 
   ```bash
   npm run test:spec src/app/core/vision/image-classifier.service.spec.ts

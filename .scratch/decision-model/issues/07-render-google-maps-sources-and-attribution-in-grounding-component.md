@@ -21,11 +21,11 @@ Update `GroundingComponent` (`grounding.component.html` and `grounding.component
 - [x] Follow `DESIGN.md` **Section 10 (`GroundingComponent`)** in `src/app/features/dashboard/components/grounding/grounding.component.html` to render the **Google Maps Sources** block when `metadata()?.mapsCitations` has items:
 
   ```html
-  @let mapsCitations = metadata()?.mapsCitations; @let numMapsCitations = mapsCitations?.length || 0; @if
-  (numMapsCitations > 0) {
+  @let mapsCitations = metadata()?.mapsCitations; @let numMapCitations = mapsCitations?.length || 0; @if
+  (numMapCitations > 0) {
   <h3 class="section-title">
     Google Maps Sources
-    <span translate="no" class="gmp-attribution">Google Maps</span>
+    <span translate="no" class="font-normal text-sm gmp-attribution">Google Maps</span>
   </h3>
   <ol class="ordered-list">
     @for (place of mapsCitations; track place.placeId || place.uri || place.title) {
@@ -39,11 +39,11 @@ Update `GroundingComponent` (`grounding.component.html` and `grounding.component
 
 ### 2. Style `.gmp-attribution` in `grounding.component.css`
 
-- [x] Add `.gmp-attribution` in `src/app/features/dashboard/components/grounding/grounding.component.css` adhering to `DESIGN.md` Section 10 and the Google Maps text attribution guidelines (weight 400 (`font-normal`), `12sp–16sp` (`text-sm`), `whitespace-nowrap`, accessible contrast):
+- [x] Add `.gmp-attribution` in `src/app/features/dashboard/components/grounding/grounding.component.css` adhering to `DESIGN.md` Section 10 and the Google Maps text attribution guidelines (with `font-normal text-sm` split inline onto the `<span>` in `.html` to keep total HTML classes `<= 3`):
 
   ```css
   .gmp-attribution {
-    @apply font-normal text-sm whitespace-nowrap text-muted ml-2;
+    @apply whitespace-nowrap text-muted ml-2;
   }
   ```
 

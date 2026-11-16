@@ -22,13 +22,13 @@ Update `AltTextPanel` (`alt-text-panel.component.html` and `alt-text-panel.compo
   ```html
   @if (!isLoading() && imageAnalysis) {
   <div class="results-wrapper">
-    @let altText = imageAnalysis.parsed.alternativeText || 'Default alternative text'; @let category =
+    @let altText = imageAnalysis.parsed?.alternativeText || 'Default alternative text'; @let category =
     imageAnalysis.category; @if (altText) {
     <div class="w-full mt-6">
-      <div class="alt-text-header">
+      <div class="gap-2 mb-3 alt-text-header">
         <h3 class="section-title mb-0">Generated Alternative Text</h3>
         @if (category) {
-        <span class="category-badge">{{ category }}</span>
+        <span class="border font-semibold category-badge">{{ category }}</span>
         }
       </div>
       <div class="surface-card">
@@ -37,22 +37,22 @@ Update `AltTextPanel` (`alt-text-panel.component.html` and `alt-text-panel.compo
     </div>
     }
 
-    <app-recommendations-display [recommendations]="imageAnalysis.parsed.recommendations || []" />
+    <app-recommendations-display [recommendations]="analysis()?.parsed?.recommendations || []" />
   </div>
   }
   ```
 
 ### 2. Style `.alt-text-header` and `.category-badge` in `alt-text-panel.component.css`
 
-- [x] Add `.alt-text-header` and `.category-badge` in `src/app/features/dashboard/components/alt-text-panel/alt-text-panel.component.css` per `DESIGN.md` Section 8:
+- [x] Add `.alt-text-header` and `.category-badge` in `src/app/features/dashboard/components/alt-text-panel/alt-text-panel.component.css` per `DESIGN.md` Section 8 (with partial static utility splits moved to `.html` to keep total HTML classes `<= 3`):
 
   ```css
   .alt-text-header {
-    @apply flex items-center justify-between gap-2 mb-3;
+    @apply flex items-center justify-between;
   }
 
   .category-badge {
-    @apply bg-app-bg text-primary-accent border border-primary-indigo text-xs font-semibold px-3 py-0.5 rounded-full;
+    @apply bg-app-bg text-primary-accent border-primary-indigo text-xs px-3 py-0.5 rounded-full;
   }
   ```
 
