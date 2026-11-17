@@ -79,6 +79,7 @@ describe('ImageClassifierService', () => {
         modelAssetPath: mockConfigService.appConfig.decisionModelPath,
         delegate: 'GPU',
       },
+      backendType: 3,
       maxNumTokens: 512,
     });
     expect(mockPrewarm).toHaveBeenCalledTimes(1);
@@ -89,13 +90,14 @@ describe('ImageClassifierService', () => {
         {
           id: 'category',
           type: 'choice',
-          prompt: 'Classify the primary subject category of this image.',
+          prompt:
+            'Classify the primary subject category of this image. If a landmark, pyramid, monument, or scenic travel location is visible behind a person, select place.',
           options: [
             expect.objectContaining({ label: 'place', description: expect.any(String) }),
             expect.objectContaining({ label: 'people', description: expect.any(String) }),
             expect.objectContaining({ label: 'general', description: expect.any(String) }),
           ],
-          normalizePrior: true,
+          normalizePrior: false,
         },
       ],
     });
@@ -104,13 +106,15 @@ describe('ImageClassifierService', () => {
       { imageBytes: sampleBytes },
       expect.objectContaining({
         context: 'Analyze the uploaded image for accessibility alt-text routing.',
-        instructions: 'Classify the primary subject category of this image.',
+        instructions:
+          'Classify the primary subject category of this image. If a landmark, pyramid, monument, or scenic travel location is visible behind a person, select place.',
         options: [
           expect.objectContaining({ label: 'place', description: expect.any(String) }),
           expect.objectContaining({ label: 'people', description: expect.any(String) }),
           expect.objectContaining({ label: 'general', description: expect.any(String) }),
         ],
-        normalizePrior: true,
+        temperature: 0.05,
+        normalizePrior: false,
       }),
     );
   });
@@ -142,6 +146,7 @@ describe('ImageClassifierService', () => {
         modelAssetPath: 'https://example.com/models/laya.task',
         delegate: 'CPU',
       },
+      backendType: 3,
       maxNumTokens: 512,
     });
   });

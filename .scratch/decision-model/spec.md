@@ -67,13 +67,14 @@ The technical architecture and trade-offs are governed by [ADR 0014: On-Device I
 
 - **`people` Route**:
   - Uses a portrait-focused instruction and prompt with Google Search grounding.
-  - Identifies recognizable public figures, celebrities, or historical figures by name and context in the alternative text and tags.
-  - When a person's identity cannot be verified, avoids guessing a name and instead describes observable human details: facial expression, emotion, gaze direction, posture or action, attire, framing, and lighting.
+  - Identifies a person by name only when their name is explicitly printed in visible text inside the image (such as a promotional poster, banner, or broadcast graphic) or when their unmasked face is 100% unmistakable directly from visual recognition without needing a web search. Never uses text-based Google Search to guess or deduce a person's or masked performer's identity from visual descriptions.
+  - Uses Google Search strictly to verify visible text clues (organization logos, event names, championship titles) and to discover the interconnecting **Obscure Fact**.
+  - When a person's identity is not explicitly printed or 100% unmistakable, avoids guessing a name and instead describes observable human details: facial expression or mask design, emotion, gaze direction, posture or action, attire and accessories, framing, and lighting.
 - **`place` Route**:
   - Uses a location-focused instruction and prompt with both Google Maps grounding (for global landmark and coordinate lookup without requesting browser GPS permissions) and Google Search grounding (for finding the interconnecting **Obscure Fact**).
-  - Weaves the official **Place Name** and **Latitude / Longitude** coordinates naturally into the generated alternative text alongside architectural and geographic details, without fabricating coordinates when a location cannot be verified.
+  - Weaves the official **Place Name** and **Latitude / Longitude** coordinates naturally into the generated alternative text alongside architectural and geographic details (and describes the presence, pose, and attire of any foreground traveler without guessing their identity), without fabricating coordinates when a location cannot be verified.
 - **`general` Route**:
-  - Uses the general-purpose prompt and Google Search grounding to generate alternative text, tags, recommendations, and an interconnecting **Obscure Fact**.
+  - Uses the general-purpose prompt (with the same guardrail against guessing person names via Google Search) and Google Search grounding to generate alternative text, tags, recommendations, and an interconnecting **Obscure Fact**.
 
 ### 4. User Interface Behavior
 

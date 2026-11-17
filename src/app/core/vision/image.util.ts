@@ -17,6 +17,7 @@ const TOKENS_PER_IMAGE_TILE = 258;
 const TARGET_IMAGE_MIME = 'image/webp';
 const FALLBACK_IMAGE_MIME = 'image/jpeg';
 const IMAGE_COMPRESSION_QUALITY = 0.8;
+const CLASSIFIER_IMAGE_MIME = 'image/png';
 const PERCENT = 100;
 
 function calculateTargetDimensions(dimensions: Dimensions, maxDim: number = MAX_IMAGE_DIMENSION): Dimensions {
@@ -70,17 +71,21 @@ function calculateOptimizationMetrics(params: OptimizationMetricsParams): ImageO
 export async function preprocessImageForVision(file: File, win?: Window | null): Promise<ImageProcessingResult> {
   const { bitmap, dimensions: originalDimensions } = await decodeSourceBitmap(file, win);
   const optimizedDimensions: Dimensions = calculateTargetDimensions(originalDimensions);
-  const { blob: optimizedBlob, mimeType } = await compressBitmapToBlob(bitmap, {
+  const {
+    blob: optimizedBlob,
+    mimeType,
+    classifierBlob,
+  } = await compressBitmapToBlob(bitmap, {
     dimensions: optimizedDimensions,
     fallbackFile: file,
     win,
   });
 
-  const [base64Data, optimizedArrayBuffer] = await Promise.all([
+  const [base64Data, classifierArrayBuffer] = await Promise.all([
     blobToBase64(optimizedBlob),
-    optimizedBlob.arrayBuffer(),
+    classifierBlob.arrayBuffer(),
   ]);
-  const imageBytes = new Uint8Array(optimizedArrayBuffer);
+  const imageBytes = new Uint8Array(classifierArrayBuffer);
   const optimizationMetrics: ImageOptimizationMetrics = calculateOptimizationMetrics({
     originalSizeBytes: file.size,
     optimizedSizeBytes: optimizedBlob.size,
@@ -127,6 +132,7 @@ async function compressBitmapToBlob(
     return {
       blob: fallbackFile,
       mimeType: fallbackFile.type || FALLBACK_IMAGE_MIME,
+      classifierBlob: fallbackFile,
     };
   }
 
@@ -141,20 +147,28 @@ async function compressBitmapToBlob(
 }
 
 async function canvasToCompressedBlob(canvas: OffscreenCanvas, fallbackFile: File): Promise<CompressedBlobResult> {
+  const classifierBlobPromise = canvas.convertToBlob({ type: CLASSIFIER_IMAGE_MIME }).catch(() => fallbackFile);
+
   for (const mimeType of [TARGET_IMAGE_MIME, FALLBACK_IMAGE_MIME]) {
     try {
-      const blob = await canvas.convertToBlob({
-        type: mimeType,
-        quality: IMAGE_COMPRESSION_QUALITY,
-      });
-      return { blob, mimeType };
+      const [blob, classifierBlob] = await Promise.all([
+        canvas.convertToBlob({
+          type: mimeType,
+          quality: IMAGE_COMPRESSION_QUALITY,
+        }),
+        classifierBlobPromise,
+      ]);
+      return { blob, mimeType, classifierBlob };
     } catch {
       // Try next MIME type
     }
   }
+
+  const classifierBlob = await classifierBlobPromise;
   return {
     blob: fallbackFile,
     mimeType: fallbackFile.type || FALLBACK_IMAGE_MIME,
+    classifierBlob,
   };
 }
 

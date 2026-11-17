@@ -27,6 +27,7 @@ export interface ImageProcessingResult {
 export interface CompressedBlobResult {
   blob: Blob;
   mimeType: string;
+  classifierBlob: Blob;
 }
 
 export interface CompressOptions {

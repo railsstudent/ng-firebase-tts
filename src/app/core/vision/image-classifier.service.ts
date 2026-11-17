@@ -19,7 +19,7 @@ export class ImageClassifierService {
     }
 
     try {
-      const decisionMaker = await this.getDecisionMaker(decisionModelPath, delegate);
+      const decisionMaker = await this.getDecisionMaker(delegate);
       const result = await decisionMaker.evaluateChoice({ imageBytes }, IMAGE_CATEGORY_QUESTION);
 
       if (result.confidence < decisionConfidenceThreshold) {
@@ -48,9 +48,12 @@ export class ImageClassifierService {
     return 'CPU';
   }
 
-  private getDecisionMaker(modelAssetPath: string, delegate: 'GPU' | 'CPU'): Promise<DecisionMaker> {
+  private getDecisionMaker(delegate: 'GPU' | 'CPU'): Promise<DecisionMaker> {
     if (!this.#decisionMakerPromise) {
-      this.#decisionMakerPromise = this.initializeDecisionMaker(modelAssetPath, delegate).catch((error) => {
+      this.#decisionMakerPromise = this.initializeDecisionMaker(
+        this.#configService.appConfig.decisionModelPath,
+        delegate,
+      ).catch((error) => {
         this.#decisionMakerPromise = null;
         throw error;
       });
@@ -66,6 +69,7 @@ export class ImageClassifierService {
         modelAssetPath,
         delegate,
       },
+      backendType: 3,
       maxNumTokens: MAX_NUM_TOKENS,
     });
 

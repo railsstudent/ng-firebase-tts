@@ -17,10 +17,11 @@ describe('image.util', () => {
         close: vi.fn(),
       };
 
+      const mockClassifierPngBlob = new Blob(['png-classifier-data'], { type: 'image/png' });
       const mockConvertedBlob = new Blob(['optimized-data'], { type: 'image/webp' });
       const mockCanvasInstance = {
         getContext: vi.fn().mockReturnValue({ drawImage: vi.fn() }),
-        convertToBlob: vi.fn().mockResolvedValue(mockConvertedBlob),
+        convertToBlob: vi.fn().mockResolvedValueOnce(mockClassifierPngBlob).mockResolvedValueOnce(mockConvertedBlob),
       };
 
       function MockOffscreenCanvas(): MockOffscreenCanvasInstance {
@@ -37,7 +38,7 @@ describe('image.util', () => {
       expect(result.data).toBeDefined();
       expect(result.mimeType).toBe('image/webp');
       expect(result.imageBytes).toBeInstanceOf(Uint8Array);
-      expect(new TextDecoder().decode(result.imageBytes)).toBe('optimized-data');
+      expect(new TextDecoder().decode(result.imageBytes)).toBe('png-classifier-data');
       expect(result.optimizationMetrics).toBeDefined();
       expect(result.optimizationMetrics.originalDimensions).toEqual({ width: 1536, height: 1024 });
       expect(result.optimizationMetrics.optimizedDimensions.width).toBe(768);
@@ -58,10 +59,15 @@ describe('image.util', () => {
         close: vi.fn(),
       };
 
+      const mockClassifierPngBlob = new Blob(['png-classifier-data'], { type: 'image/png' });
       const mockJpegBlob = new Blob(['jpeg-data'], { type: 'image/jpeg' });
       const mockCanvasInstance = {
         getContext: vi.fn().mockReturnValue({ drawImage: vi.fn() }),
-        convertToBlob: vi.fn().mockRejectedValueOnce(new Error('WebP unsupported')).mockResolvedValueOnce(mockJpegBlob),
+        convertToBlob: vi
+          .fn()
+          .mockResolvedValueOnce(mockClassifierPngBlob)
+          .mockRejectedValueOnce(new Error('WebP unsupported'))
+          .mockResolvedValueOnce(mockJpegBlob),
       };
 
       function MockOffscreenCanvas(): MockOffscreenCanvasInstance {

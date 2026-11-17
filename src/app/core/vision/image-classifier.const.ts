@@ -5,23 +5,24 @@ export const MAX_NUM_TOKENS = 512;
 
 export const IMAGE_CATEGORY_QUESTION: ChoiceQuestion = {
   context: 'Analyze the uploaded image for accessibility alt-text routing.',
-  instructions: 'Classify the primary subject category of this image.',
+  instructions:
+    'Classify the primary subject category of this image. If a landmark, pyramid, monument, or scenic travel location is visible behind a person, select place.',
   options: [
     {
       label: 'place',
       description:
-        'A recognizable landmark, monument, building, streetscape, or geographic location, even if people or faces appear in the foreground.',
+        'A landmark, pyramid, monument, archaeological ruin, temple, building, architecture, streetscape, cityscape, outdoor landscape, or travel photo of a person at a landmark.',
     },
     {
       label: 'people',
       description:
-        'A portrait, close-up face, solo person, or group of people where human subjects are the primary focus without a recognizable landmark.',
+        'A portrait, close-up face, masked person, athlete, wrestler, performer, or group of people in a studio, ring, indoor room, or plain background without a landmark.',
     },
     {
       label: 'general',
-      description:
-        'Objects, animals, food, documents, nature close-ups, abstract scenes, or any image that is neither a recognizable place nor focused on people.',
+      description: 'An inanimate object, animal, pet, food, drink, document, text, screenshot, vehicle, or plant.',
     },
   ],
-  normalizePrior: true,
+  temperature: 0.05,
+  normalizePrior: false,
 };
