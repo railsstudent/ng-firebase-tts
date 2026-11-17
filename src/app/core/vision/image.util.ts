@@ -12,34 +12,29 @@ const ONE_DECIMAL_PLACE = 1;
 const NOT_FOUND_INDEX = -1;
 const PAYLOAD_OFFSET = 1;
 const MAX_IMAGE_DIMENSION = 768;
-const GEMINI_TILE_SIZE = 768;
+const GEMINI_TILE_SIZE = MAX_IMAGE_DIMENSION;
 const TOKENS_PER_IMAGE_TILE = 258;
 const TARGET_IMAGE_MIME = 'image/webp';
 const FALLBACK_IMAGE_MIME = 'image/jpeg';
+const SUPPORTED_CLASSIFIER_MIMES = new Set(['image/jpeg', 'image/png']);
 const IMAGE_COMPRESSION_QUALITY = 0.8;
-const CLASSIFIER_IMAGE_MIME = 'image/png';
 const PERCENT = 100;
 
-function calculateTargetDimensions(dimensions: Dimensions, maxDim: number = MAX_IMAGE_DIMENSION): Dimensions {
+function calculateTargetDimensions(dimensions: Dimensions): Dimensions {
   const { width, height } = dimensions;
   if (width <= 0 || height <= 0) {
-    return { width: maxDim, height: maxDim };
+    return { width: MAX_IMAGE_DIMENSION, height: MAX_IMAGE_DIMENSION };
   }
 
-  if (width <= maxDim && height <= maxDim) {
+  const longestEdge = Math.max(width, height);
+  if (longestEdge <= MAX_IMAGE_DIMENSION) {
     return { width, height };
   }
 
-  if (width >= height) {
-    return {
-      width: maxDim,
-      height: Math.round(maxDim * (height / width)),
-    };
-  }
-
+  const scale = MAX_IMAGE_DIMENSION / longestEdge;
   return {
-    width: Math.round(maxDim * (width / height)),
-    height: maxDim,
+    width: Math.round(width * scale),
+    height: Math.round(height * scale),
   };
 }
 
@@ -83,7 +78,7 @@ export async function preprocessImageForVision(file: File, win?: Window | null):
 
   const [base64Data, classifierArrayBuffer] = await Promise.all([
     blobToBase64(optimizedBlob),
-    classifierBlob.arrayBuffer(),
+    classifierBlob ? classifierBlob.arrayBuffer() : Promise.resolve(new ArrayBuffer(0)),
   ]);
   const imageBytes = new Uint8Array(classifierArrayBuffer);
   const optimizationMetrics: ImageOptimizationMetrics = calculateOptimizationMetrics({
@@ -105,20 +100,23 @@ async function decodeSourceBitmap(
   file: File,
   win?: Window | null,
 ): Promise<{ bitmap?: ImageBitmap; dimensions: Dimensions }> {
-  if (win?.createImageBitmap) {
-    try {
-      const bitmap = await win.createImageBitmap(file, { imageOrientation: 'from-image' });
-      return {
-        bitmap,
-        dimensions: { width: bitmap.width, height: bitmap.height },
-      };
-    } catch {
-      // Fallback to default dimensions if decoding fails
-    }
+  if (!win?.createImageBitmap) {
+    return {
+      dimensions: { width: MAX_IMAGE_DIMENSION, height: MAX_IMAGE_DIMENSION },
+    };
   }
-  return {
-    dimensions: { width: MAX_IMAGE_DIMENSION, height: MAX_IMAGE_DIMENSION },
-  };
+
+  try {
+    const bitmap = await win.createImageBitmap(file, { imageOrientation: 'from-image' });
+    return {
+      bitmap,
+      dimensions: { width: bitmap.width, height: bitmap.height },
+    };
+  } catch {
+    return {
+      dimensions: { width: MAX_IMAGE_DIMENSION, height: MAX_IMAGE_DIMENSION },
+    };
+  }
 }
 
 async function compressBitmapToBlob(
@@ -129,11 +127,7 @@ async function compressBitmapToBlob(
   const offscreenCanvasCtor = (win as WindowWithCanvas | null | undefined)?.OffscreenCanvas;
   if (!offscreenCanvasCtor || !bitmap) {
     bitmap?.close();
-    return {
-      blob: fallbackFile,
-      mimeType: fallbackFile.type || FALLBACK_IMAGE_MIME,
-      classifierBlob: fallbackFile,
-    };
+    return createFallbackBlobResult(fallbackFile);
   }
 
   const canvas = new offscreenCanvasCtor(dimensions.width, dimensions.height);
@@ -146,30 +140,39 @@ async function compressBitmapToBlob(
   return canvasToCompressedBlob(canvas, fallbackFile);
 }
 
-async function canvasToCompressedBlob(canvas: OffscreenCanvas, fallbackFile: File): Promise<CompressedBlobResult> {
-  const classifierBlobPromise = canvas.convertToBlob({ type: CLASSIFIER_IMAGE_MIME }).catch(() => fallbackFile);
+function convertCanvasToBlobOrNull(canvas: OffscreenCanvas, type: string): Promise<Blob | null> {
+  return canvas.convertToBlob({ type, quality: IMAGE_COMPRESSION_QUALITY }).catch(() => null);
+}
 
-  for (const mimeType of [TARGET_IMAGE_MIME, FALLBACK_IMAGE_MIME]) {
-    try {
-      const [blob, classifierBlob] = await Promise.all([
-        canvas.convertToBlob({
-          type: mimeType,
-          quality: IMAGE_COMPRESSION_QUALITY,
-        }),
-        classifierBlobPromise,
-      ]);
-      return { blob, mimeType, classifierBlob };
-    } catch {
-      // Try next MIME type
-    }
-  }
-
-  const classifierBlob = await classifierBlobPromise;
+function createFallbackBlobResult(fallbackFile: File): CompressedBlobResult {
   return {
     blob: fallbackFile,
     mimeType: fallbackFile.type || FALLBACK_IMAGE_MIME,
-    classifierBlob,
+    classifierBlob: SUPPORTED_CLASSIFIER_MIMES.has(fallbackFile.type) ? fallbackFile : null,
   };
+}
+
+async function canvasToCompressedBlob(canvas: OffscreenCanvas, fallbackFile: File): Promise<CompressedBlobResult> {
+  const [jpegBlob, webpBlob] = await Promise.all([
+    convertCanvasToBlobOrNull(canvas, FALLBACK_IMAGE_MIME),
+    convertCanvasToBlobOrNull(canvas, TARGET_IMAGE_MIME),
+  ]);
+
+  const fallbackResult = createFallbackBlobResult(fallbackFile);
+
+  if (webpBlob) {
+    return {
+      blob: webpBlob,
+      mimeType: TARGET_IMAGE_MIME,
+      classifierBlob: jpegBlob ?? fallbackResult.classifierBlob,
+    };
+  }
+
+  if (jpegBlob) {
+    return { blob: jpegBlob, mimeType: FALLBACK_IMAGE_MIME, classifierBlob: jpegBlob };
+  }
+
+  return fallbackResult;
 }
 
 function blobToBase64(blob: Blob): Promise<string> {

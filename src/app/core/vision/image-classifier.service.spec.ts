@@ -119,6 +119,14 @@ describe('ImageClassifierService', () => {
     );
   });
 
+  it('should fast-fail to "general" without loading WASM when imageBytes is empty', async () => {
+    const category = await service.classifyImage(new Uint8Array(0));
+
+    expect(category).toBe('general');
+    expect(mockForDecisionTasks).not.toHaveBeenCalled();
+    expect(mockCreateFromOptions).not.toHaveBeenCalled();
+  });
+
   it('should fast-fail to "general" without loading WASM or downloading model when WebGPU is unavailable for a .litertlm model', async () => {
     mockWindow = { navigator: {} };
     service = configureService();

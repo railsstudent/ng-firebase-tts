@@ -17,11 +17,13 @@ describe('image.util', () => {
         close: vi.fn(),
       };
 
-      const mockClassifierPngBlob = new Blob(['png-classifier-data'], { type: 'image/png' });
+      const mockClassifierJpegBlob = new Blob(['jpeg-classifier-data'], { type: 'image/jpeg' });
       const mockConvertedBlob = new Blob(['optimized-data'], { type: 'image/webp' });
       const mockCanvasInstance = {
         getContext: vi.fn().mockReturnValue({ drawImage: vi.fn() }),
-        convertToBlob: vi.fn().mockResolvedValueOnce(mockClassifierPngBlob).mockResolvedValueOnce(mockConvertedBlob),
+        convertToBlob: vi.fn(({ type }: ImageEncodeOptions = {}) =>
+          Promise.resolve(type === 'image/webp' ? mockConvertedBlob : mockClassifierJpegBlob),
+        ),
       };
 
       function MockOffscreenCanvas(): MockOffscreenCanvasInstance {
@@ -38,7 +40,7 @@ describe('image.util', () => {
       expect(result.data).toBeDefined();
       expect(result.mimeType).toBe('image/webp');
       expect(result.imageBytes).toBeInstanceOf(Uint8Array);
-      expect(new TextDecoder().decode(result.imageBytes)).toBe('png-classifier-data');
+      expect(new TextDecoder().decode(result.imageBytes)).toBe('jpeg-classifier-data');
       expect(result.optimizationMetrics).toBeDefined();
       expect(result.optimizationMetrics.originalDimensions).toEqual({ width: 1536, height: 1024 });
       expect(result.optimizationMetrics.optimizedDimensions.width).toBe(768);
@@ -59,15 +61,12 @@ describe('image.util', () => {
         close: vi.fn(),
       };
 
-      const mockClassifierPngBlob = new Blob(['png-classifier-data'], { type: 'image/png' });
       const mockJpegBlob = new Blob(['jpeg-data'], { type: 'image/jpeg' });
       const mockCanvasInstance = {
         getContext: vi.fn().mockReturnValue({ drawImage: vi.fn() }),
-        convertToBlob: vi
-          .fn()
-          .mockResolvedValueOnce(mockClassifierPngBlob)
-          .mockRejectedValueOnce(new Error('WebP unsupported'))
-          .mockResolvedValueOnce(mockJpegBlob),
+        convertToBlob: vi.fn(({ type }: ImageEncodeOptions = {}) =>
+          type === 'image/webp' ? Promise.reject(new Error('WebP unsupported')) : Promise.resolve(mockJpegBlob),
+        ),
       };
 
       function MockOffscreenCanvas(): MockOffscreenCanvasInstance {
@@ -81,6 +80,8 @@ describe('image.util', () => {
 
       const result = await preprocessImageForVision(dummyFile, mockWindow);
       expect(result.mimeType).toBe('image/jpeg');
+      expect(new TextDecoder().decode(result.imageBytes)).toBe('jpeg-data');
+      expect(mockCanvasInstance.convertToBlob).toHaveBeenCalledTimes(2);
     });
 
     it('should safely fallback to raw file when window is null (SSR)', async () => {
@@ -108,6 +109,23 @@ describe('image.util', () => {
 
       expect(result.data).toBeDefined();
       expect(result.optimizationMetrics.optimizedDimensions).toEqual({ width: 768, height: 768 });
+    });
+
+    it('should default to 768x768 when decoded bitmap has non-positive dimensions', async () => {
+      const dummyFile = new File([new Blob(['data'], { type: 'image/jpeg' })], 'zero.jpg', { type: 'image/jpeg' });
+      const mockBitmap = {
+        width: 0,
+        height: 0,
+        close: vi.fn(),
+      };
+      const mockWindow = {
+        createImageBitmap: vi.fn().mockResolvedValue(mockBitmap as unknown as ImageBitmap),
+      } as unknown as Window;
+
+      const result = await preprocessImageForVision(dummyFile, mockWindow);
+
+      expect(result.optimizationMetrics.optimizedDimensions).toEqual({ width: 768, height: 768 });
+      expect(mockBitmap.close).toHaveBeenCalled();
     });
 
     it('should fallback to original file if all canvas conversions fail', async () => {
@@ -138,6 +156,38 @@ describe('image.util', () => {
 
       expect(result.mimeType).toBe('image/png');
       expect(result.data).toBeDefined();
+      expect(result.imageBytes.byteLength).toBeGreaterThan(0);
+    });
+
+    it('should return empty imageBytes when canvas conversions fail and fallbackFile is image/webp', async () => {
+      const dummyBlob = new Blob(['webp-binary-data'], { type: 'image/webp' });
+      const dummyFile = new File([dummyBlob], 'test-photo.webp', { type: 'image/webp' });
+
+      const mockBitmap = {
+        width: 1000,
+        height: 1000,
+        close: vi.fn(),
+      };
+
+      const mockCanvasInstance = {
+        getContext: vi.fn().mockReturnValue({ drawImage: vi.fn() }),
+        convertToBlob: vi.fn().mockRejectedValue(new Error('Conversion completely unsupported')),
+      };
+
+      function MockOffscreenCanvas(): MockOffscreenCanvasInstance {
+        return mockCanvasInstance;
+      }
+
+      const mockWindow = {
+        createImageBitmap: vi.fn().mockResolvedValue(mockBitmap as unknown as ImageBitmap),
+        OffscreenCanvas: MockOffscreenCanvas,
+      } as unknown as Window;
+
+      const result = await preprocessImageForVision(dummyFile, mockWindow);
+
+      expect(result.mimeType).toBe('image/webp');
+      expect(result.data).toBeDefined();
+      expect(result.imageBytes.byteLength).toBe(0);
     });
 
     it('should return entire string if FileReader result does not contain comma separator', async () => {

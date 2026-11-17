@@ -12,6 +12,10 @@ export class ImageClassifierService {
   #decisionMakerPromise: Promise<DecisionMaker> | null = null;
 
   async classifyImage(imageBytes: Uint8Array): Promise<ImageSubjectCategory> {
+    if (imageBytes.byteLength === 0) {
+      return 'general';
+    }
+
     const { decisionModelPath, decisionConfidenceThreshold } = this.#configService.appConfig;
     const delegate = this.resolveDelegate(decisionModelPath);
     if (!delegate) {
