@@ -4,10 +4,10 @@ import { createMockAppRemoteConfig, createMockConfigService } from '@/testing/co
 import { TestBed } from '@angular/core/testing';
 import { ImageClassifierService } from './image-classifier.service';
 
-const { mockForDecisionTasks, mockCreateFromOptions, mockPrewarm, mockEvaluateChoice } = vi.hoisted(() => ({
+const { mockForDecisionTasks, mockCreateFromOptions, mockPrewarmChoice, mockEvaluateChoice } = vi.hoisted(() => ({
   mockForDecisionTasks: vi.fn(),
   mockCreateFromOptions: vi.fn(),
-  mockPrewarm: vi.fn(),
+  mockPrewarmChoice: vi.fn(),
   mockEvaluateChoice: vi.fn(),
 }));
 
@@ -47,14 +47,14 @@ describe('ImageClassifierService', () => {
 
   beforeEach(() => {
     mockForDecisionTasks.mockReset().mockResolvedValue(mockWasmFileset);
-    mockPrewarm.mockReset().mockResolvedValue(undefined);
+    mockPrewarmChoice.mockReset().mockResolvedValue(undefined);
     mockEvaluateChoice.mockReset().mockResolvedValue({
       selectedKey: 'general',
       confidence: 0.75,
       probabilities: { general: 0.75, people: 0.15, place: 0.1 },
     });
     mockCreateFromOptions.mockReset().mockResolvedValue({
-      prewarm: mockPrewarm,
+      prewarmChoice: mockPrewarmChoice,
       evaluateChoice: mockEvaluateChoice,
     });
 
@@ -82,24 +82,18 @@ describe('ImageClassifierService', () => {
       backendType: 3,
       maxNumTokens: 512,
     });
-    expect(mockPrewarm).toHaveBeenCalledTimes(1);
-    expect(mockPrewarm).toHaveBeenCalledWith({
+    expect(mockPrewarmChoice).toHaveBeenCalledTimes(1);
+    expect(mockPrewarmChoice).toHaveBeenCalledWith({
       context: 'Analyze the uploaded image for accessibility alt-text routing.',
-      expectedInputs: [{ type: 'image' }],
-      questions: [
-        {
-          id: 'category',
-          type: 'choice',
-          prompt:
-            'Classify the primary subject category of this image. If a landmark, pyramid, monument, or scenic travel location is visible behind a person, select place.',
-          options: [
-            expect.objectContaining({ label: 'place', description: expect.any(String) }),
-            expect.objectContaining({ label: 'people', description: expect.any(String) }),
-            expect.objectContaining({ label: 'general', description: expect.any(String) }),
-          ],
-          normalizePrior: false,
-        },
+      instructions:
+        'Classify the primary subject category of this image. If a landmark, pyramid, monument, or scenic travel location is visible behind a person, select place.',
+      options: [
+        expect.objectContaining({ label: 'place', description: expect.any(String) }),
+        expect.objectContaining({ label: 'people', description: expect.any(String) }),
+        expect.objectContaining({ label: 'general', description: expect.any(String) }),
       ],
+      temperature: 0.05,
+      normalizePrior: false,
     });
     expect(mockEvaluateChoice).toHaveBeenCalledTimes(2);
     expect(mockEvaluateChoice).toHaveBeenCalledWith(

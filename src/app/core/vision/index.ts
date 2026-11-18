@@ -1,3 +1,7 @@
-export * from './image-analysis.interface';
-export * from './image-processing.interface';
-export * from './image-category.type';
+export type {
+  VisionGroundingMetadata,
+  ImageAnalysisResponse,
+  TokenUsage,
+  Recommendation,
+} from './image-analysis.interface';
+export type { ImageOptimizationMetrics } from './image-processing.interface';

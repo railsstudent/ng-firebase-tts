@@ -77,19 +77,7 @@ export class ImageClassifierService {
       maxNumTokens: MAX_NUM_TOKENS,
     });
 
-    await decisionMaker.prewarm({
-      context: IMAGE_CATEGORY_QUESTION.context,
-      expectedInputs: [{ type: 'image' }],
-      questions: [
-        {
-          id: 'category',
-          type: 'choice',
-          prompt: IMAGE_CATEGORY_QUESTION.instructions ?? '',
-          options: IMAGE_CATEGORY_QUESTION.options ?? [],
-          normalizePrior: IMAGE_CATEGORY_QUESTION.normalizePrior ?? true,
-        },
-      ],
-    });
+    await decisionMaker.prewarmChoice(IMAGE_CATEGORY_QUESTION);
 
     return decisionMaker;
   }

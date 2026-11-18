@@ -1,4 +1,4 @@
-import type { ImageSubjectCategory } from '@/core/vision';
+import type { ImageSubjectCategory } from '@/core/vision/image-category.type';
 import type { ImageClassifierService } from '@/core/vision/image-classifier.service';
 import { vi } from 'vitest';
 

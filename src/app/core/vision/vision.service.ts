@@ -1,6 +1,5 @@
 import { WINDOW } from '@/core/constants/navigator.const';
 import { AiModelFactory } from '@/core/firebase/ai-model-factory.service';
-import type { AiModelOptions } from '@/core/firebase/ai-model-options.interface';
 import { inject, Service } from '@angular/core';
 import type {
   GoogleMapsGroundingChunk,
@@ -10,23 +9,14 @@ import type {
   WebGroundingChunk,
 } from 'firebase/ai';
 import type {
-  CategoryModelConfig,
   ImageAnalysis,
   ImageAnalysisResponse,
   TokenUsage,
   VisionGroundingMetadata,
 } from './image-analysis.interface';
-import { ImageAnalysisSchema } from './image-analysis.schema';
-import type { ImageSubjectCategory } from './image-category.type';
 import { ImageClassifierService } from './image-classifier.service';
 import { preprocessImageForVision } from './image.util';
-import {
-  altTextPrompt,
-  peopleAltTextPrompt,
-  peopleSystemInstruction,
-  placeAltTextPrompt,
-  placeSystemInstruction,
-} from './vision.prompt';
+import { CATEGORY_MODEL_CONFIGS } from './vision.const';
 
 @Service()
 export class VisionService {
@@ -41,7 +31,7 @@ export class VisionService {
 
     const { data, mimeType, optimizationMetrics, imageBytes } = await preprocessImageForVision(image, this.#window);
     const category = await this.#imageClassifierService.classifyImage(imageBytes);
-    const { options, prompt } = this.getCategoryModelConfig(category);
+    const { options, prompt } = CATEGORY_MODEL_CONFIGS[category] || CATEGORY_MODEL_CONFIGS['general'];
 
     const imagePart: InlineDataPart = {
       type: 'inlineData',
@@ -72,38 +62,6 @@ export class VisionService {
       };
     }
     throw Error('No text generated.');
-  }
-
-  private getCategoryModelConfig(category: ImageSubjectCategory): CategoryModelConfig {
-    const options: AiModelOptions = {
-      schema: ImageAnalysisSchema,
-      tools: [{ googleSearch: {} }],
-    };
-
-    switch (category) {
-      case 'people':
-        return {
-          options: {
-            ...options,
-            systemInstruction: peopleSystemInstruction,
-          },
-          prompt: peopleAltTextPrompt,
-        };
-      case 'place':
-        return {
-          options: {
-            systemInstruction: placeSystemInstruction,
-            schema: ImageAnalysisSchema,
-            tools: [{ googleMaps: {} }, { googleSearch: {} }],
-          },
-          prompt: placeAltTextPrompt,
-        };
-      default:
-        return {
-          options,
-          prompt: altTextPrompt,
-        };
-    }
   }
 
   private constructCitations(groundingMetadata?: GroundingMetadata): VisionGroundingMetadata {

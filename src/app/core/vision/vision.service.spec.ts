@@ -6,13 +6,7 @@ import { createMockImageClassifierService } from '@/testing/image-classifier.moc
 import { TestBed } from '@angular/core/testing';
 import { ImageAnalysisSchema } from './image-analysis.schema';
 import { ImageClassifierService } from './image-classifier.service';
-import {
-  altTextPrompt,
-  peopleAltTextPrompt,
-  peopleSystemInstruction,
-  placeAltTextPrompt,
-  placeSystemInstruction,
-} from './vision.prompt';
+import { CATEGORY_MODEL_CONFIGS } from './vision.const';
 import { VisionService } from './vision.service';
 
 describe('VisionService', () => {
@@ -66,7 +60,7 @@ describe('VisionService', () => {
       tools: [{ googleSearch: {} }],
     });
     expect(mockAiModel.generateContent).toHaveBeenCalledWith([
-      altTextPrompt,
+      CATEGORY_MODEL_CONFIGS['general'].prompt,
       expect.objectContaining({ type: 'inlineData' }),
     ]);
     expect(result.parsed).toEqual(mockImageAnalysis);
@@ -97,12 +91,12 @@ describe('VisionService', () => {
     const result = await service.analyzeImage(fakeFile);
 
     expect(mockAiModelFactory.getModel).toHaveBeenCalledWith({
-      systemInstruction: peopleSystemInstruction,
+      systemInstruction: CATEGORY_MODEL_CONFIGS['people'].options.systemInstruction,
       schema: ImageAnalysisSchema,
       tools: [{ googleSearch: {} }],
     });
     expect(mockAiModel.generateContent).toHaveBeenCalledWith([
-      peopleAltTextPrompt,
+      CATEGORY_MODEL_CONFIGS['people'].prompt,
       expect.objectContaining({ type: 'inlineData' }),
     ]);
     expect(result.category).toBe('people');
@@ -142,12 +136,12 @@ describe('VisionService', () => {
     const result = await service.analyzeImage(fakeFile);
 
     expect(mockAiModelFactory.getModel).toHaveBeenCalledWith({
-      systemInstruction: placeSystemInstruction,
+      systemInstruction: CATEGORY_MODEL_CONFIGS['place'].options.systemInstruction,
       schema: ImageAnalysisSchema,
       tools: [{ googleMaps: {} }, { googleSearch: {} }],
     });
     expect(mockAiModel.generateContent).toHaveBeenCalledWith([
-      placeAltTextPrompt,
+      CATEGORY_MODEL_CONFIGS['place'].prompt,
       expect.objectContaining({ type: 'inlineData' }),
     ]);
     expect(result.category).toBe('place');
