@@ -15,7 +15,7 @@ Calling a cloud generative model twice (once to classify the image and once to g
 
 Introduce **On-Device Image Classification** in the browser to classify the preprocessed image into an **Image Subject Category** (`people`, `place`, or `general`) before dispatching the cloud Gemini request:
 
-1. Evaluate the downscaled, compressed image locally against three mutually exclusive subject categories (`place`, `people`, `general`), where recognizable landmarks/places take precedence over human subjects (so a selfie in front of a landmark is routed as `place`). If hardware acceleration is unavailable for the configured model, loading fails, or classification confidence is below the configurable threshold (`0.4`), seamlessly fall back to `general`.
+1. Evaluate the downscaled, compressed image locally against three mutually exclusive subject categories (`place`, `people`, `general`), selecting the category with the highest probability and giving outdoor landscapes, architecture, monuments, landmarks, and travel destinations precedence over foreground human subjects (so a selfie in front of a landmark is routed as `place`). If hardware acceleration is unavailable for the configured model or loading/evaluation fails, seamlessly fall back to `general`.
 2. Route **`people`** images to a portrait-specialized Gemini model that identifies recognizable public figures by name and context, or describes rich human-centric visual features (facial expression, emotion, gaze, pose, attire, framing, and lighting) when the person cannot be identified.
 3. Route **`place`** images to a location-specialized Gemini model (grounded with both Google Maps and Google Search) that weaves the **Place Name** and **Latitude / Longitude** coordinates directly into the alternative text while grounding the interconnecting **Obscure Fact** via Google Search.
 4. Route **`general`** images to the existing general-purpose Gemini vision model.
@@ -33,10 +33,10 @@ Introduce **On-Device Image Classification** in the browser to classify the prep
 8. As a user viewing the analysis results of a place photo grounded by Google Maps, I want to see the **Place Grounding / Maps Citations** listed in the grounding section with links to Google Maps and compliant `Google Maps` attribution, so that I can verify and explore the referenced location.
 9. As a user uploading an image of an object, animal, food item, or abstract scene, I want the classifier to select the `general` category and use the existing general vision model, so that non-person, non-place images continue working as before.
 10. As a user or blog reader inspecting the generated alternative text panel, I want to see a visual category badge (`place`, `people`, or `general`) next to the alternative text heading, so that I can immediately tell which specialized model pipeline analyzed the image.
-11. As a user on a browser or device without GPU acceleration (or when the on-device classifier confidence is below `0.4`), I want the application to skip unusable GPU-only model downloads and automatically fall back to a CPU-compatible classifier or the `general` vision model without throwing an error, so that **Image Analysis** always succeeds without wasted downloads.
+11. As a user on a browser or device without GPU acceleration, I want the application to skip unusable GPU-only model downloads and automatically fall back to a CPU-compatible classifier or the `general` vision model without throwing an error, so that **Image Analysis** always succeeds without wasted downloads.
 12. As a performance-conscious user, I want the on-device classifier to reuse the already-downscaled and compressed image produced during **Vision Payload Preprocessing**, so that my browser does not decode the multi-megapixel upload twice.
 13. As a visitor loading the application, I want the on-device classifier runtime files to be served locally from the application host and cached lazily only when image analysis runs, so that the initial page load and startup bundle size remain completely unaffected.
-14. As an application administrator, I want the on-device model URL and the classification confidence threshold (`0.4`) to be configurable via Firebase Remote Config with local defaults, so that I can tune thresholds or switch models without redeploying code.
+14. As an application administrator, I want the on-device model URL to be configurable via Firebase Remote Config with local defaults, so that I can switch models without redeploying code.
 15. As a user clicking "Generate" on consecutive photos, I want both the warmed-up on-device classifier and the category-specific cloud models to be reused across requests, so that subsequent analyses run with minimal overhead.
 
 ## Implementation Decisions
@@ -45,10 +45,10 @@ The technical architecture and trade-offs are governed by [ADR 0014: On-Device I
 
 ### 1. Image Subject Categories & Classification Rules
 
-- Every uploaded photo is classified on-device into one of three mutually exclusive **Image Subject Categories** before cloud analysis begins:
-  - **`place`**: Recognizable landmarks, monuments, buildings, streetscapes, and natural locations—even when people appear in the foreground (such as a tourist selfie in front of a monument).
-  - **`people`**: Portraits, close-up faces, solo subjects, or groups of people where human subjects are the primary focus without a recognizable landmark behind them.
-  - **`general`**: Objects, animals, food, documents, nature close-ups, abstract scenes, or any image that is neither a recognizable place nor focused on people.
+- Every uploaded photo is classified on-device into one of three mutually exclusive **Image Subject Categories** by selecting the category with the highest probability before cloud analysis begins:
+  - **`place`**: Outdoor landscapes, natural scenery, architecture, monuments, landmarks, and travel destinations—even when people appear in the foreground (such as a tourist sitting in front of a monument).
+  - **`people`**: Portraits, close-up faces, individual subjects, or groups of people.
+  - **`general`**: Close-up scenes of single everyday items, creatures, meals, or text graphics.
 - The classifier evaluates the already-downscaled and compressed image produced during **Vision Payload Preprocessing** so the browser never decodes the original high-resolution upload twice.
 
 ### 2. Hardware Acceleration, Fallback & Error Recovery Behavior
@@ -58,8 +58,7 @@ The technical architecture and trade-offs are governed by [ADR 0014: On-Device I
   - When GPU acceleration is unavailable on the device:
     - If the configured on-device model requires a GPU to run, the application skips downloading the model entirely and immediately routes the image to the **`general`** vision model so the user never waits for an unusable download.
     - If a CPU-compatible on-device model is configured via Remote Config, the classifier runs on the CPU instead.
-- **Confidence & Error Fallback**:
-  - If the classifier's confidence in its top choice falls below the configured minimum threshold (`0.4` by default), the application treats the image as **`general`**.
+- **Error Fallback**:
   - If loading the on-device classifier fails (for example, due to a temporary network interruption), the current photo seamlessly falls back to the **`general`** vision model and the next photo upload retries loading the classifier.
   - If classifying an individual photo fails after the classifier is already loaded, that photo falls back to the **`general`** vision model while keeping the loaded classifier ready for subsequent photos.
 
@@ -86,8 +85,7 @@ The technical architecture and trade-offs are governed by [ADR 0014: On-Device I
 1. **Image Preprocessing & Reuse**:
    - Verify that preprocessing an uploaded photo produces the compressed image bytes needed for on-device classification alongside the cloud upload payload, both when browser canvas compression succeeds and when it falls back to the original file.
 2. **On-Device Classification & Fallback**:
-   - Verify that photos of landmarks, portraits, and everyday objects are classified into `place`, `people`, and `general` respectively once the classifier is warmed up, and that subsequent photos reuse the warmed-up classifier.
-   - Verify that when classification confidence is below the `0.4` threshold, the photo defaults to `general`.
+   - Verify that photos of places, people, and everyday items are classified into `place`, `people`, and `general` respectively by selecting the category with the highest probability once the classifier is warmed up, and that subsequent photos reuse the warmed-up classifier.
    - Verify that when GPU acceleration is unavailable, GPU-only models are skipped immediately without downloading weights (routing to `general`), whereas CPU-compatible models run on the CPU.
    - Verify that temporary classifier loading errors fall back to `general` and retry on the next photo, while single-photo classification errors fall back to `general` without discarding the warmed-up classifier.
 3. **Specialized Vision Routing & Place Citations**:
@@ -106,5 +104,5 @@ The technical architecture and trade-offs are governed by [ADR 0014: On-Device I
 ## Further Notes
 
 - Technical architecture, library choices, and trade-offs are documented in [ADR 0014: On-Device Image Classification with MediaPipe Decision Maker and Specialized Vision Routing](file:///Users/connieleung/Documents/ws_jsangular2/ng-firebase-tts/docs/adr/0014-on-device-image-classification-and-specialized-vision-routing.md).
-- Concrete engineering tasks and Red -> Green unit test suites are broken down into 7 implementation tickets under `.scratch/decision-model/issues/`.
+- Concrete engineering tasks and Red -> Green unit test suites are broken down into 9 implementation tickets under `.scratch/decision-model/issues/`.
 - All domain terminology conforms to [`GLOSSARY.md`](file:///Users/connieleung/Documents/ws_jsangular2/ng-firebase-tts/GLOSSARY.md).

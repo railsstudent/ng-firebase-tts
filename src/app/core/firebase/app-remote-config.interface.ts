@@ -7,5 +7,4 @@ export interface AppRemoteConfig {
   thinkingLevel: ThinkingLevel;
   useLimitedUseAppCheckTokens: boolean;
   decisionModelPath: string;
-  decisionConfidenceThreshold: number;
 }

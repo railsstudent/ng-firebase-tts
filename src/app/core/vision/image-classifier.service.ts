@@ -16,7 +16,7 @@ export class ImageClassifierService {
       return 'general';
     }
 
-    const { decisionModelPath, decisionConfidenceThreshold } = this.#configService.appConfig;
+    const { decisionModelPath } = this.#configService.appConfig;
     const delegate = this.resolveDelegate(decisionModelPath);
     if (!delegate) {
       return 'general';
@@ -24,17 +24,19 @@ export class ImageClassifierService {
 
     try {
       const decisionMaker = await this.getDecisionMaker(delegate);
-      const result = await decisionMaker.evaluateChoice({ imageBytes }, IMAGE_CATEGORY_QUESTION);
+      const { probabilities } = await decisionMaker.evaluateChoice({ imageBytes }, IMAGE_CATEGORY_QUESTION);
 
-      if (result.confidence < decisionConfidenceThreshold) {
-        return 'general';
+      let bestCategory: ImageSubjectCategory = 'general';
+      let highestProbability = -1;
+
+      for (const [key, probability] of Object.entries(probabilities)) {
+        if (probability > highestProbability && (key === 'place' || key === 'people' || key === 'general')) {
+          highestProbability = probability;
+          bestCategory = key;
+        }
       }
 
-      if (result.selectedKey === 'place' || result.selectedKey === 'people') {
-        return result.selectedKey;
-      }
-
-      return 'general';
+      return bestCategory;
     } catch (error) {
       console.warn('[ImageClassifierService] On-device classification failed, falling back to general:', error);
       return 'general';

@@ -70,7 +70,7 @@ function createRemoteConfigMocks(): MockRemoteConfigMocks {
     getValue: vi.fn((_rc: unknown, key: string) => ({
       asString: () => resolveRemoteConfigString(key),
       asBoolean: () => key === 'useLimitedUseAppCheckTokens',
-      asNumber: () => (key === 'decisionConfidenceThreshold' ? 0.4 : 0),
+      asNumber: () => 0,
     })),
   };
 

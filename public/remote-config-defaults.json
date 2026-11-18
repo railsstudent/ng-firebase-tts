@@ -1,5 +1,5 @@
 {
-  "decisionConfidenceThreshold": "0.2",
+  "decisionModelPath": "https://huggingface.co/litert-community/embeddinggemma-2-text-vision-440m-litert-lm/resolve/main/embeddinggemma-2-text-vision-440m.litertlm",
   "functionEmulatorHost": "localhost",
   "functionEmulatorPort": "5001",
   "vertexAILocation": "global",
@@ -7,6 +7,5 @@
   "thinkingLevel": "LOW",
   "functionRegion": "asia-east2",
   "geminiModelName": "gemini-3.8-flash",
-  "decisionModelPath": "https://huggingface.co/litert-community/embeddinggemma-2-text-vision-440m-litert-lm/resolve/main/embeddinggemma-2-text-vision-440m.litertlm",
   "useLimitedUseAppCheckTokens": "true"
 }

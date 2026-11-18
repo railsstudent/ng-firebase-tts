@@ -153,7 +153,7 @@ describe('ImageClassifierService', () => {
     });
   });
 
-  it('should return "people" when evaluateChoice selects "people" above the confidence threshold', async () => {
+  it('should return "people" when "people" has the highest probability', async () => {
     mockEvaluateChoice.mockResolvedValueOnce({
       selectedKey: 'people',
       confidence: 0.85,
@@ -164,18 +164,18 @@ describe('ImageClassifierService', () => {
     expect(category).toBe('people');
   });
 
-  it('should return "place" when evaluateChoice selects "place" above the confidence threshold', async () => {
+  it('should return "place" when "place" has the highest probability even if confidence is low', async () => {
     mockEvaluateChoice.mockResolvedValueOnce({
       selectedKey: 'place',
-      confidence: 0.72,
-      probabilities: { place: 0.72, people: 0.2, general: 0.08 },
+      confidence: 0.16,
+      probabilities: { general: 0.13, people: 0.26, place: 0.61 },
     });
 
     const category = await service.classifyImage(sampleBytes);
     expect(category).toBe('place');
   });
 
-  it('should return "general" when evaluateChoice selects "general" or an unrecognized key', async () => {
+  it('should return "general" when "general" has the highest probability or probabilities are empty', async () => {
     mockEvaluateChoice.mockResolvedValueOnce({
       selectedKey: 'general',
       confidence: 0.6,
@@ -184,17 +184,15 @@ describe('ImageClassifierService', () => {
 
     const category = await service.classifyImage(sampleBytes);
     expect(category).toBe('general');
-  });
 
-  it('should fall back to "general" when confidence is below decisionConfidenceThreshold (0.2)', async () => {
     mockEvaluateChoice.mockResolvedValueOnce({
-      selectedKey: 'place',
-      confidence: 0.19,
-      probabilities: { place: 0.39, people: 0.31, general: 0.3 },
+      selectedKey: 'general',
+      confidence: 0,
+      probabilities: {},
     });
 
-    const category = await service.classifyImage(sampleBytes);
-    expect(category).toBe('general');
+    const emptyCategory = await service.classifyImage(sampleBytes);
+    expect(emptyCategory).toBe('general');
   });
 
   it('should log console.warn, fall back to "general" when initialization rejects, and retry initialization on the next call', async () => {

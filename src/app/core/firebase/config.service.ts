@@ -28,7 +28,6 @@ export class ConfigService {
     geminiTTSModelName: remoteConfigDefaults.geminiTTSModelName,
     thinkingLevel: remoteConfigDefaults.thinkingLevel as ThinkingLevel,
     decisionModelPath: remoteConfigDefaults.decisionModelPath,
-    decisionConfidenceThreshold: Number(remoteConfigDefaults.decisionConfidenceThreshold),
   };
 
   get appConfig(): AppRemoteConfig {
@@ -130,7 +129,6 @@ export class ConfigService {
             thinkingLevel: getValue(rc, 'thinkingLevel').asString() as ThinkingLevel,
             geminiTTSModelName: getValue(rc, 'geminiTTSModelName').asString(),
             decisionModelPath: getValue(rc, 'decisionModelPath').asString(),
-            decisionConfidenceThreshold: getValue(rc, 'decisionConfidenceThreshold').asNumber(),
           };
           this.#ai = null;
         })

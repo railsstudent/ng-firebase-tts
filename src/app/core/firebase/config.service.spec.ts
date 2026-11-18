@@ -15,7 +15,6 @@ const DEFAULT_REMOTE_CONFIG = {
   thinkingLevel: 'LOW',
   decisionModelPath:
     'https://huggingface.co/litert-community/embeddinggemma-2-text-vision-440m-litert-lm/resolve/main/embeddinggemma-2-text-vision-440m.litertlm',
-  decisionConfidenceThreshold: 0.2,
 };
 
 describe('ConfigService', () => {
@@ -77,7 +76,6 @@ describe('ConfigService', () => {
         thinkingLevel: 'LOW',
         geminiTTSModelName: 'gemini-1.5-flash-tts',
         decisionModelPath: 'https://example.com/models/embeddinggemma-2.litertlm',
-        decisionConfidenceThreshold: 0.4,
       });
     });
   });
