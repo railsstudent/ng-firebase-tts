@@ -6,7 +6,7 @@ export const MAX_NUM_TOKENS = 512;
 export const IMAGE_CATEGORY_QUESTION: ChoiceQuestion = {
   context: 'Analyze the uploaded image for accessibility alt-text routing.',
   instructions:
-    'Select the primary subject category of this image. If an outdoor landscape, architecture, monument, landmark, or travel destination is visible behind people, select place.',
+    'Select the primary subject category of this image. If an outdoor landscape, architecture, monument, landmark, or travel destination is visible behind people, select place. Otherwise, if any person, masked figure, or group of people is visible, select people.',
   options: [
     {
       label: 'place',
@@ -14,11 +14,11 @@ export const IMAGE_CATEGORY_QUESTION: ChoiceQuestion = {
     },
     {
       label: 'people',
-      description: 'A portrait, close-up face, individual person, or group of people.',
+      description: 'A person, portrait, face, masked or costumed figure, performer, or group of people.',
     },
     {
       label: 'general',
-      description: 'A close-up of a single everyday item, creature, meal, or text graphic.',
+      description: 'A close-up of food, drink, animal, pet, vehicle, or household object.',
     },
   ],
   temperature: 0.05,
