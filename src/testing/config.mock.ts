@@ -15,7 +15,7 @@ export function createMockAppRemoteConfig(overrides?: Partial<AppRemoteConfig>):
     geminiTTSModelName: 'gemini-2.0-flash-exp',
     thinkingLevel: ThinkingLevel.LOW,
     useLimitedUseAppCheckTokens: true,
-    decisionConfidenceThreshold: 0.4,
+    decisionConfidenceThreshold: 0.2,
     decisionModelPath:
       'https://huggingface.co/litert-community/embeddinggemma-2-text-vision-440m-litert-lm/resolve/main/embeddinggemma-2-text-vision-440m.litertlm',
     ...(overrides ?? {}),

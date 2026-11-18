@@ -15,7 +15,7 @@ const DEFAULT_REMOTE_CONFIG = {
   thinkingLevel: 'LOW',
   decisionModelPath:
     'https://huggingface.co/litert-community/embeddinggemma-2-text-vision-440m-litert-lm/resolve/main/embeddinggemma-2-text-vision-440m.litertlm',
-  decisionConfidenceThreshold: 0.4,
+  decisionConfidenceThreshold: 0.2,
 };
 
 describe('ConfigService', () => {

@@ -86,7 +86,7 @@ describe('ImageClassifierService', () => {
     expect(mockPrewarmChoice).toHaveBeenCalledWith({
       context: 'Analyze the uploaded image for accessibility alt-text routing.',
       instructions:
-        'Classify the primary subject category of this image. If a landmark, pyramid, monument, or scenic travel location is visible behind a person, select place.',
+        'Select the primary subject category of this image. If an outdoor landscape, architecture, monument, landmark, or travel destination is visible behind people, select place.',
       options: [
         expect.objectContaining({ label: 'place', description: expect.any(String) }),
         expect.objectContaining({ label: 'people', description: expect.any(String) }),
@@ -101,7 +101,7 @@ describe('ImageClassifierService', () => {
       expect.objectContaining({
         context: 'Analyze the uploaded image for accessibility alt-text routing.',
         instructions:
-          'Classify the primary subject category of this image. If a landmark, pyramid, monument, or scenic travel location is visible behind a person, select place.',
+          'Select the primary subject category of this image. If an outdoor landscape, architecture, monument, landmark, or travel destination is visible behind people, select place.',
         options: [
           expect.objectContaining({ label: 'place', description: expect.any(String) }),
           expect.objectContaining({ label: 'people', description: expect.any(String) }),
@@ -186,10 +186,10 @@ describe('ImageClassifierService', () => {
     expect(category).toBe('general');
   });
 
-  it('should fall back to "general" when confidence is below decisionConfidenceThreshold (0.4)', async () => {
+  it('should fall back to "general" when confidence is below decisionConfidenceThreshold (0.2)', async () => {
     mockEvaluateChoice.mockResolvedValueOnce({
       selectedKey: 'place',
-      confidence: 0.39,
+      confidence: 0.19,
       probabilities: { place: 0.39, people: 0.31, general: 0.3 },
     });
 

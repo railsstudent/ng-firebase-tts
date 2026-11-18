@@ -45,7 +45,7 @@ The local, zero-decoding pre-analysis step that evaluates an uploaded image in t
 _Avoid_: Cloud pre-check, image tagging, vision router
 
 **Image Subject Category**:
-The mutually exclusive subject classification (`place`, `people`, or `general`) assigned to an uploaded image that governs which domain prompt, system instruction, and grounding tools are used during Image Analysis. Recognizable landmarks and places take precedence over foreground human subjects (`place`), while `people` covers human portraits and performers without a landmark backdrop and identifies individuals by name only when verified by visible text in the image or unmistakable direct recognition.
+The mutually exclusive subject classification (`place`, `people`, or `general`) assigned to an uploaded image that governs which domain prompt, system instruction, and grounding tools are used during Image Analysis. Outdoor landscapes, natural scenery, architecture, monuments, landmarks, and travel destinations take precedence over foreground human subjects (`place`); `people` covers human portraits, close-up faces, individuals, or groups of people and identifies individuals by name only when verified by visible text in the image or unmistakable direct recognition; `general` covers close-up scenes of single everyday items, creatures, meals, or text graphics.
 _Avoid_: Image type, photo class, model mode
 
 **Obscure Fact**:

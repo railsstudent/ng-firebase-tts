@@ -1,5 +1,5 @@
 {
-  "decisionConfidenceThreshold": "0.4",
+  "decisionConfidenceThreshold": "0.2",
   "functionEmulatorHost": "localhost",
   "functionEmulatorPort": "5001",
   "vertexAILocation": "global",
