@@ -16,8 +16,7 @@ export class ImageClassifierService {
       return 'general';
     }
 
-    const { decisionModelPath } = this.#configService.appConfig;
-    const delegate = this.resolveDelegate(decisionModelPath);
+    const delegate = this.resolveDelegate();
     if (!delegate) {
       return 'general';
     }
@@ -43,12 +42,12 @@ export class ImageClassifierService {
     }
   }
 
-  private resolveDelegate(modelAssetPath: string): 'GPU' | 'CPU' | undefined {
+  private resolveDelegate(): 'GPU' | 'CPU' | undefined {
     const hasWebGpu = Boolean(this.#window?.navigator && 'gpu' in this.#window.navigator);
     if (hasWebGpu) {
       return 'GPU';
     }
-    if (modelAssetPath.endsWith('.litertlm')) {
+    if (this.#configService.appConfig.decisionModelPath.endsWith('.litertlm')) {
       return undefined;
     }
     return 'CPU';

@@ -86,7 +86,7 @@ describe('ImageClassifierService', () => {
     expect(mockPrewarmChoice).toHaveBeenCalledWith({
       context: 'Analyze the uploaded image for accessibility alt-text routing.',
       instructions:
-        'Select the primary subject category of this image. If an outdoor landscape, architecture, monument, landmark, or travel destination is visible behind people, select place.',
+        'Select the primary subject category of this image. If an outdoor landscape, architecture, monument, landmark, or travel destination is visible behind people, select place. Otherwise, if any person, masked figure, or group of people is visible, select people.',
       options: [
         expect.objectContaining({ label: 'place', description: expect.any(String) }),
         expect.objectContaining({ label: 'people', description: expect.any(String) }),
@@ -101,7 +101,7 @@ describe('ImageClassifierService', () => {
       expect.objectContaining({
         context: 'Analyze the uploaded image for accessibility alt-text routing.',
         instructions:
-          'Select the primary subject category of this image. If an outdoor landscape, architecture, monument, landmark, or travel destination is visible behind people, select place.',
+          'Select the primary subject category of this image. If an outdoor landscape, architecture, monument, landmark, or travel destination is visible behind people, select place. Otherwise, if any person, masked figure, or group of people is visible, select people.',
         options: [
           expect.objectContaining({ label: 'place', description: expect.any(String) }),
           expect.objectContaining({ label: 'people', description: expect.any(String) }),
