@@ -2,6 +2,7 @@ import type { ChoiceQuestion } from '@mediapipe/tasks-decision';
 
 export const WASM_PATH = '/wasm';
 export const MAX_NUM_TOKENS = 512;
+export const DECISION_MODEL_CACHE_NAME = 'decision-model-v1';
 
 export const IMAGE_CATEGORY_QUESTION: ChoiceQuestion = {
   context: 'Analyze the uploaded image for accessibility alt-text routing.',

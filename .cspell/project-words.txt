@@ -27,6 +27,7 @@ Sadaltager
 Sandboxed
 Subchunk
 Sulafat
+WCAG
 Wayfinding
 activatable
 apng

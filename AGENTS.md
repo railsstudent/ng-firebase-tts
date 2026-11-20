@@ -13,7 +13,7 @@ This file provides context, rules, and guidance for AI assistants working on thi
 
 ## Context Pointers & Protocols
 
-- **MCP Tools & Research**: [docs/agents/mcp-tools.md](docs/agents/mcp-tools.md) — MUST query `angular-cli` and `firebase-mcp-server` MCPs first. Web search is strictly forbidden for Angular/Firebase platform APIs.
+- **MCP Tools & Research**: [docs/agents/mcp-tools.md](docs/agents/mcp-tools.md) — Query `angular-cli` / `firebase-mcp-server` MCPs first before explaining, reviewing, or implementing any Angular/Firebase API, default, or setup requirement (fall back to web search only if the MCP is unavailable).
 - **Coding Standards & Invariants**: [docs/agents/coding-standards.md](docs/agents/coding-standards.md) — Architectural invariants.
 - **Testing & Mocking**: [docs/agents/testing-guide.md](docs/agents/testing-guide.md) — DI mocking at TestBed boundary using `mock<Name>` with `satisfies Partial<T>`, mock factories, and targeted runner usage.
 - **Domain Modeling**: [docs/agents/domain.md](docs/agents/domain.md) — Project glossary and domain decisions.

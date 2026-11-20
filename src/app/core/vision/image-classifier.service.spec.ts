@@ -3,6 +3,8 @@ import { ConfigService } from '@/core/firebase';
 import { createMockAppRemoteConfig, createMockConfigService } from '@/testing/config.mock';
 import { TestBed } from '@angular/core/testing';
 import { ImageClassifierService } from './image-classifier.service';
+import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
+import { of, throwError } from 'rxjs';
 
 const { mockForDecisionTasks, mockCreateFromOptions, mockPrewarmChoice, mockEvaluateChoice } = vi.hoisted(() => ({
   mockForDecisionTasks: vi.fn(),
@@ -23,7 +25,8 @@ vi.mock('@mediapipe/tasks-decision', () => ({
 describe('ImageClassifierService', () => {
   let service: ImageClassifierService;
   let mockConfigService: ReturnType<typeof createMockConfigService>;
-  let mockWindow: { navigator: Record<string, unknown> } | null;
+  let mockWindow: { navigator: Record<string, unknown>; caches?: Partial<CacheStorage> } | null;
+  let mockHttpClient: { get: ReturnType<typeof vi.fn> };
   const sampleBytes = new Uint8Array([1, 2, 3, 4]);
   const mockWasmFileset = { wasmLoaderPath: '/wasm/decision_wasm_internal.js' };
 
@@ -35,6 +38,10 @@ describe('ImageClassifierService', () => {
         {
           provide: ConfigService,
           useValue: mockConfigService,
+        },
+        {
+          provide: HttpClient,
+          useValue: mockHttpClient,
         },
         {
           provide: WINDOW,
@@ -63,6 +70,11 @@ describe('ImageClassifierService', () => {
         gpu: {},
       },
     };
+
+    mockHttpClient = {
+      get: vi.fn(),
+    };
+
     mockConfigService = createMockConfigService();
     service = configureService();
   });
@@ -233,5 +245,231 @@ describe('ImageClassifierService', () => {
     expect(secondAttempt).toBe('place');
     expect(mockCreateFromOptions).toHaveBeenCalledTimes(1);
     warnSpy.mockRestore();
+  });
+
+  it('should download and cache the model via HttpClient on cache miss, pass the blob URL to DecisionMaker, and revoke the blob URL after initialization', async () => {
+    const modelUrl = mockConfigService.appConfig.decisionModelPath;
+    const mockBlob = new Blob(['model-bytes']);
+    const mockCache = {
+      keys: vi.fn().mockResolvedValue([]),
+      match: vi.fn().mockResolvedValue(undefined),
+      put: vi.fn().mockResolvedValue(undefined),
+      delete: vi.fn().mockResolvedValue(true),
+    };
+    mockWindow = {
+      navigator: { gpu: {} },
+      caches: {
+        open: vi.fn().mockResolvedValue(mockCache),
+      },
+    };
+    mockHttpClient.get.mockReturnValue(of(new HttpResponse({ body: mockBlob, status: 200 })));
+    const createObjectUrlSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:http://localhost/model-1');
+    const revokeObjectUrlSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+    service = configureService();
+
+    await service.classifyImage(sampleBytes);
+
+    expect(mockWindow.caches?.open).toHaveBeenCalledWith('decision-model-v1');
+    expect(mockCache.match).toHaveBeenCalledWith(modelUrl);
+    expect(mockHttpClient.get).toHaveBeenCalledWith(modelUrl, {
+      observe: 'response',
+      responseType: 'blob',
+    });
+    expect(mockCache.put).toHaveBeenCalledWith(modelUrl, expect.any(Response));
+    expect(mockCreateFromOptions).toHaveBeenCalledWith(mockWasmFileset, {
+      baseOptions: {
+        modelAssetPath: 'blob:http://localhost/model-1',
+        delegate: 'GPU',
+      },
+      backendType: 3,
+      maxNumTokens: 512,
+    });
+    expect(revokeObjectUrlSpy).toHaveBeenCalledWith('blob:http://localhost/model-1');
+
+    createObjectUrlSpy.mockRestore();
+    revokeObjectUrlSpy.mockRestore();
+  });
+
+  it('should load the model from Cache Storage without calling HttpClient on cache hit and evict stale cached model URLs', async () => {
+    const activeModelUrl = mockConfigService.appConfig.decisionModelPath;
+    const staleRequest = { url: 'https://example.com/old-model.litertlm' } as Request;
+    const activeRequest = { url: activeModelUrl } as Request;
+    const mockBlob = new Blob(['cached-bytes']);
+    const cachedResponse = {
+      blob: vi.fn().mockResolvedValue(mockBlob),
+    } as unknown as Response;
+    const mockCache = {
+      keys: vi.fn().mockResolvedValue([staleRequest, activeRequest]),
+      match: vi.fn().mockResolvedValue(cachedResponse),
+      put: vi.fn(),
+      delete: vi.fn().mockResolvedValue(true),
+    };
+    mockWindow = {
+      navigator: { gpu: {} },
+      caches: {
+        open: vi.fn().mockResolvedValue(mockCache),
+      },
+    };
+    const createObjectUrlSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:http://localhost/cached-model');
+    const revokeObjectUrlSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+    service = configureService();
+
+    await service.classifyImage(sampleBytes);
+
+    expect(mockCache.delete).toHaveBeenCalledTimes(1);
+    expect(mockCache.delete).toHaveBeenCalledWith(staleRequest);
+    expect(mockHttpClient.get).not.toHaveBeenCalled();
+    expect(mockCache.put).not.toHaveBeenCalled();
+    expect(mockCreateFromOptions).toHaveBeenCalledWith(mockWasmFileset, {
+      baseOptions: {
+        modelAssetPath: 'blob:http://localhost/cached-model',
+        delegate: 'GPU',
+      },
+      backendType: 3,
+      maxNumTokens: 512,
+    });
+    expect(revokeObjectUrlSpy).toHaveBeenCalledWith('blob:http://localhost/cached-model');
+
+    createObjectUrlSpy.mockRestore();
+    revokeObjectUrlSpy.mockRestore();
+  });
+
+  it('should not touch window.caches when WebGPU is unavailable for a .litertlm model', async () => {
+    const openSpy = vi.fn();
+    mockWindow = {
+      navigator: {},
+      caches: {
+        open: openSpy,
+      },
+    };
+    service = configureService();
+
+    const category = await service.classifyImage(sampleBytes);
+
+    expect(category).toBe('general');
+    expect(openSpy).not.toHaveBeenCalled();
+    expect(mockHttpClient.get).not.toHaveBeenCalled();
+    expect(mockForDecisionTasks).not.toHaveBeenCalled();
+  });
+
+  it('should fall back to original modelAssetPath when HttpClient.get errors on cache miss', async () => {
+    const modelUrl = mockConfigService.appConfig.decisionModelPath;
+    const mockCache = {
+      keys: vi.fn().mockResolvedValue([]),
+      match: vi.fn().mockResolvedValue(undefined),
+      put: vi.fn(),
+      delete: vi.fn(),
+    };
+    mockWindow = {
+      navigator: { gpu: {} },
+      caches: {
+        open: vi.fn().mockResolvedValue(mockCache),
+      },
+    };
+    mockHttpClient.get.mockReturnValue(
+      throwError(() => new HttpErrorResponse({ status: 503, statusText: 'Service Unavailable' })),
+    );
+    service = configureService();
+
+    await service.classifyImage(sampleBytes);
+
+    expect(mockCache.put).not.toHaveBeenCalled();
+    expect(mockCreateFromOptions).toHaveBeenCalledWith(mockWasmFileset, {
+      baseOptions: {
+        modelAssetPath: modelUrl,
+        delegate: 'GPU',
+      },
+      backendType: 3,
+      maxNumTokens: 512,
+    });
+  });
+
+  it('should fall back to original modelAssetPath when Cache Storage throws', async () => {
+    const modelUrl = mockConfigService.appConfig.decisionModelPath;
+    mockWindow = {
+      navigator: { gpu: {} },
+      caches: {
+        open: vi.fn().mockRejectedValue(new Error('QuotaExceededError')),
+      },
+    };
+    service = configureService();
+
+    await service.classifyImage(sampleBytes);
+
+    expect(mockHttpClient.get).not.toHaveBeenCalled();
+    expect(mockCreateFromOptions).toHaveBeenCalledWith(mockWasmFileset, {
+      baseOptions: {
+        modelAssetPath: modelUrl,
+        delegate: 'GPU',
+      },
+      backendType: 3,
+      maxNumTokens: 512,
+    });
+  });
+
+  it('should still revoke the temporary blob URL in finally when DecisionMaker.createFromOptions rejects', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const mockBlob = new Blob(['cached-bytes']);
+    const cachedResponse = {
+      blob: vi.fn().mockResolvedValue(mockBlob),
+    } as unknown as Response;
+    const mockCache = {
+      keys: vi.fn().mockResolvedValue([]),
+      match: vi.fn().mockResolvedValue(cachedResponse),
+      put: vi.fn(),
+      delete: vi.fn(),
+    };
+    mockWindow = {
+      navigator: { gpu: {} },
+      caches: {
+        open: vi.fn().mockResolvedValue(mockCache),
+      },
+    };
+    const createObjectUrlSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:http://localhost/fail-model');
+    const revokeObjectUrlSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+    mockCreateFromOptions.mockRejectedValueOnce(new Error('WASM init failed'));
+    service = configureService();
+
+    const category = await service.classifyImage(sampleBytes);
+
+    expect(category).toBe('general');
+    expect(revokeObjectUrlSpy).toHaveBeenCalledWith('blob:http://localhost/fail-model');
+
+    warnSpy.mockRestore();
+    createObjectUrlSpy.mockRestore();
+    revokeObjectUrlSpy.mockRestore();
+  });
+
+  it('should still revoke the temporary blob URL in finally when prewarmChoice rejects', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const mockBlob = new Blob(['cached-bytes']);
+    const cachedResponse = {
+      blob: vi.fn().mockResolvedValue(mockBlob),
+    } as unknown as Response;
+    const mockCache = {
+      keys: vi.fn().mockResolvedValue([]),
+      match: vi.fn().mockResolvedValue(cachedResponse),
+      put: vi.fn(),
+      delete: vi.fn(),
+    };
+    mockWindow = {
+      navigator: { gpu: {} },
+      caches: {
+        open: vi.fn().mockResolvedValue(mockCache),
+      },
+    };
+    const createObjectUrlSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:http://localhost/prewarm-fail');
+    const revokeObjectUrlSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+    mockPrewarmChoice.mockRejectedValueOnce(new Error('Prewarm failed'));
+    service = configureService();
+
+    const category = await service.classifyImage(sampleBytes);
+
+    expect(category).toBe('general');
+    expect(revokeObjectUrlSpy).toHaveBeenCalledWith('blob:http://localhost/prewarm-fail');
+
+    warnSpy.mockRestore();
+    createObjectUrlSpy.mockRestore();
+    revokeObjectUrlSpy.mockRestore();
   });
 });

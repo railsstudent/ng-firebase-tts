@@ -3,13 +3,21 @@ import { ConfigService } from '@/core/firebase';
 import { inject, Service } from '@angular/core';
 import type { DecisionMaker } from '@mediapipe/tasks-decision';
 import type { ImageSubjectCategory } from './image-category.type';
-import { IMAGE_CATEGORY_QUESTION, MAX_NUM_TOKENS, WASM_PATH } from './image-classifier.const';
+import {
+  DECISION_MODEL_CACHE_NAME,
+  IMAGE_CATEGORY_QUESTION,
+  MAX_NUM_TOKENS,
+  WASM_PATH,
+} from './image-classifier.const';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 
 @Service()
 export class ImageClassifierService {
-  readonly #window = inject(WINDOW);
-  readonly #configService = inject(ConfigService);
+  #window = inject(WINDOW);
+  #configService = inject(ConfigService);
   #decisionMakerPromise: Promise<DecisionMaker> | null = null;
+  #http = inject(HttpClient);
 
   async classifyImage(imageBytes: Uint8Array): Promise<ImageSubjectCategory> {
     if (imageBytes.byteLength === 0) {
@@ -69,17 +77,61 @@ export class ImageClassifierService {
   private async initializeDecisionMaker(modelAssetPath: string, delegate: 'GPU' | 'CPU'): Promise<DecisionMaker> {
     const { DecisionMaker, FilesetResolver } = await import('@mediapipe/tasks-decision');
     const wasmFileset = await FilesetResolver.forDecisionTasks(WASM_PATH);
-    const decisionMaker = await DecisionMaker.createFromOptions(wasmFileset, {
-      baseOptions: {
-        modelAssetPath,
-        delegate,
-      },
-      backendType: 3,
-      maxNumTokens: MAX_NUM_TOKENS,
-    });
+    const resolvedModelPath = await this.getCachedModelUrl(modelAssetPath);
 
-    await decisionMaker.prewarmChoice(IMAGE_CATEGORY_QUESTION);
+    try {
+      const decisionMaker = await DecisionMaker.createFromOptions(wasmFileset, {
+        baseOptions: {
+          modelAssetPath: resolvedModelPath,
+          delegate,
+        },
+        backendType: 3,
+        maxNumTokens: MAX_NUM_TOKENS,
+      });
 
-    return decisionMaker;
+      await decisionMaker.prewarmChoice(IMAGE_CATEGORY_QUESTION);
+
+      return decisionMaker;
+    } finally {
+      if (resolvedModelPath.startsWith('blob:')) {
+        URL.revokeObjectURL(resolvedModelPath);
+      }
+    }
+  }
+
+  private async getCachedModelUrl(modelAssetPath: string): Promise<string> {
+    const cacheStorage = this.#window?.caches;
+    if (!cacheStorage) {
+      return modelAssetPath;
+    }
+
+    try {
+      const cache = await cacheStorage.open(DECISION_MODEL_CACHE_NAME);
+      const keys = await cache.keys();
+      await Promise.all(keys.filter((req) => req.url !== modelAssetPath).map((req) => cache.delete(req)));
+
+      let response = await cache.match(modelAssetPath);
+      if (!response) {
+        const httpResponse = await firstValueFrom(
+          this.#http.get(modelAssetPath, { observe: 'response', responseType: 'blob' }),
+        );
+        const downloadedBlob = httpResponse.body;
+        if (!downloadedBlob) {
+          return modelAssetPath;
+        }
+        response = new Response(downloadedBlob, {
+          status: httpResponse.status,
+          headers: {
+            'Content-Type': httpResponse.headers.get('Content-Type') ?? 'application/octet-stream',
+          },
+        });
+        await cache.put(modelAssetPath, response);
+      }
+
+      const blob = await response.blob();
+      return URL.createObjectURL(blob);
+    } catch {
+      return modelAssetPath;
+    }
   }
 }

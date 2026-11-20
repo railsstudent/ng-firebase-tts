@@ -35,6 +35,9 @@ This document defines testing conventions, DI mocking contracts, and verificatio
    - Never import mock objects or helpers directly from `@/testing/firebase.mock` inside spec files. Doing so causes Vite/esbuild to code-split the setup file into a shared chunk, breaking `vi.mock` hoisting across worker threads in multi-file test runs.
    - Instead, import the SDK function directly from the Firebase module (e.g., `'firebase/ai'`) and wrap it with `vi.mocked(...)` (e.g., `const mockGetGenerativeModel = vi.mocked(getGenerativeModel)`).
 
+6. **HTTP Mocking in Specs**:
+   - Mock `HttpClient` at the `TestBed` DI boundary (or use `provideHttpClientTesting()` and `HttpTestingController`) for all HTTP tests in `*.spec.ts` files.
+
 ## Test Execution Workflow
 
 1. **Targeted Testing during Iterations**:

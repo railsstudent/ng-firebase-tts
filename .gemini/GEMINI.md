@@ -66,6 +66,7 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Prefer the `@Service` decorator over `@Injectable({providedIn: 'root'})` for new singleton services (Angular v22+)
 - Use the `inject()` function instead of constructor injection
 - Do not specify services decorated with the custom `@Service()` decorator inside a component's local `providers: [...]` metadata array. Doing so overrides the DI container and instantiates a redundant, component-scoped copy instead of utilizing the container's global singleton.
+- **HTTP Requests**: Inject Angular's `HttpClient` (provided in root by default in Angular v21+ with `FetchBackend`) for all HTTP requests. Only add `provideHttpClient(...)` in `app.config.ts` when configuring features such as `withInterceptors(...)`.
 
 ## SSR & Browser Globals Protection
 
