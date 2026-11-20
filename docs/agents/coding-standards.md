@@ -47,16 +47,16 @@ This document outlines project-specific coding standards and architectural conve
 - **Domain Packages (`src/app/core/<domain>/`)**: Cohesive flat domain packages (e.g. `src/app/core/vision/`, `src/app/core/speech/`, `src/app/core/auth/`, `src/app/core/firebase/`). Keep all domain files at the root level of the folder without nested subdirectories (`constants/`, `interfaces/`, `types/`) and expose the public API via `index.ts`. Never export internal helpers for testing, and never export lazy-only services (`injectAsync` targets or services exclusively consumed by them, such as `AiModelFactory`) from a barrel file (`index.ts`) that is also imported by eager modules in `main.js` (which pulls lazy services into `main.js` when any sibling symbol is imported from the barrel).
 - **Barrel File Restrictions**: Barrel files (`index.ts`) are only permitted in `src/app/core/<domain>/` for eagerly loaded domain exports. Never create barrel files in `src/app/pwa/`, feature folders, or component directories containing `@defer` components.
 
-## 6. Asynchronous & Fire-and-Forget Operations
+## 7. Asynchronous & Fire-and-Forget Operations
 
 - **Floating Promises Handling**: At caller sites requiring non-blocking / fire-and-forget execution, handle the returned Promise with `.catch(...)` to satisfy `@typescript-eslint/no-floating-promises`.
 - **Ban `void` Operator Keyword**: Never use the `void` expression operator keyword (e.g. `void this.method()`) at call sites.
 
-## 7. Deferred Component Empty State Invariant
+## 8. Deferred Component Empty State Invariant
 
 - **One-Way Hydration & Empty State Invariant**: Angular `@defer (when condition)` triggers hydration once and never reverts to `@placeholder` if data becomes falsy or is cleared post-hydration. While the parent `@placeholder` handles initial FCP/CLS, every deferred child component rendering nullable or dynamic models MUST maintain an internal `@empty` or `@else` fallback state to safely handle data resets.
 
-## 8. Architectural Layer Hierarchy & Boundary Invariants
+## 9. Architectural Layer Hierarchy & Boundary Invariants
 
 The codebase enforces a strict Directed Acyclic Graph (DAG) layer hierarchy via deterministic ESLint `no-restricted-imports` rules:
 
@@ -67,7 +67,7 @@ $$\text{Features} \longrightarrow \text{Shared} \longrightarrow \text{Core}$$
 - **Feature Layer (`src/app/features/<feature>/`)**: Route-level and feature-specific components and view models. Features may depend on `core` and `shared`, but direct cross-feature imports between sibling features are strictly forbidden.
 - **Companion Skeletons**: Loading and placeholder skeletons must always reside in the exact same layer as their primary component (e.g. shared component skeletons reside in `src/app/shared/ui/components/`, feature skeletons in `src/app/features/<feature>/`).
 
-## 9. Micro-Library Capability Audits & Fallbacks
+## 10. Micro-Library Capability Audits & Fallbacks
 
 - **Typing Verification**: Before proposing external `@types/*` dependencies, verify whether the target package already ships built-in TypeScript declarations.
 - **Micro-Library Boundaries**: When selecting lightweight parsers over full-featured engines (e.g. `snarkdown` for bundle isolation), audit syntax limitations upfront and implement a two-tier defense:

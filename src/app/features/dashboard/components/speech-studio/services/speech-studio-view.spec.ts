@@ -137,7 +137,7 @@ describe('SpeechStudioViewService', () => {
       );
       mockAudioPlayerService.playStream.mockImplementation(async (stream) => {
         for await (const chunk of stream) {
-          void chunk;
+          expect(chunk).toBeDefined();
         }
       });
       vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:stream-url');
@@ -185,7 +185,7 @@ describe('SpeechStudioViewService', () => {
       );
       mockAudioPlayerService.playStream.mockImplementation(async (stream) => {
         for await (const chunk of stream) {
-          void chunk;
+          expect(chunk).toBeDefined();
         }
       });
 

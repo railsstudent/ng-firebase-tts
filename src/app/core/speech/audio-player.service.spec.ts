@@ -234,7 +234,7 @@ describe('AudioPlayerService', () => {
       expect(resolved).toBe(false);
 
       // Stop all mid-playback
-      void testService.stopAll();
+      await testService.stopAll();
 
       // Advance timers - should resolve instantly on next poll
       await vi.advanceTimersByTimeAsync(100);

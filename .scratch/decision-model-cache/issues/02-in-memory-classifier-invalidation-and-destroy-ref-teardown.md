@@ -5,7 +5,7 @@ Mirror `AiModelFactory.getValidBackend()` inside `ImageClassifierService` (`src/
 
 1. `ImageClassifierService` tracks `#cachedModelPath: string | null` alongside `#decisionMakerPromise: Promise<DecisionMaker> | null`.
 2. When `getValidDecisionMaker(delegate)` is called and `this.#decisionMakerPromise` exists with `this.#cachedModelPath !== this.#configService.appConfig.decisionModelPath` (for example, after `ConfigService` updates `decisionModelPath` from Model `A` to Model `B` via Firebase Remote Config), it awaits `closeActiveDecisionMaker()` to call `.close()` on the previous `DecisionMaker` instance (wrapped in a `try / catch` so WASM teardown errors never block loading Model `B`), resets `#decisionMakerPromise = null` and `#cachedModelPath = null`, and initializes Model `B` (which automatically purges `A` from `window.caches` via Ticket `01` and downloads + caches `B`).
-3. `ImageClassifierService` injects Angular's `DestroyRef` (`inject(DestroyRef)`) and registers `this.#destroyRef.onDestroy(() => void this.closeActiveDecisionMaker())` in its constructor so destroying the Angular injector cleanly releases the active `DecisionMaker` WASM heap allocation.
+3. `ImageClassifierService` injects Angular's `DestroyRef` (`readonly #destroyRef = inject(DestroyRef)`) and registers `this.#destroyRef.onDestroy(() => this.closeActiveDecisionMaker())` in its constructor so destroying the Angular injector cleanly releases the active `DecisionMaker` WASM heap allocation.
 
 **Blocked by:** `01: Persistent Browser Cache Storage, Single-Model Eviction, and Object URL Cleanup for On-Device Image Classification`
 
@@ -142,7 +142,7 @@ Mirror `AiModelFactory.getValidBackend()` inside `ImageClassifierService` (`src/
   import { DestroyRef, inject, Service } from '@angular/core';
   ```
 
-- [ ] Inject `DestroyRef`, add `#cachedModelPath: string | null = null`, and register `this.#destroyRef.onDestroy(() => void this.closeActiveDecisionMaker())` in the `constructor`:
+- [ ] Inject `DestroyRef`, add `#cachedModelPath: string | null = null`, and register `this.#destroyRef.onDestroy(() => this.closeActiveDecisionMaker())` in the `constructor`:
 
   ```ts
   readonly #window = inject(WINDOW);
@@ -152,9 +152,7 @@ Mirror `AiModelFactory.getValidBackend()` inside `ImageClassifierService` (`src/
   #cachedModelPath: string | null = null;
 
   constructor() {
-    this.#destroyRef.onDestroy(() => {
-      void this.closeActiveDecisionMaker();
-    });
+    this.#destroyRef.onDestroy(() => this.closeActiveDecisionMaker());
   }
   ```
 
