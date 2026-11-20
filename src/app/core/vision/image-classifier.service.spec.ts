@@ -73,7 +73,7 @@ describe('ImageClassifierService', () => {
 
     mockHttpClient = {
       get: vi.fn(),
-    };
+    } satisfies Partial<HttpClient>;
 
     mockConfigService = createMockConfigService();
     service = configureService();

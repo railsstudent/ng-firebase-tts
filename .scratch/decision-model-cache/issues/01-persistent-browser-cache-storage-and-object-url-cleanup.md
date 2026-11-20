@@ -286,18 +286,18 @@ Persist the on-device decision model in the browser's native Cache Storage (`win
   });
   ```
 
-### Step 3: Implement `getCachedModelUrl` and `try / finally` Cleanup in `src/app/core/vision/image-classifier.service.ts`
+### Step 3: Implement `resolveCachedModelUrl` and `try / finally` Cleanup in `src/app/core/vision/image-classifier.service.ts`
 
 - [x] In `src/app/core/vision/image-classifier.service.ts`:
   - Import `HttpClient` from `@angular/common/http`, `firstValueFrom` from `rxjs`, and `DECISION_MODEL_CACHE_NAME` from `./image-classifier.const`.
-  - Inject `readonly #http = inject(HttpClient);` (`HttpClient` is provided in root by default in Angular v21+, with `FetchBackend` as the default).
-  - Update `initializeDecisionMaker(modelAssetPath, delegate)` to resolve `const resolvedModelPath = await this.getCachedModelUrl(modelAssetPath)` and wrap `DecisionMaker.createFromOptions()` + `decisionMaker.prewarmChoice()` in a `try / finally` block that calls `URL.revokeObjectURL(resolvedModelPath)` whenever `resolvedModelPath.startsWith('blob:')`:
+  - Inject `#http = inject(HttpClient);` (`HttpClient` is provided in root by default in Angular v21+, with `FetchBackend` as the default).
+  - Update `initializeDecisionMaker(modelAssetPath, delegate)` to resolve `const resolvedModelPath = await this.resolveCachedModelUrl(modelAssetPath)` and wrap `DecisionMaker.createFromOptions()` + `decisionMaker.prewarmChoice()` in a `try / finally` block that calls `URL.revokeObjectURL(resolvedModelPath)` whenever `resolvedModelPath.startsWith('blob:')`:
 
   ```ts
   private async initializeDecisionMaker(modelAssetPath: string, delegate: 'GPU' | 'CPU'): Promise<DecisionMaker> {
     const { DecisionMaker, FilesetResolver } = await import('@mediapipe/tasks-decision');
     const wasmFileset = await FilesetResolver.forDecisionTasks(WASM_PATH);
-    const resolvedModelPath = await this.getCachedModelUrl(modelAssetPath);
+    const resolvedModelPath = await this.resolveCachedModelUrl(modelAssetPath);
 
     try {
       const decisionMaker = await DecisionMaker.createFromOptions(wasmFileset, {
@@ -319,7 +319,7 @@ Persist the on-device decision model in the browser's native Cache Storage (`win
     }
   }
 
-  private async getCachedModelUrl(modelAssetPath: string): Promise<string> {
+  private async resolveCachedModelUrl(modelAssetPath: string): Promise<string> {
     const cacheStorage = this.#window?.caches;
     if (!cacheStorage) {
       return modelAssetPath;

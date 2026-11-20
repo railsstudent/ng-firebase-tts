@@ -77,7 +77,7 @@ export class ImageClassifierService {
   private async initializeDecisionMaker(modelAssetPath: string, delegate: 'GPU' | 'CPU'): Promise<DecisionMaker> {
     const { DecisionMaker, FilesetResolver } = await import('@mediapipe/tasks-decision');
     const wasmFileset = await FilesetResolver.forDecisionTasks(WASM_PATH);
-    const resolvedModelPath = await this.getCachedModelUrl(modelAssetPath);
+    const resolvedModelPath = await this.resolveCachedModelUrl(modelAssetPath);
 
     try {
       const decisionMaker = await DecisionMaker.createFromOptions(wasmFileset, {
@@ -99,7 +99,7 @@ export class ImageClassifierService {
     }
   }
 
-  private async getCachedModelUrl(modelAssetPath: string): Promise<string> {
+  private async resolveCachedModelUrl(modelAssetPath: string): Promise<string> {
     const cacheStorage = this.#window?.caches;
     if (!cacheStorage) {
       return modelAssetPath;
@@ -125,7 +125,7 @@ export class ImageClassifierService {
             'Content-Type': httpResponse.headers.get('Content-Type') ?? 'application/octet-stream',
           },
         });
-        await cache.put(modelAssetPath, response);
+        await cache.put(modelAssetPath, response.clone());
       }
 
       const blob = await response.blob();
