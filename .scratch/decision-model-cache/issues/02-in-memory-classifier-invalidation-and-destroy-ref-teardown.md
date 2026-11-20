@@ -9,7 +9,7 @@ Mirror `AiModelFactory.getValidBackend()` inside `ImageClassifierService` (`src/
 
 **Blocked by:** `01: Persistent Browser Cache Storage, Single-Model Eviction, and Object URL Cleanup for On-Device Image Classification`
 
-**Status:** ready-for-agent
+**Status:** done
 
 ## Target Files
 
@@ -20,7 +20,7 @@ Mirror `AiModelFactory.getValidBackend()` inside `ImageClassifierService` (`src/
 
 ### Step 1: Add Red -> Green Unit Tests in `src/app/core/vision/image-classifier.service.spec.ts`
 
-- [ ] In `src/app/core/vision/image-classifier.service.spec.ts`, add `mockClose` to `vi.hoisted(...)` and include `close: mockClose` in the object resolved by `mockCreateFromOptions`:
+- [x] In `src/app/core/vision/image-classifier.service.spec.ts`, add `mockClose` to `vi.hoisted(...)` and include `close: mockClose` in the object resolved by `mockCreateFromOptions`:
 
   ```ts
   const { mockForDecisionTasks, mockCreateFromOptions, mockPrewarmChoice, mockEvaluateChoice, mockClose } = vi.hoisted(
@@ -45,7 +45,7 @@ Mirror `AiModelFactory.getValidBackend()` inside `ImageClassifierService` (`src/
   });
   ```
 
-- [ ] Add unit tests verifying:
+- [x] Add unit tests verifying:
   1. When `ConfigService.appConfig.decisionModelPath` changes from Model `A` to Model `B` between `classifyImage()` calls, the service closes the previous `DecisionMaker` for `A`, evicts `A` from `window.caches`, and initializes a new `DecisionMaker` for `B`.
   2. If `.close()` on the previous `DecisionMaker` throws an error during a model switch (`A → B`), the error is caught and ignored so Model `B` still initializes and classifies the image.
   3. When the Angular injector is destroyed (`TestBed.resetTestingModule()`), the `DestroyRef.onDestroy()` callback invokes `.close()` on the active `DecisionMaker`:
@@ -136,18 +136,18 @@ Mirror `AiModelFactory.getValidBackend()` inside `ImageClassifierService` (`src/
 
 ### Step 2: Implement `getValidDecisionMaker`, `closeActiveDecisionMaker`, and `DestroyRef` in `src/app/core/vision/image-classifier.service.ts`
 
-- [ ] Import `DestroyRef` from `@angular/core` in `src/app/core/vision/image-classifier.service.ts`:
+- [x] Import `DestroyRef` from `@angular/core` in `src/app/core/vision/image-classifier.service.ts`:
 
   ```ts
   import { DestroyRef, inject, Service } from '@angular/core';
   ```
 
-- [ ] Inject `DestroyRef`, add `#cachedModelPath: string | null = null`, and register `this.#destroyRef.onDestroy(() => this.closeActiveDecisionMaker())` in the `constructor`:
+- [x] Inject `DestroyRef`, add `#cachedModelPath: string | null = null`, and register `this.#destroyRef.onDestroy(() => this.closeActiveDecisionMaker())` in the `constructor`:
 
   ```ts
-  readonly #window = inject(WINDOW);
-  readonly #configService = inject(ConfigService);
-  readonly #destroyRef = inject(DestroyRef);
+  #window = inject(WINDOW);
+  #configService = inject(ConfigService);
+  #destroyRef = inject(DestroyRef);
   #decisionMakerPromise: Promise<DecisionMaker> | null = null;
   #cachedModelPath: string | null = null;
 
@@ -156,7 +156,7 @@ Mirror `AiModelFactory.getValidBackend()` inside `ImageClassifierService` (`src/
   }
   ```
 
-- [ ] Replace `getDecisionMaker(delegate)` with `getValidDecisionMaker(delegate)` and `closeActiveDecisionMaker()`, and update `classifyImage()` to call `await this.getValidDecisionMaker(delegate)`:
+- [x] Replace `getDecisionMaker(delegate)` with `getValidDecisionMaker(delegate)` and `closeActiveDecisionMaker()`, and update `classifyImage()` to call `await this.getValidDecisionMaker(delegate)`:
 
   ```ts
   private async getValidDecisionMaker(delegate: 'GPU' | 'CPU'): Promise<DecisionMaker> {
@@ -197,5 +197,5 @@ Mirror `AiModelFactory.getValidBackend()` inside `ImageClassifierService` (`src/
 
 ### Step 3: Verify
 
-- [ ] Run targeted unit tests for `src/app/core/vision/image-classifier.service.spec.ts` and ensure all tests pass.
-- [ ] Run `npm run lint` and `npm run test:once` to confirm zero violations across the workspace.
+- [x] Run targeted unit tests for `src/app/core/vision/image-classifier.service.spec.ts` and ensure all tests pass.
+- [x] Run `npm run lint` and `npm run test:once` to confirm zero violations across the workspace.

@@ -6,12 +6,15 @@ import { ImageClassifierService } from './image-classifier.service';
 import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { of, throwError } from 'rxjs';
 
-const { mockForDecisionTasks, mockCreateFromOptions, mockPrewarmChoice, mockEvaluateChoice } = vi.hoisted(() => ({
-  mockForDecisionTasks: vi.fn(),
-  mockCreateFromOptions: vi.fn(),
-  mockPrewarmChoice: vi.fn(),
-  mockEvaluateChoice: vi.fn(),
-}));
+const { mockForDecisionTasks, mockCreateFromOptions, mockPrewarmChoice, mockEvaluateChoice, mockClose } = vi.hoisted(
+  () => ({
+    mockForDecisionTasks: vi.fn(),
+    mockCreateFromOptions: vi.fn(),
+    mockPrewarmChoice: vi.fn(),
+    mockEvaluateChoice: vi.fn(),
+    mockClose: vi.fn(),
+  }),
+);
 
 vi.mock('@mediapipe/tasks-decision', () => ({
   FilesetResolver: {
@@ -60,9 +63,11 @@ describe('ImageClassifierService', () => {
       confidence: 0.75,
       probabilities: { general: 0.75, people: 0.15, place: 0.1 },
     });
+    mockClose.mockReset();
     mockCreateFromOptions.mockReset().mockResolvedValue({
       prewarmChoice: mockPrewarmChoice,
       evaluateChoice: mockEvaluateChoice,
+      close: mockClose,
     });
 
     mockWindow = {
@@ -471,5 +476,87 @@ describe('ImageClassifierService', () => {
     warnSpy.mockRestore();
     createObjectUrlSpy.mockRestore();
     revokeObjectUrlSpy.mockRestore();
+  });
+
+  it('should close the previous DecisionMaker, purge stale cache, and initialize the new model when decisionModelPath changes from A to B', async () => {
+    const modelA = 'https://example.com/models/model-a.litertlm';
+    const modelB = 'https://example.com/models/model-b.litertlm';
+    mockConfigService = createMockConfigService({
+      appConfig: createMockAppRemoteConfig({ decisionModelPath: modelA }),
+    });
+    const mockCache = {
+      keys: vi.fn().mockResolvedValue([{ url: modelA } as Request]),
+      match: vi.fn().mockResolvedValue({
+        blob: vi.fn().mockResolvedValue(new Blob(['bytes'])),
+      } as unknown as Response),
+      put: vi.fn(),
+      delete: vi.fn().mockResolvedValue(true),
+    };
+    mockWindow = {
+      navigator: { gpu: {} },
+      caches: {
+        open: vi.fn().mockResolvedValue(mockCache),
+      },
+    };
+    const createObjectUrlSpy = vi
+      .spyOn(URL, 'createObjectURL')
+      .mockReturnValueOnce('blob:http://localhost/model-a')
+      .mockReturnValueOnce('blob:http://localhost/model-b');
+    const revokeObjectUrlSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+    service = configureService();
+
+    await service.classifyImage(sampleBytes);
+    expect(mockCreateFromOptions).toHaveBeenCalledTimes(1);
+    expect(mockClose).not.toHaveBeenCalled();
+
+    // Update Remote Config decisionModelPath from A to B
+    mockConfigService.appConfig.decisionModelPath = modelB;
+
+    await service.classifyImage(sampleBytes);
+
+    expect(mockClose).toHaveBeenCalledTimes(1);
+    expect(mockCache.delete).toHaveBeenCalledWith({ url: modelA });
+    expect(mockCreateFromOptions).toHaveBeenCalledTimes(2);
+    expect(mockCreateFromOptions).toHaveBeenLastCalledWith(mockWasmFileset, {
+      baseOptions: {
+        modelAssetPath: 'blob:http://localhost/model-b',
+        delegate: 'GPU',
+      },
+      backendType: 3,
+      maxNumTokens: 512,
+    });
+
+    createObjectUrlSpy.mockRestore();
+    revokeObjectUrlSpy.mockRestore();
+  });
+
+  it('should ignore errors thrown by close() when switching from model A to model B', async () => {
+    mockClose.mockImplementationOnce(() => {
+      throw new Error('WASM free error');
+    });
+    await service.classifyImage(sampleBytes);
+
+    mockConfigService.appConfig.decisionModelPath = 'https://example.com/models/model-b.litertlm';
+    mockEvaluateChoice.mockResolvedValueOnce({
+      selectedKey: 'place',
+      confidence: 0.9,
+      probabilities: { place: 0.9, people: 0.05, general: 0.05 },
+    });
+
+    const category = await service.classifyImage(sampleBytes);
+
+    expect(mockClose).toHaveBeenCalledTimes(1);
+    expect(mockCreateFromOptions).toHaveBeenCalledTimes(2);
+    expect(category).toBe('place');
+  });
+
+  it('should close the active DecisionMaker when DestroyRef destroys the service', async () => {
+    await service.classifyImage(sampleBytes);
+    expect(mockClose).not.toHaveBeenCalled();
+
+    TestBed.resetTestingModule();
+    await Promise.resolve();
+
+    expect(mockClose).toHaveBeenCalledTimes(1);
   });
 });

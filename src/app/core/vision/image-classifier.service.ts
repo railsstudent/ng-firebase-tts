@@ -1,6 +1,6 @@
 import { WINDOW } from '@/core/constants/navigator.const';
 import { ConfigService } from '@/core/firebase';
-import { inject, Service } from '@angular/core';
+import { DestroyRef, inject, Service } from '@angular/core';
 import type { DecisionMaker } from '@mediapipe/tasks-decision';
 import type { ImageSubjectCategory } from './image-category.type';
 import {
@@ -16,8 +16,14 @@ import { firstValueFrom } from 'rxjs';
 export class ImageClassifierService {
   #window = inject(WINDOW);
   #configService = inject(ConfigService);
+  #destroyRef = inject(DestroyRef);
   #decisionMakerPromise: Promise<DecisionMaker> | null = null;
+  #cachedModelPath: string | null = null;
   #http = inject(HttpClient);
+
+  constructor() {
+    this.#destroyRef.onDestroy(() => this.closeActiveDecisionMaker());
+  }
 
   async classifyImage(imageBytes: Uint8Array): Promise<ImageSubjectCategory> {
     if (imageBytes.byteLength === 0) {
@@ -30,7 +36,7 @@ export class ImageClassifierService {
     }
 
     try {
-      const decisionMaker = await this.getDecisionMaker(delegate);
+      const decisionMaker = await this.getValidDecisionMaker(delegate);
       const { probabilities } = await decisionMaker.evaluateChoice({ imageBytes }, IMAGE_CATEGORY_QUESTION);
 
       let bestCategory: ImageSubjectCategory = 'general';
@@ -61,17 +67,39 @@ export class ImageClassifierService {
     return 'CPU';
   }
 
-  private getDecisionMaker(delegate: 'GPU' | 'CPU'): Promise<DecisionMaker> {
+  private async getValidDecisionMaker(delegate: 'GPU' | 'CPU'): Promise<DecisionMaker> {
+    const modelAssetPath = this.#configService.appConfig.decisionModelPath;
+
+    if (this.#decisionMakerPromise && this.#cachedModelPath !== modelAssetPath) {
+      await this.closeActiveDecisionMaker();
+    }
+
     if (!this.#decisionMakerPromise) {
-      this.#decisionMakerPromise = this.initializeDecisionMaker(
-        this.#configService.appConfig.decisionModelPath,
-        delegate,
-      ).catch((error) => {
+      this.#cachedModelPath = modelAssetPath;
+      this.#decisionMakerPromise = this.initializeDecisionMaker(modelAssetPath, delegate).catch((error) => {
         this.#decisionMakerPromise = null;
+        this.#cachedModelPath = null;
         throw error;
       });
     }
+
     return this.#decisionMakerPromise;
+  }
+
+  private async closeActiveDecisionMaker(): Promise<void> {
+    if (!this.#decisionMakerPromise) {
+      return;
+    }
+
+    try {
+      const decisionMaker = await this.#decisionMakerPromise;
+      decisionMaker.close();
+    } catch {
+      // Ignore initialization or WASM teardown errors during cleanup
+    } finally {
+      this.#decisionMakerPromise = null;
+      this.#cachedModelPath = null;
+    }
   }
 
   private async initializeDecisionMaker(modelAssetPath: string, delegate: 'GPU' | 'CPU'): Promise<DecisionMaker> {
