@@ -1,4 +1,4 @@
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import process from 'node:process';
 import { clearFsCache, fileExists, getFileMtimeMs, getSourceFiles, readJsonFile, readTextFile } from './fs-utils.mjs';
@@ -140,9 +140,23 @@ function getBuildReason(forceRebuild, distDir, sourceRoot) {
   return null;
 }
 
+const SAFE_PROJECT_NAME_REGEX = /^[a-zA-Z0-9._-]+$/;
+
+function buildNgBuildArgs(projectName) {
+  const args = [path.join(rootDir, 'node_modules', '@angular', 'cli', 'bin', 'ng.js'), 'build'];
+  if (projectName && projectName !== 'default') {
+    if (!SAFE_PROJECT_NAME_REGEX.test(projectName)) {
+      throw new Error(`Invalid project name "${projectName}"`);
+    }
+    args.push(projectName);
+  }
+  args.push('--stats-json', '--progress=false');
+  return args;
+}
+
 /**
  * Ensures browser-stats.json is available and fresh.
- * Triggers npx ng build [project] --stats-json if missing, stale, or forced via --rebuild.
+ * Triggers Angular CLI build with --stats-json if missing, stale, or forced via --rebuild.
  */
 export function ensureFreshStats(forceRebuild, projectConfig = {}) {
   const { projectName = 'default', sourceRoot = SRC_DIR, distDir = DIST_DIR } = projectConfig;
@@ -151,11 +165,10 @@ export function ensureFreshStats(forceRebuild, projectConfig = {}) {
     return;
   }
 
-  const projectTarget = projectName !== 'default' ? ` ${projectName}` : '';
-  const buildCmd = `npx ng build${projectTarget} --stats-json --progress=false`;
-  console.log(`\n[analyze-bundle] ${reason}\n[analyze-bundle] Executing "${buildCmd}" to generate fresh stats...\n`);
   try {
-    execSync(buildCmd, { cwd: rootDir, stdio: 'inherit', env: process.env });
+    const ngArgs = buildNgBuildArgs(projectName);
+    console.log(`\n[analyze-bundle] ${reason}\n[analyze-bundle] Running Angular CLI build to generate fresh stats...\n`);
+    execFileSync(process.execPath, ngArgs, { cwd: rootDir, stdio: 'inherit' });
     clearFsCache();
   } catch (error) {
     console.error('\n[analyze-bundle] Build failed:', error.message);
